@@ -1,0 +1,773 @@
+"use client";
+
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { services, stylists, site } from "@/content/salon";
+import {
+  BOOKING_TIME_ZONE,
+  getAvailableSlots,
+  getBookingDates,
+  loadAvailability,
+  submitDemoBooking,
+  validateContactDetails,
+  type BookingSlot,
+  type ContactDetails,
+} from "@/lib/booking";
+import { priceLabel } from "@/lib/utils";
+import { ButtonLink } from "@/components/ui";
+import styles from "./booking.module.css";
+
+const steps = [
+  "Serviço",
+  "Profissional",
+  "Dia e horário",
+  "Seus dados",
+  "Revisão",
+];
+const titles = [
+  "Escolha seu serviço",
+  "Com quem você quer estar?",
+  "Encontre seu horário",
+  "Vamos nos conhecer",
+  "Revise sua escolha",
+];
+const descriptions = [
+  "Tudo começa com o cuidado que faz sentido para você.",
+  "Conheça quem cuida de você ou deixe a escolha com a nossa equipe.",
+  "Selecione um dia para conhecer a disponibilidade demonstrativa.",
+  "Use dados de exemplo para experimentar esta demonstração.",
+  "Confira os detalhes antes de concluir a demonstração.",
+];
+
+function dateLabel(date: string, full = false): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: BOOKING_TIME_ZONE,
+    weekday: full ? "long" : "short",
+    day: "numeric",
+    month: full ? "long" : "short",
+  }).format(new Date(`${date}T12:00:00Z`));
+}
+
+export function BookingWizard({
+  initialServiceId = "",
+  initialStylistId = "",
+}: {
+  initialServiceId?: string;
+  initialStylistId?: string;
+}) {
+  const [step, setStep] = useState(0);
+  const [serviceId, setServiceId] = useState(initialServiceId);
+  const [stylistChoice, setStylistChoice] = useState(initialStylistId);
+  const [date, setDate] = useState("");
+  const [slot, setSlot] = useState<BookingSlot | null>(null);
+  const [slots, setSlots] = useState<BookingSlot[]>([]);
+  const [contact, setContact] = useState<ContactDetails>({
+    name: "",
+    phone: "",
+    email: "",
+  });
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ContactDetails, string>>
+  >({});
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [pending, setPending] = useState(false);
+  const [confirmation, setConfirmation] = useState<BookingSlot | null>(null);
+  const submitting = useRef(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const firstRender = useRef(true);
+  const service = services.find((item) => item.id === serviceId);
+  const compatibleStylists = stylists.filter((item) =>
+    item.serviceIds.includes(serviceId),
+  );
+  const selectedStylist = stylists.find(
+    (item) => item.id === (slot?.stylistId || stylistChoice),
+  );
+  const dates = getBookingDates();
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    heading.current?.focus();
+  }, [step, confirmation]);
+
+  useEffect(() => {
+    if (!date || !serviceId || !stylistChoice) return;
+    let cancelled = false;
+    loadAvailability({
+      serviceId,
+      stylistId: stylistChoice === "any" ? undefined : stylistChoice,
+      date,
+    })
+      .then((available) => {
+        if (cancelled) return;
+        setSlots(available);
+        setLoading(false);
+        setLoadError(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLoading(false);
+        setLoadError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [date, serviceId, stylistChoice, retry]);
+
+  function clearTime() {
+    setDate("");
+    setSlot(null);
+    setSlots([]);
+    setLoading(false);
+    setLoadError(false);
+  }
+
+  function chooseService(id: string) {
+    if (id === serviceId) return;
+    // A professional-only link keeps its initial choice for the first compatible service.
+    const keepInitial =
+      !serviceId &&
+      stylists.some(
+        (item) => item.id === stylistChoice && item.serviceIds.includes(id),
+      );
+    setServiceId(id);
+    if (!keepInitial) setStylistChoice("");
+    clearTime();
+    setMessage("");
+  }
+
+  function chooseStylist(id: string) {
+    if (id === stylistChoice) return;
+    setStylistChoice(id);
+    clearTime();
+    setMessage("");
+  }
+
+  function chooseDate(value: string) {
+    setDate(value);
+    setSlot(null);
+    setSlots([]);
+    setLoading(Boolean(value));
+    setLoadError(false);
+    setMessage("");
+  }
+
+  function moveBack() {
+    if (pending) return;
+    setMessage("");
+    setStep((value) => Math.max(0, value - 1));
+  }
+
+  async function continueBooking(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting.current || pending) return;
+    setMessage("");
+    if (step === 0 && !service) {
+      setMessage("Selecione um serviço para continuar.");
+      document
+        .querySelector<HTMLInputElement>('input[name="service"]')
+        ?.focus();
+      return;
+    }
+    if (
+      step === 1 &&
+      (!stylistChoice ||
+        (stylistChoice !== "any" &&
+          !compatibleStylists.some((item) => item.id === stylistChoice)))
+    ) {
+      setMessage("Selecione um profissional ou a opção Sem preferência.");
+      document
+        .querySelector<HTMLInputElement>('input[name="stylist"]')
+        ?.focus();
+      return;
+    }
+    if (step === 2) {
+      if (!date) {
+        setMessage("Selecione um dia para continuar.");
+        document.getElementById("booking-date")?.focus();
+        return;
+      }
+      if (!slot) {
+        setMessage("Selecione um horário disponível para continuar.");
+        const firstTime =
+          document.querySelector<HTMLInputElement>('input[name="time"]');
+        (firstTime || document.getElementById("booking-date"))?.focus();
+        return;
+      }
+      const available = getAvailableSlots({
+        serviceId,
+        stylistId: stylistChoice === "any" ? undefined : stylistChoice,
+        date,
+      });
+      if (
+        !available.some(
+          (item) => item.id === slot.id && item.startAt === slot.startAt,
+        )
+      ) {
+        setSlot(null);
+        setMessage(
+          "Este horário não está mais disponível. Escolha outro horário.",
+        );
+        setLoading(true);
+        setRetry((value) => value + 1);
+        document.getElementById("booking-date")?.focus();
+        return;
+      }
+    }
+    if (step === 3 || step === 4) {
+      const fieldErrors = validateContactDetails(contact);
+      setErrors(fieldErrors);
+      const firstError = (
+        Object.keys(fieldErrors) as (keyof ContactDetails)[]
+      )[0];
+      if (firstError) {
+        setMessage("Confira os campos indicados para continuar.");
+        if (step === 4) setStep(3);
+        requestAnimationFrame(() =>
+          document.getElementById(`booking-${firstError}`)?.focus(),
+        );
+        return;
+      }
+    }
+    if (step < 4) {
+      setStep((value) => value + 1);
+      return;
+    }
+    if (
+      !slot ||
+      slot.serviceId !== serviceId ||
+      slot.date !== date ||
+      (stylistChoice !== "any" && slot.stylistId !== stylistChoice)
+    ) {
+      setMessage("Confira o dia e o horário escolhidos.");
+      setStep(2);
+      return;
+    }
+    submitting.current = true;
+    setPending(true);
+    try {
+      const result = await submitDemoBooking({ slot, contact });
+      if (result.ok) setConfirmation(result.slot);
+      else {
+        setMessage(result.message);
+        if (result.code === "unavailable") {
+          clearTime();
+          setStep(2);
+        } else setStep(3);
+      }
+    } catch {
+      setMessage(
+        "Não foi possível concluir a simulação. Seus dados foram mantidos; tente novamente.",
+      );
+    } finally {
+      submitting.current = false;
+      setPending(false);
+    }
+  }
+
+  function restart() {
+    setConfirmation(null);
+    setStep(0);
+    setServiceId("");
+    setStylistChoice("");
+    clearTime();
+    setContact({ name: "", phone: "", email: "" });
+    setErrors({});
+    setMessage("");
+  }
+
+  if (confirmation) {
+    return (
+      <section
+        className={`${styles.confirmation} surface-panel`}
+        aria-labelledby="booking-complete"
+      >
+        <div className={styles.completeMark} aria-hidden="true">
+          ✓
+        </div>
+        <p className="eyebrow">OBRIGADO POR CONHECER O LIVRE</p>
+        <h2 id="booking-complete" ref={heading} tabIndex={-1}>
+          Simulação concluída
+        </h2>
+        <p role="status">
+          Simulação concluída. Nenhuma reserva real foi criada e nenhuma
+          mensagem foi enviada.
+        </p>
+        <dl className={styles.confirmationDetails}>
+          <div>
+            <dt>Seu cuidado</dt>
+            <dd>{service?.name}</dd>
+          </div>
+          <div>
+            <dt>Profissional</dt>
+            <dd>{selectedStylist?.name}</dd>
+          </div>
+          <div>
+            <dt>Dia e horário</dt>
+            <dd>
+              {dateLabel(confirmation.date, true)} · {confirmation.time}
+            </dd>
+          </div>
+        </dl>
+        <p className="fine-print">
+          Os dados informados ficam apenas nesta tela. Nada é armazenado ou
+          enviado a um serviço externo.
+        </p>
+        <div className={styles.confirmationActions}>
+          <button type="button" className="button" onClick={restart}>
+            Começar outra simulação
+          </button>
+          <ButtonLink href="/" secondary>
+            Voltar ao início
+          </ButtonLink>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <div className={styles.layout}>
+      <div className={styles.main}>
+        <ol className={styles.progress} aria-label="Etapas do agendamento">
+          {steps.map((label, index) => (
+            <li
+              key={label}
+              className={index <= step ? styles.reached : ""}
+              aria-current={index === step ? "step" : undefined}
+            >
+              <span className={styles.stepNumber} aria-hidden="true">
+                {index < step ? "✓" : index + 1}
+              </span>
+              <span>{label}</span>
+            </li>
+          ))}
+        </ol>
+        <form onSubmit={continueBooking} noValidate aria-busy={pending}>
+          <div className={styles.stepIntro}>
+            <p className="eyebrow">ETAPA {step + 1} DE 5</p>
+            <h2 ref={heading} tabIndex={-1}>
+              {titles[step]}
+            </h2>
+            <p>{descriptions[step]}</p>
+          </div>
+
+          {step === 0 && (
+            <fieldset
+              className={styles.choiceFieldset}
+              aria-describedby={message ? "booking-error" : undefined}
+            >
+              <legend className="sr-only">Serviço desejado</legend>
+              <div className={styles.serviceChoices}>
+                {services.map((item) => (
+                  <label
+                    key={item.id}
+                    className={`${styles.choice} ${serviceId === item.id ? styles.selected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      required
+                      name="service"
+                      value={item.id}
+                      checked={serviceId === item.id}
+                      onChange={() => chooseService(item.id)}
+                    />
+                    <span className={styles.choiceContent}>
+                      <span className={styles.choiceName}>{item.name}</span>
+                      <span className={styles.choiceDescription}>
+                        {item.description}
+                      </span>
+                      <span className={styles.choiceMeta}>
+                        {item.duration} min · {priceLabel(item.price)}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          {step === 1 && (
+            <fieldset
+              className={styles.choiceFieldset}
+              aria-describedby={message ? "booking-error" : undefined}
+            >
+              <legend className="sr-only">Profissional desejado</legend>
+              <div className={styles.stylistChoices}>
+                <label
+                  className={`${styles.choice} ${stylistChoice === "any" ? styles.selected : ""}`}
+                >
+                  <input
+                    type="radio"
+                    required
+                    name="stylist"
+                    value="any"
+                    checked={stylistChoice === "any"}
+                    onChange={() => chooseStylist("any")}
+                  />
+                  <span className={styles.choiceContent}>
+                    <span className={styles.choiceName}>Sem preferência</span>
+                    <span className={styles.choiceDescription}>
+                      Encontramos um profissional compatível com o seu serviço e
+                      horário.
+                    </span>
+                  </span>
+                </label>
+                {compatibleStylists.map((item) => (
+                  <label
+                    key={item.id}
+                    className={`${styles.choice} ${stylistChoice === item.id ? styles.selected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      required
+                      name="stylist"
+                      value={item.id}
+                      checked={stylistChoice === item.id}
+                      onChange={() => chooseStylist(item.id)}
+                    />
+                    <span className={styles.choiceContent}>
+                      <span className={styles.choiceName}>{item.name}</span>
+                      <span className={styles.choiceDescription}>
+                        {item.role}
+                      </span>
+                      <span className={styles.choiceMeta}>
+                        {item.specialties.join(" · ")}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
+          {step === 2 && (
+            <div>
+              <div className="field">
+                <label className="label" htmlFor="booking-date">
+                  Dia do atendimento
+                </label>
+                <select
+                  required
+                  id="booking-date"
+                  className={`input ${styles.dateSelect}`}
+                  value={date}
+                  onChange={(event) => chooseDate(event.target.value)}
+                  aria-invalid={Boolean(message && !date)}
+                  aria-describedby={`booking-timezone${message ? " booking-error" : ""}`}
+                >
+                  <option value="">Selecione um dia</option>
+                  {dates.map((day) => (
+                    <option value={day} key={day}>
+                      {dateLabel(day, true)}
+                    </option>
+                  ))}
+                </select>
+                <p className="fine-print" id="booking-timezone">
+                  {site.hours}. Horários de São Paulo (Brasília).
+                </p>
+              </div>
+              <div className={styles.timesArea}>
+                {loading && (
+                  <p className={styles.loading} role="status">
+                    <span aria-hidden="true" className={styles.spinner} />
+                    Consultando horários…
+                  </p>
+                )}
+                {loadError && (
+                  <div role="alert">
+                    <p className="form-error">
+                      Não foi possível consultar os horários.
+                    </p>
+                    <button
+                      type="button"
+                      className="button button-secondary"
+                      onClick={() => {
+                        setLoadError(false);
+                        setLoading(true);
+                        setRetry((value) => value + 1);
+                      }}
+                    >
+                      Tentar novamente
+                    </button>
+                  </div>
+                )}
+                {!loading &&
+                  !loadError &&
+                  date &&
+                  (slots.length ? (
+                    <fieldset
+                      className={styles.choiceFieldset}
+                      aria-invalid={Boolean(message && !slot)}
+                      aria-describedby={message ? "booking-error" : undefined}
+                    >
+                      <legend className={styles.timeLegend}>
+                        Horários disponíveis
+                      </legend>
+                      <div className={styles.times}>
+                        {slots.map((available) => (
+                          <label
+                            key={available.id}
+                            className={`${styles.timeChoice} ${slot?.id === available.id ? styles.selected : ""}`}
+                          >
+                            <input
+                              type="radio"
+                              required
+                              name="time"
+                              value={available.id}
+                              checked={slot?.id === available.id}
+                              onChange={() => {
+                                setSlot(available);
+                                setMessage("");
+                              }}
+                            />
+                            <span>{available.time}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  ) : (
+                    <p role="status" className={styles.empty}>
+                      Não há horários para esse dia. Experimente outra data
+                      {stylistChoice !== "any"
+                        ? " ou volte e escolha Sem preferência"
+                        : ""}
+                      .
+                    </p>
+                  ))}
+                {!date && (
+                  <p className={styles.empty}>
+                    Os horários aparecem depois de escolher um dia.
+                  </p>
+                )}
+                {slot && stylistChoice === "any" && (
+                  <p className="fine-print">
+                    Para este horário, o cuidado será com{" "}
+                    {selectedStylist?.name}.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className={styles.contactFields}>
+              <div className="field">
+                <label className="label" htmlFor="booking-name">
+                  Nome completo
+                </label>
+                <input
+                  required
+                  id="booking-name"
+                  className="input"
+                  value={contact.name}
+                  autoComplete="name"
+                  maxLength={100}
+                  onChange={(event) =>
+                    setContact({ ...contact, name: event.target.value })
+                  }
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={
+                    errors.name ? "booking-name-error" : undefined
+                  }
+                />
+                {errors.name && (
+                  <p id="booking-name-error" className="form-error">
+                    {errors.name}
+                  </p>
+                )}
+              </div>
+              <div className="field">
+                <label className="label" htmlFor="booking-phone">
+                  Celular com DDD
+                </label>
+                <input
+                  required
+                  id="booking-phone"
+                  className="input"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={contact.phone}
+                  maxLength={22}
+                  placeholder="(11) 99999-9999"
+                  onChange={(event) =>
+                    setContact({ ...contact, phone: event.target.value })
+                  }
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={
+                    errors.phone ? "booking-phone-error" : undefined
+                  }
+                />
+                {errors.phone && (
+                  <p id="booking-phone-error" className="form-error">
+                    {errors.phone}
+                  </p>
+                )}
+              </div>
+              <div className="field">
+                <label className="label" htmlFor="booking-email">
+                  E-mail
+                </label>
+                <input
+                  required
+                  id="booking-email"
+                  className="input"
+                  type="email"
+                  autoComplete="email"
+                  value={contact.email}
+                  maxLength={254}
+                  placeholder="voce@exemplo.com"
+                  onChange={(event) =>
+                    setContact({ ...contact, email: event.target.value })
+                  }
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={
+                    errors.email ? "booking-email-error" : undefined
+                  }
+                />
+                {errors.email && (
+                  <p id="booking-email-error" className="form-error">
+                    {errors.email}
+                  </p>
+                )}
+              </div>
+              <p className="fine-print">
+                Nesta demonstração, use dados de exemplo. Eles ficam apenas na
+                memória desta página e não são enviados ou armazenados.
+              </p>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className={styles.review}>
+              <dl>
+                <div>
+                  <dt>Serviço</dt>
+                  <dd>
+                    {service?.name}
+                    <span>
+                      {service?.duration} minutos ·{" "}
+                      {service && priceLabel(service.price)}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Profissional</dt>
+                  <dd>
+                    {selectedStylist?.name}
+                    {stylistChoice === "any" && (
+                      <span>Selecionado para o horário escolhido</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Dia e horário</dt>
+                  <dd>
+                    {date && dateLabel(date, true)} · {slot?.time}
+                    <span>Fuso de São Paulo (Brasília)</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Seus dados</dt>
+                  <dd>
+                    {contact.name.trim()}
+                    <span>
+                      {contact.phone} · {contact.email.trim()}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
+              <p className={styles.demoReminder}>
+                Esta é uma simulação. Nenhuma reserva, cobrança ou mensagem será
+                criada.
+              </p>
+            </div>
+          )}
+
+          {message && (
+            <p
+              id="booking-error"
+              role="alert"
+              className={`form-error ${styles.error}`}
+            >
+              {message}
+            </p>
+          )}
+          <div className={styles.actions}>
+            {step > 0 && (
+              <button
+                type="button"
+                className="button button-secondary"
+                onClick={moveBack}
+                disabled={pending}
+              >
+                Voltar
+              </button>
+            )}
+            <button
+              type="submit"
+              className="button"
+              disabled={pending || (step === 2 && loading)}
+            >
+              {pending
+                ? "Concluindo…"
+                : step === 4
+                  ? "Concluir simulação"
+                  : "Continuar"}
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          {pending && (
+            <p role="status" className="fine-print">
+              Validando sua escolha…
+            </p>
+          )}
+        </form>
+      </div>
+      <aside className={styles.summary} aria-label="Resumo da sua escolha">
+        <p className="eyebrow">UM TEMPO SÓ SEU</p>
+        <h2>Sua escolha</h2>
+        <dl>
+          <div>
+            <dt>Serviço</dt>
+            <dd>{service?.name || "Vamos escolher juntos"}</dd>
+          </div>
+          <div>
+            <dt>Profissional</dt>
+            <dd>
+              {selectedStylist?.name ||
+                (stylistChoice === "any" ? "Sem preferência" : "A escolher")}
+            </dd>
+          </div>
+          <div>
+            <dt>Dia e horário</dt>
+            <dd>
+              {date
+                ? `${dateLabel(date)}${slot ? ` · ${slot.time}` : ""}`
+                : "A escolher"}
+            </dd>
+          </div>
+        </dl>
+        {service && (
+          <div className={styles.investment}>
+            <span className="fine-print">
+              {service.duration} minutos de cuidado
+            </span>
+            <strong>{priceLabel(service.price)}</strong>
+            <span className="fine-print">Valor inicial demonstrativo.</span>
+          </div>
+        )}
+        <p className={styles.summaryNote}>
+          Uma boa conversa vem antes de qualquer transformação.
+        </p>
+        <p className="fine-print">
+          Agenda demonstrativa. Nenhuma reserva real é criada.
+        </p>
+      </aside>
+    </div>
+  );
+}

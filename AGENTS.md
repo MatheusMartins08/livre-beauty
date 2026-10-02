@@ -6,6 +6,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
+<!-- END:nextjs-agent-rules -->
+
 # Project Instructions
 
 ## Project
@@ -90,6 +92,3 @@ Do not rewrite unrelated files.
 Do not invent APIs, database schemas or external services without telling me.
 
 When something fails, investigate the root cause before attempting a fix.
-
-
-<!-- END:nextjs-agent-rules -->
