@@ -2,7 +2,7 @@ import { PageMotion } from "@/components/page-motion";
 import { services } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
 import { ServiceDirectory } from "@/components/service-directory";
-import { BookingCTA, DemoNote, PageIntro } from "@/components/ui";
+import { BookingCTA, PageIntro } from "@/components/ui";
 
 export const metadata = pageMetadata(
   "Serviços",
@@ -25,11 +25,7 @@ export default function ServicesPage() {
       >
         <ServiceDirectory items={services} />
         <div className="mt-8 max-w-[75ch]">
-          <DemoNote>
-            Valores e durações demonstrativos. O investimento pode variar
-            conforme comprimento, volume e técnica, com orçamento combinado
-            antes do atendimento.
-          </DemoNote>
+          <p className="fine-print">O investimento pode variar conforme comprimento, volume e técnica, com orçamento combinado antes do atendimento.</p>
         </div>
       </section>
       <BookingCTA

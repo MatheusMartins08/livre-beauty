@@ -2,11 +2,11 @@ import { PageMotion } from "@/components/page-motion";
 import { services, stylists } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
 import { StylistDirectory } from "@/components/stylist-directory";
-import { BookingCTA, DemoNote, PageIntro } from "@/components/ui";
+import { BookingCTA, PageIntro } from "@/components/ui";
 
 export const metadata = pageMetadata(
   "Profissionais",
-  "Conheça a equipe demonstrativa do Livre Beauty e encontre especialidades em cortes, cor, textura, penteados e extensões.",
+  "Conheça a equipe do Livre Beauty e encontre especialidades em cortes, cor, textura, penteados e extensões.",
   "/profissionais",
 );
 
@@ -25,10 +25,6 @@ export default function ProfessionalsPage() {
       >
         <StylistDirectory items={stylists} services={services} />
         <div className="mt-12">
-          <DemoNote>
-            Perfis, nomes, experiências e especialidades são fictícios. Retratos
-            ilustrativos apresentam o conceito da equipe.
-          </DemoNote>
         </div>
       </section>
       <BookingCTA

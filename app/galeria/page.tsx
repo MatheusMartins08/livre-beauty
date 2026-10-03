@@ -2,11 +2,11 @@ import { PageMotion } from "@/components/page-motion";
 import { gallery } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
 import { GalleryGrid } from "@/components/gallery-grid";
-import { BookingCTA, DemoNote, PageIntro } from "@/components/ui";
+import { BookingCTA, PageIntro } from "@/components/ui";
 
 export const metadata = pageMetadata(
   "Galeria",
-  "Explore referências visuais de cortes, balayage, cor, textura e cuidado no universo Livre Beauty. Fotografias ilustrativas.",
+  "Explore referências visuais de cortes, balayage, cor, textura e cuidado no universo Livre Beauty.",
   "/galeria",
 );
 
@@ -24,13 +24,6 @@ export default function GalleryPage() {
         aria-label="Referências de beleza"
       >
         <GalleryGrid items={gallery} filters />
-        <div className="mt-10 max-w-[70ch]">
-          <DemoNote>
-            Fotografias editoriais ilustrativas, selecionadas para representar o
-            conceito Livre. Não são registros de serviços realizados pela equipe
-            fictícia. Cada cabelo pede uma avaliação individual.
-          </DemoNote>
-        </div>
       </section>
       <BookingCTA
         title="Uma referência. Muitas possibilidades."

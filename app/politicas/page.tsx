@@ -2,11 +2,11 @@ import { PageMotion } from "@/components/page-motion";
 import Link from "next/link";
 import { salonPolicies } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
-import { ButtonLink, DemoNote, PageIntro } from "@/components/ui";
+import { ActionContent, ButtonLink, PageIntro } from "@/components/ui";
 
 export const metadata = pageMetadata(
   "Políticas do salão",
-  "Consulte o modelo demonstrativo de políticas do Livre Beauty para agendamento, cancelamento, atrasos, pagamentos e ajustes.",
+  "Consulte as políticas do Livre Beauty para agendamento, cancelamento, atrasos, pagamentos e ajustes.",
   "/politicas",
 );
 
@@ -21,14 +21,10 @@ export default function PoliciesPage() {
       />
       <div className="container grid items-start gap-10 pb-16 lg:grid-cols-[0.6fr_1.4fr] lg:gap-20 lg:pb-24">
         <aside className="max-w-[35ch] lg:sticky lg:top-28">
-          <DemoNote>
-            Este é um modelo ilustrativo. A demonstração não cria reservas,
-            cobra valores, aplica multas ou presta serviços reais.
-          </DemoNote>
-          <p className="mt-6 text-sm text-[var(--text-body)] leading-relaxed">
+          <p className="text-sm text-[var(--text-body)] leading-relaxed">
             Se precisar de uma resposta rápida, consulte as{" "}
-            <Link href="/faq" className="text-link">
-              dúvidas frequentes
+            <Link href="/#faq-title" className="action-link action-inline">
+              <ActionContent>dúvidas frequentes</ActionContent>
             </Link>
             .
           </p>
@@ -51,7 +47,7 @@ export default function PoliciesPage() {
             </section>
           ))}
           <div className="border-t border-[var(--line)] pt-8">
-            <ButtonLink href="/contato" secondary>
+            <ButtonLink href="/#visite-title" secondary>
               Conhecer os canais de contato
             </ButtonLink>
           </div>

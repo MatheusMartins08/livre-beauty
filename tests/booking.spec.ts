@@ -88,7 +88,7 @@ test("retains choices when going back and clears downstream choices after a serv
   await expect(page.getByLabel("Dia do atendimento")).toHaveValue("");
 });
 
-test("validates contact fields with accessible errors and completes one local simulation", async ({
+test("validates contact fields with accessible errors and completes one local selection", async ({
   page,
 }) => {
   const postedRequests: string[] = [];
@@ -125,7 +125,7 @@ test("validates contact fields with accessible errors and completes one local si
   ).toContainText("teste@example.com");
   await page.clock.pauseAt(new Date("2026-10-02T11:01:00Z"));
   await page
-    .getByRole("button", { name: "Concluir simulação", exact: true })
+    .getByRole("button", { name: "Ver resumo", exact: true })
     .evaluate((button: HTMLButtonElement) => {
       button.click();
       button.click();
@@ -139,15 +139,15 @@ test("validates contact fields with accessible errors and completes one local si
   ).toBeDisabled();
   await page.clock.runFor(400);
   await expect(
-    page.getByRole("heading", { name: "Simulação concluída" }),
+    page.getByRole("heading", { name: "Resumo da sua escolha" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Simulação concluída" }),
+    page.getByRole("heading", { name: "Resumo da sua escolha" }),
   ).toBeFocused();
   await expect(
-    page.getByRole("status").filter({ hasText: "Simulação concluída" }),
+    page.getByRole("status").filter({ hasText: "Confira o serviço" }),
   ).toHaveCount(1);
-  await expect(page.getByText(/Nenhuma reserva real foi criada/)).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Confira o serviço" })).toBeVisible();
   expect(postedRequests).toEqual([]);
 });
 
@@ -241,7 +241,7 @@ test("retains the review after a temporary submit failure and completes using th
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await failNextTimeZoneFormatter(page);
   const submit = page.getByRole("button", {
-    name: "Concluir simulação",
+    name: "Ver resumo",
     exact: true,
   });
   await submit.focus();
@@ -256,7 +256,7 @@ test("retains the review after a temporary submit failure and completes using th
   await submit.focus();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("heading", { name: "Simulação concluída" }),
+    page.getByRole("heading", { name: "Resumo da sua escolha" }),
   ).toBeFocused();
   await expect(page.locator("#booking-error")).toHaveCount(0);
 });
@@ -276,7 +276,7 @@ test("revalidates a stale time and returns to date selection", async ({
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await page.clock.setSystemTime(new Date("2026-10-04T01:00:00Z"));
   await page
-    .getByRole("button", { name: "Concluir simulação", exact: true })
+    .getByRole("button", { name: "Ver resumo", exact: true })
     .click();
   await expect(page.locator("#booking-error")).toContainText(
     "não está mais disponível",
@@ -285,7 +285,7 @@ test("revalidates a stale time and returns to date selection", async ({
     page.getByRole("heading", { name: "Encontre seu horário" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Simulação concluída" }),
+    page.getByRole("heading", { name: "Resumo da sua escolha" }),
   ).toHaveCount(0);
 });
 

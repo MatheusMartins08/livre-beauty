@@ -1,4 +1,3 @@
-// All business information is fictional demonstration content.
 export { imageCredits, type ImageCredit } from "./image-credits";
 
 export interface Service {
@@ -7,11 +6,9 @@ export interface Service {
   name: string;
   category: string;
   description: string;
-  detail: string;
   duration: number;
   price: number;
   image: string;
-  care: string[];
 }
 
 export interface Stylist {
@@ -55,11 +52,7 @@ export const site = {
     "Um ateliê de beleza dedicado à sua individualidade. Cortes, cor e cuidado em uma experiência feita para você.",
   location: "Jardins, São Paulo",
   address: "Rua do Ateliê, 84 · Jardins, São Paulo",
-  addressNote:
-    "Endereço fictício para apresentação. O mapa mostra apenas a região dos Jardins.",
   hours: "Terça a sábado, das 9h às 19h",
-  parking:
-    "Na proposta do salão, estacionamento conveniado a poucos passos. Consulte condições com a recepção.",
   hero: {
     eyebrow: "SEU JEITO. SUA BELEZA.",
     title: { opening: "A beleza de", emphasis: "ser você." },
@@ -114,7 +107,6 @@ export const navigation = [
   { label: "Serviços", href: "/servicos" },
   { label: "Profissionais", href: "/profissionais" },
   { label: "Galeria", href: "/galeria" },
-  { label: "Contato", href: "/contato" },
 ];
 
 export const services: Service[] = [
@@ -128,13 +120,6 @@ export const services: Service[] = [
     image: "/images/service-haircut.jpg",
     description:
       "Forma, movimento e personalidade. Um corte pensado para a sua textura e o seu dia a dia.",
-    detail:
-      "Começamos com uma consultoria para entender seu cabelo, suas referências e sua rotina. O corte valoriza a textura natural e inclui lavagem e finalização, com orientação para cuidar dos fios em casa.",
-    care: [
-      "Traga referências e conte como costuma finalizar o cabelo.",
-      "A manutenção é indicada entre seis e dez semanas.",
-      "Inclui consultoria, lavagem e finalização.",
-    ],
   },
   {
     id: "cor",
@@ -146,13 +131,6 @@ export const services: Service[] = [
     image: "/images/service-color.jpg",
     description:
       "Nuances que conversam com você. Cor sob medida, com atenção à integridade dos fios.",
-    detail:
-      "Da cobertura de brancos a uma mudança de tom, criamos uma cor personalizada considerando sua base, histórico químico e tom de pele. O diagnóstico define a técnica e o investimento antes de começar.",
-    care: [
-      "Conte sobre colorações e químicas anteriores.",
-      "Teste de mecha pode ser necessário antes do procedimento.",
-      "Use os cuidados indicados pelo profissional para preservar a cor.",
-    ],
   },
   {
     id: "balayage",
@@ -164,13 +142,6 @@ export const services: Service[] = [
     image: "/images/service-balayage.jpg",
     description:
       "Luz em lugares certos. Dimensão, naturalidade e um crescimento suave.",
-    detail:
-      "Mechas desenhadas à mão para criar profundidade e iluminar com leveza. A consultoria considera o resultado desejado e a saúde do cabelo. Inclui tonalização e finalização; processos mais extensos são orçados previamente.",
-    care: [
-      "Reserve tempo para a avaliação e o teste de mecha.",
-      "A manutenção varia conforme o contraste e a saúde dos fios.",
-      "Tratamentos regulares ajudam a manter maciez e brilho.",
-    ],
   },
   {
     id: "tratamento",
@@ -182,13 +153,6 @@ export const services: Service[] = [
     image: "/images/service-treatment.jpg",
     description:
       "Uma pausa para recuperar. Nutrição, força e toque macio, na medida do seu cabelo.",
-    detail:
-      "Após o diagnóstico dos fios, combinamos um ritual de hidratação, nutrição ou reconstrução conforme a necessidade. O atendimento inclui massagem durante a lavagem e finalização delicada.",
-    care: [
-      "Não é necessário chegar com o cabelo lavado.",
-      "O ritual é personalizado após a avaliação dos fios.",
-      "Indicamos uma rotina possível para o cuidado em casa.",
-    ],
   },
   {
     id: "finalizacao",
@@ -200,13 +164,6 @@ export const services: Service[] = [
     image: "/images/service-styling.jpg",
     description:
       "Do natural ao especial. Textura e acabamento para os seus momentos.",
-    detail:
-      "Escova, ondas, definição de cachos ou penteado para uma ocasião especial. Conversamos sobre seu estilo e o evento para criar uma finalização confortável, com movimento e duração adequados.",
-    care: [
-      "Penteados especiais pedem referências e consulta prévia.",
-      "Informe o horário do evento ao agendar.",
-      "Acessórios podem ser trazidos para avaliação.",
-    ],
   },
   {
     id: "extensoes",
@@ -218,13 +175,6 @@ export const services: Service[] = [
     image: "/images/service-extensions.jpg",
     description:
       "Mais possibilidades. Volume e comprimento integrados ao seu estilo.",
-    detail:
-      "A avaliação define método, quantidade de cabelo e plano de manutenção. Buscamos uma integração natural com seus fios. O valor inicial é demonstrativo e a proposta completa depende da consultoria.",
-    care: [
-      "A consultoria é indispensável antes da aplicação.",
-      "O orçamento considera método, volume e material.",
-      "Manutenções regulares seguem a orientação do profissional.",
-    ],
   },
 ];
 
@@ -240,7 +190,7 @@ export const stylists: Stylist[] = [
     description:
       "Cortes com movimento e uma escuta atenta. Lia acredita que o melhor visual é aquele que acompanha você.",
     biography:
-      "Na história fictícia do Livre, Lia é a fundadora e a mente criativa do ateliê. Sua abordagem combina precisão e sensibilidade para criar formas que valorizam a textura natural. O ponto de partida é sempre a conversa: como você vive, como gosta de se ver e quanto tempo quer dedicar ao cabelo.",
+      "Lia é a fundadora e a mente criativa do ateliê. Sua abordagem combina precisão e sensibilidade para criar formas que valorizam a textura natural. O ponto de partida é sempre a conversa: como você vive, como gosta de se ver e quanto tempo quer dedicar ao cabelo.",
     image: "/images/stylist-01.jpg",
   },
   {
@@ -254,7 +204,7 @@ export const stylists: Stylist[] = [
     description:
       "Cor que parece ter nascido com você. Rafael cria nuances luminosas e transições delicadas.",
     biography:
-      "Rafael traduz referências em cores possíveis para cada cabelo. Neste perfil demonstrativo, sua especialidade são os contrastes sutis e o crescimento natural. A avaliação cuidadosa e o cuidado com os fios vêm antes de qualquer mudança.",
+      "Rafael traduz referências em cores possíveis para cada cabelo. Sua especialidade são os contrastes sutis e o crescimento natural. A avaliação cuidadosa e o cuidado com os fios vêm antes de qualquer mudança.",
     image: "/images/stylist-02.jpg",
   },
   {
@@ -268,7 +218,7 @@ export const stylists: Stylist[] = [
     description:
       "Respeito à sua textura, liberdade para seus fios. Marina encontra beleza no movimento natural.",
     biography:
-      "O trabalho de Marina parte do respeito ao desenho de cada fio. Seu perfil fictício representa a atenção que o Livre dedica a cabelos ondulados, cacheados e crespos. Ela orienta técnicas simples de finalização e propõe cortes que funcionam fora do salão.",
+      "O trabalho de Marina parte do respeito ao desenho de cada fio. Seu trabalho reflete a atenção que o Livre dedica a cabelos ondulados, cacheados e crespos. Ela orienta técnicas simples de finalização e propõe cortes que funcionam fora do salão.",
     image: "/images/stylist-03.jpg",
   },
   {
@@ -282,7 +232,7 @@ export const stylists: Stylist[] = [
     description:
       "Acabamentos delicados para transformar uma ocasião. Sofia cuida de cada detalhe sem perder sua essência.",
     biography:
-      "Sofia une atenção aos detalhes e um olhar contemporâneo para penteados e extensões. Na equipe demonstrativa, desenvolve propostas naturais e confortáveis, com planejamento de manutenção e acabamento que respeita o estilo de cada pessoa.",
+      "Sofia une atenção aos detalhes e um olhar contemporâneo para penteados e extensões. Na equipe, desenvolve propostas naturais e confortáveis, com planejamento de manutenção e acabamento que respeita o estilo de cada pessoa.",
     image: "/images/stylist-04.jpg",
   },
 ];
@@ -330,7 +280,7 @@ export const gallery: GalleryItem[] = [
   {
     id: "g6",
     image: "/images/service-treatment.jpg",
-    alt: "Cuidado ilustrativo com os fios no lavatório",
+    alt: "Cuidado com os fios no lavatório",
     title: "O cuidado mora aqui",
     category: "Tratamentos",
     stylistId: "marina",
@@ -376,24 +326,14 @@ export const testimonials: Testimonial[] = [
 
 export const faqs: FAQItem[] = [
   {
-    question: "Preciso agendar meu atendimento?",
-    answer:
-      "Sim. O atendimento com hora marcada permite reservar o tempo necessário para você. Neste site demonstrativo, você pode conhecer todas as etapas da escolha; nenhuma reserva real é criada.",
-  },
-  {
     question: "Como funciona a primeira consulta?",
     answer:
       "Começamos com uma conversa sobre sua rotina, referências e histórico do cabelo. O profissional avalia os fios, explica as possibilidades e apresenta o investimento antes de iniciar qualquer serviço.",
   },
   {
-    question: "Quanto tempo dura o atendimento?",
-    answer:
-      "Cada serviço informa uma duração aproximada. Cortes e rituais costumam levar uma hora; coloração, balayage e extensões precisam de mais tempo. A avaliação pode ajustar essa previsão.",
-  },
-  {
     question: "Como os preços são calculados?",
     answer:
-      "Os preços apresentados são demonstrativos e indicam valores iniciais. Comprimento, volume, técnica e histórico dos fios podem alterar o investimento. Na proposta do salão, o orçamento é combinado antes do atendimento.",
+      "Os preços apresentados indicam valores iniciais. Comprimento, volume, técnica e histórico dos fios podem alterar o investimento. O orçamento é combinado antes do atendimento.",
   },
   {
     question: "Posso escolher meu profissional?",
@@ -403,51 +343,41 @@ export const faqs: FAQItem[] = [
   {
     question: "Qual é a política de cancelamento?",
     answer:
-      "A política demonstrativa prevê aviso com pelo menos 24 horas de antecedência para cancelamentos ou reagendamentos. As condições completas estão na página de políticas do salão.",
-  },
-  {
-    question: "Existe estacionamento?",
-    answer:
-      "O conceito do salão prevê estacionamento conveniado na região. Como o Livre Beauty é uma marca fictícia, endereço e conveniência são apenas ilustrativos; o mapa apresenta a região dos Jardins.",
-  },
-  {
-    question: "Quais formas de pagamento são aceitas?",
-    answer:
-      "Na proposta do salão, seriam aceitos Pix e cartões de crédito e débito. Este site não processa pagamentos nem solicita dados de cartão.",
+      "Pedimos aviso com pelo menos 24 horas de antecedência para cancelamentos ou reagendamentos. As condições completas estão na página de políticas do salão.",
   },
 ];
 
 export const salonPolicies = [
   {
     title: "Agendamento",
-    text: "Reserve o serviço e o tempo necessários para o atendimento. Procedimentos de cor e extensões podem depender de consultoria e teste de mecha. Toda a agenda deste site é uma simulação.",
+    text: "Reserve o serviço e o tempo necessários para o atendimento. Procedimentos de cor e extensões podem depender de consultoria e teste de mecha.",
   },
   {
     title: "Cancelamento e reagendamento",
-    text: "O modelo de atendimento prevê aviso com pelo menos 24 horas de antecedência. A proposta é permitir que o horário seja oferecido a outra pessoa. Não há cobranças ou reservas reais nesta demonstração.",
+    text: "Pedimos aviso com pelo menos 24 horas de antecedência. A proposta é permitir que o horário seja oferecido a outra pessoa.",
   },
   {
     title: "Atrasos",
-    text: "Em caso de atraso, a recepção avaliaria o tempo disponível para preservar a qualidade do serviço e o atendimento seguinte. Atrasos superiores a 15 minutos poderiam exigir reagendamento.",
+    text: "Em caso de atraso, a recepção avalia o tempo disponível para preservar a qualidade do serviço e o atendimento seguinte. Atrasos superiores a 15 minutos podem exigir reagendamento.",
   },
   {
     title: "Ausência sem aviso",
-    text: "O modelo prevê uma conversa com a recepção para reorganizar futuros atendimentos em caso de ausência. Qualquer condição seria informada previamente; este site não aplica multas.",
+    text: "Em caso de ausência, a recepção pode orientar a reorganização de futuros atendimentos. Qualquer condição é informada previamente; este site não aplica multas.",
   },
   {
     title: "Formas de pagamento",
-    text: "A proposta contempla Pix e cartões de crédito e débito. O orçamento seria confirmado antes do serviço. Esta demonstração não coleta dados bancários nem realiza cobranças.",
+    text: "Aceitamos Pix e cartões de crédito e débito. O orçamento é confirmado antes do serviço. O site não coleta dados bancários nem realiza cobranças.",
   },
   {
     title: "Crianças",
-    text: "Atendimentos infantis dependeriam de avaliação de disponibilidade. Crianças deveriam estar acompanhadas por uma pessoa responsável, respeitando o conforto e a segurança no espaço.",
+    text: "Atendimentos infantis dependem de avaliação de disponibilidade. Crianças devem estar acompanhadas por uma pessoa responsável, respeitando o conforto e a segurança no espaço.",
   },
   {
     title: "Acompanhantes",
-    text: "A proposta é receber um acompanhante quando necessário, com aviso prévio. O número de pessoas no espaço seria organizado para preservar a tranquilidade dos atendimentos.",
+    text: "Recebemos um acompanhante quando necessário, com aviso prévio. O número de pessoas no espaço é organizado para preservar a tranquilidade dos atendimentos.",
   },
   {
     title: "Ajustes de serviço",
-    text: "Na proposta do salão, dúvidas sobre o resultado seriam comunicadas em até sete dias para avaliação individual. A indicação de ajuste dependeria da conversa e da análise técnica, sem promessa automática de resultado.",
+    text: "Dúvidas sobre o resultado devem ser comunicadas em até sete dias para avaliação individual. A indicação de ajuste depende da conversa e da análise técnica, sem promessa automática de resultado.",
   },
 ];

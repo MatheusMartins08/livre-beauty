@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import { type GalleryItem, stylists } from "@/content/salon";
 import { Dialog } from "@/components/dialog";
 
@@ -85,7 +85,6 @@ export function GalleryGrid({
                     ` · Perfil de ${stylists.find((stylist) => stylist.id === item.stylistId)?.name || "equipe"}`}
                 </span>
               </span>
-              <ArrowUpRight size={22} weight="light" aria-hidden="true" />
             </span>
           </button>
         ))}
@@ -123,7 +122,7 @@ export function GalleryGrid({
             <div className="lightbox-bottom">
               <div aria-live="polite">
                 <h3>{current.title}</h3>
-                <p>{current.category} · Fotografia ilustrativa</p>
+                <p>{current.category}</p>
               </div>
               <div className="lightbox-controls">
                 <button

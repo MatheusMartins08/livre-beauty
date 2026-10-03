@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { services, stylists } from "../content/salon";
+import { stylists } from "../content/salon";
 
 const routes = [
   "/",
@@ -7,13 +7,10 @@ const routes = [
   "/servicos",
   "/profissionais",
   "/galeria",
-  "/contato",
   "/agendamento",
-  "/faq",
   "/politicas",
   "/privacidade",
   "/termos",
-  ...services.map((item) => `/servicos/${item.slug}`),
   ...stylists.map((item) => `/profissionais/${item.slug}`),
 ];
 
@@ -40,7 +37,7 @@ test("the shared identity and absence of fixed bottom controls hold on every rou
     ).toHaveCount(0);
     await expect(page.locator(".header-book")).toHaveCSS(
       "background-color",
-      "rgb(36, 33, 31)",
+      "rgba(0, 0, 0, 0)",
     );
   }
 });
@@ -53,7 +50,7 @@ test("service hover and keyboard feedback do not change layout", async ({
   await page.goto("/servicos");
   const service = page.locator(".service-directory-item").first();
   const link = service
-    .getByRole("link", { name: "Conhecer Corte autoral", exact: true })
+    .getByRole("link", { name: "Agendar Corte autoral", exact: true })
     .first();
   const bounds = await service.boundingBox();
   await service.hover();
@@ -98,7 +95,7 @@ test("specialists have two spacious desktop columns and one mobile column", asyn
 test("internal FAQ reverses rapidly and keeps keyboard focus", async ({
   page,
 }) => {
-  await page.goto("/faq");
+  await page.goto("/");
   const question = page.getByRole("button", {
     name: "Como funciona a primeira consulta?",
   });
@@ -154,7 +151,7 @@ test("internal editorial content and FAQ remain available without JavaScript", a
     await page.goto("/sobre");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.locator(".about-experience")).toBeVisible();
-    await page.goto("/faq");
+    await page.goto("/");
     await page
       .getByRole("button", { name: "Como funciona a primeira consulta?" })
       .click();

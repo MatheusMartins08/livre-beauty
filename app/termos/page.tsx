@@ -1,128 +1,44 @@
 import { PageMotion } from "@/components/page-motion";
-import Link from "next/link";
 import { pageMetadata } from "@/lib/metadata";
-import { DemoNote, PageIntro } from "@/components/ui";
+import { ButtonLink, PageIntro } from "@/components/ui";
 
-export const metadata = pageMetadata(
-  "Termos de uso",
-  "Conheça os termos desta apresentação fictícia do Livre Beauty, incluindo simulação de agendamento, conteúdo ilustrativo e privacidade.",
-  "/termos",
-);
+export const metadata = pageMetadata("Termos de uso", "Conheça as informações de uso, agendamento, conteúdo e privacidade do Livre Beauty.", "/termos");
 
 export default function TermsPage() {
   return (
     <PageMotion animate={false}>
-      <PageIntro
-        eyebrow="TERMOS"
-        title="Termos de uso."
-        emphasis="uso."
-        description="Informações para explorar a apresentação do Livre Beauty."
-      />
-      <div className="container grid items-start gap-10 pb-16 lg:grid-cols-[0.6fr_1.4fr] lg:gap-20 lg:pb-24">
-        <aside className="max-w-[35ch]">
-          <DemoNote>
-            Este site apresenta um conceito fictício de salão de beleza e uma
-            experiência de navegação demonstrativa.
-          </DemoNote>
-        </aside>
-        <div className="space-y-9 text-[var(--text-body)] leading-relaxed">
-          <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
-              Finalidade da apresentação
-            </h2>
-            <p>
-              Livre Beauty, sua equipe, endereço, experiências, depoimentos,
-              preços e condições de atendimento são conteúdo fictício para
-              demonstração. Nenhuma informação neste site confirma a existência
-              de um estabelecimento, de profissionais vinculados ou de uma
-              oferta comercial real.
-            </p>
-          </section>
-          <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
-              Agendamento e contato
-            </h2>
-            <p>
-              O fluxo de agendamento permite escolher serviço, profissional,
-              data e horário para conhecer a experiência. A conclusão gera
-              apenas um resumo da simulação, sem reserva, cobrança ou
-              compromisso de atendimento.
-            </p>
-            <p className="mt-4">
-              O formulário de contato também é demonstrativo: nenhuma mensagem é
-              transmitida. Os canais sociais e de atendimento não iniciam
-              contato com terceiros.
-            </p>
-            <p className="mt-4">
-              Na página de contato, o mapa opcional mostra a região dos Jardins,
-              sem indicar um estabelecimento real. Ao ativá-lo, o navegador
-              carrega conteúdo externo do OpenStreetMap.
-            </p>
-          </section>
-          <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
-              Imagens e resultados
-            </h2>
-            <p>
-              As imagens são referências editoriais ilustrativas. Não documentam
-              serviços realizados pela equipe fictícia e não garantem resultados
-              de cortes, cor ou outros procedimentos. Em uma experiência real, a
-              avaliação individual dos fios orientaria a técnica, a duração e o
-              investimento.
-            </p>
-          </section>
-          <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
-              Dados informados
-            </h2>
-            <p>
-              Os formulários usam dados apenas na memória da página para
-              demonstrar a interação. O aplicativo não persiste essas
-              informações nem as envia a uma equipe ou serviço de atendimento.
-              Ao testar, utilize dados de exemplo. Veja mais detalhes na{" "}
-              <Link href="/privacidade" className="text-link">
-                página de privacidade
-              </Link>
-              .
-            </p>
-          </section>
-          <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
-              Políticas demonstrativas
-            </h2>
-            <p>
-              As{" "}
-              <Link href="/politicas" className="text-link">
-                políticas do salão
-              </Link>{" "}
-              exemplificam possíveis combinados de atendimento. Nesta
-              apresentação, não há aplicação de multas, condições de pagamento,
-              cancelamentos de reservas reais ou prestação de serviços.
-            </p>
-          </section>
-          <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
-              Atualizações
-            </h2>
-            <p>
-              O conteúdo pode ser ajustado conforme o projeto evolui. Caso o
-              site passe a representar uma operação real, informações
-              comerciais, canais, formulários, políticas e termos deverão
-              refletir essa operação antes de sua ativação.
-            </p>
-          </section>
-          <p className="border-t border-[var(--line)] pt-7 text-sm">
-            Para conhecer a experiência, explore os{" "}
-            <Link href="/servicos" className="text-link">
-              serviços
-            </Link>{" "}
-            ou consulte as{" "}
-            <Link href="/faq" className="text-link">
-              dúvidas frequentes
-            </Link>
-            .
-          </p>
-        </div>
+      <PageIntro eyebrow="TERMOS" title="Termos de uso." emphasis="uso." description="Informações para navegar pelo Livre Beauty com clareza." />
+      <div className="container legal-prose">
+        <section>
+          <h2>Uso do site</h2>
+          <p>O site reúne informações sobre o Livre Beauty, seus serviços, profissionais e cuidados. Fotografias e referências ajudam a conhecer o universo do ateliê e a preparar sua próxima escolha.</p>
+        </section>
+        <section>
+          <h2>Escolha de serviço e horário</h2>
+          <p>O fluxo permite selecionar serviço, profissional, data e horário. Ao concluir, você pode consultar um resumo das escolhas feitas e iniciar uma nova seleção.</p>
+          <p>Durações e preços iniciais orientam sua escolha. Comprimento, volume, histórico dos fios e avaliação individual podem alterar o tempo e o investimento necessários.</p>
+        </section>
+        <section>
+          <h2>Canais e localização</h2>
+          <p>Os acessos aos canais apresentam informações dentro do próprio site. Na página inicial, o mapa opcional mostra a região dos Jardins. Ao ativá-lo, o navegador carrega conteúdo externo do OpenStreetMap.</p>
+        </section>
+        <section>
+          <h2>Imagens e resultados</h2>
+          <p>As fotografias e fontes têm suas origens e licenças registradas na documentação do projeto. Os resultados de cortes, coloração e outros procedimentos variam conforme as características dos fios e a avaliação individual.</p>
+        </section>
+        <section>
+          <h2>Dados informados</h2>
+          <p>As informações do agendamento ficam na memória da página para compor o resumo. O aplicativo não persiste esses dados nem os envia a uma equipe ou serviço de atendimento. A página de privacidade detalha o funcionamento da navegação e do mapa.</p>
+        </section>
+        <section>
+          <h2>Condições de atendimento</h2>
+          <p>As políticas do salão apresentam os combinados sobre horários, cancelamentos, atrasos, acompanhantes e ajustes. O site não processa pagamentos ou aplica multas.</p>
+        </section>
+        <section>
+          <h2>Atualizações</h2>
+          <p>O conteúdo pode ser atualizado para refletir mudanças nos serviços, nos canais e no funcionamento do site.</p>
+        </section>
+        <div className="legal-actions"><ButtonLink href="/politicas">Consultar as políticas</ButtonLink><ButtonLink href="/privacidade">Ler sobre privacidade</ButtonLink></div>
       </div>
     </PageMotion>
   );

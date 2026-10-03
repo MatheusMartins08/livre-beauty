@@ -5,17 +5,9 @@ const pages = [
   ["/servicos", "Cuidado que acompanha você."],
   ["/profissionais", "Mãos que cuidam. Olhares que entendem."],
   ["/galeria", "Beleza em suas muitas formas."],
-  ["/contato", "Vamos conversar."],
-  ["/faq", "Antes de vir, saiba mais."],
   ["/politicas", "Cuidado também é clareza."],
   ["/privacidade", "Sua privacidade, com clareza."],
   ["/termos", "Termos de uso."],
-  ["/servicos/corte-autoral", "Corte autoral"],
-  ["/servicos/coloracao-personalizada", "Coloração personalizada"],
-  ["/servicos/balayage", "Balayage & luz"],
-  ["/servicos/ritual-de-tratamento", "Ritual de tratamento"],
-  ["/servicos/finalizacao-e-penteados", "Finalização & penteados"],
-  ["/servicos/extensoes", "Extensões naturais"],
   ["/profissionais/lia-monteiro", "Lia Monteiro"],
   ["/profissionais/rafael-costa", "Rafael Costa"],
   ["/profissionais/marina-alves", "Marina Alves"],
@@ -41,16 +33,8 @@ for (const [path, title] of pages) {
 }
 
 test("service booking keeps the selected service", async ({ page }) => {
-  await page.goto("/servicos/corte-autoral");
-  await expect(
-    page.getByRole("link", { name: "Agendar este cuidado", exact: true }),
-  ).toHaveAttribute("href", "/agendamento?servico=corte-autoral");
-  await expect(
-    page.getByRole("link", { name: "Agendar com Lia", exact: true }),
-  ).toHaveAttribute(
-    "href",
-    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
-  );
+  await page.goto("/servicos#corte-autoral");
+  await expect(page.locator("#corte-autoral").getByRole("link", { name: "Agendar Corte autoral", exact: true })).toHaveAttribute("href", "/agendamento?servico=corte-autoral");
 });
 
 test("professional booking keeps the selected professional", async ({

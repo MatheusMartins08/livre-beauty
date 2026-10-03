@@ -54,40 +54,10 @@ test("home keeps only the requested editorial sections", async ({ page }) => {
   await expect(
     page.locator(".values-strip, .booking-cta, .instagram-grid, .stylist-card"),
   ).toHaveCount(0);
-  await expect(page.locator('main a[href^="/servicos/"]')).toHaveCount(6);
+  await expect(page.locator('main a[href^="/servicos#"]')).toHaveCount(6);
   await expect(
     page.getByRole("heading", { name: "Conheça nossos especialistas." }),
   ).toBeVisible();
-});
-
-test("contact validates inline and never makes a submission request", async ({
-  page,
-}) => {
-  await page.goto("/contato");
-  await page.getByRole("button", { name: "Enviar mensagem" }).click();
-  await expect(
-    page.getByText("Informe seu nome.", { exact: true }),
-  ).toBeVisible();
-  const transmissions: string[] = [];
-  page.on("request", (request) => {
-    if (request.method() === "POST") transmissions.push(request.url());
-  });
-  await page.getByLabel("Nome", { exact: true }).fill("Pessoa de teste");
-  await page.getByLabel("E-mail", { exact: true }).fill("teste@example.com");
-  await page.getByLabel("Assunto", { exact: true }).selectOption("servicos");
-  await page
-    .getByLabel("Mensagem", { exact: true })
-    .fill("Gostaria de conhecer os serviços.");
-  await page.getByRole("button", { name: "Enviar mensagem" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Mensagem simulada" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Mensagem simulada" }),
-  ).toBeFocused();
-  expect(transmissions).toEqual([]);
-  await page.getByRole("button", { name: "Escrever outra mensagem" }).click();
-  await expect(page.getByLabel("Nome", { exact: true })).toBeFocused();
 });
 
 test("lightbox arrow navigation works from the initial close button focus", async ({
@@ -112,7 +82,7 @@ test("FAQ answers remain readable without JavaScript", async ({
     baseURL,
   });
   const page = await context.newPage();
-  await page.goto("/faq");
+  await page.goto("/");
   await page
     .getByRole("button", { name: "Como funciona a primeira consulta?" })
     .click();
@@ -130,7 +100,7 @@ test("FAQ answers remain readable without JavaScript", async ({
 test("FAQ announces its expanded state and supports the keyboard", async ({
   page,
 }) => {
-  await page.goto("/faq");
+  await page.goto("/");
   const question = page.getByRole("button", {
     name: "Como funciona a primeira consulta?",
   });

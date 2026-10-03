@@ -43,67 +43,6 @@
   line-height: 1.7;
   color: var(--muted);
 }
-.primary,
-.lightButton {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  gap: 26px;
-  min-height: 52px;
-  padding: 14px 24px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
-  border: 1px solid var(--foreground);
-  background: var(--foreground);
-  color: var(--home-white);
-  transition:
-    background 180ms ease,
-    border-color 180ms ease;
-}
-.lightButton {
-  background: transparent;
-  border-color: var(--home-white);
-  color: var(--home-white);
-}
-.editorialLink,
-.photoLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 44px;
-  padding: 6px 0;
-  background: transparent;
-  border: none;
-  color: var(--foreground);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.5;
-  text-align: left;
-  position: relative;
-}
-.editorialLink::after,
-.photoLink::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  left: 0;
-  width: calc(100% - 35px);
-  height: 1px;
-  background: currentColor;
-  transform-origin: left;
-  transition: transform 180ms var(--ease-out);
-}
-.photoLink {
-  color: var(--home-white);
-}
-.primary svg,
-.lightButton svg,
-.editorialLink svg,
-.photoLink svg {
-  flex-shrink: 0;
-  transition: transform 180ms var(--ease-out);
-}
 
 /* Preserve the photograph and replace only the old hero's layout/overlay. */
 .home .hero {
@@ -322,10 +261,6 @@
 .serviceMore {
   font-size: 10px;
   letter-spacing: 0.02em;
-  display: inline-block;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 5px;
-  transition: border-color 180ms ease;
 }
 .experts {
   background: var(--foreground);
@@ -504,24 +439,8 @@
   .service:hover p {
     color: var(--home-body);
   }
-  .primary:hover {
-    background: var(--home-hover);
-    border-color: var(--home-hover);
-  }
-  .lightButton:hover {
-    background: var(--home-white);
-    color: var(--foreground);
-  }
-  .primary:hover svg,
-  .lightButton:hover svg,
-  .editorialLink:hover svg,
-  .photoLink:hover svg,
   .service:hover svg {
     transform: translate(2px, -2px);
-  }
-  .editorialLink:hover::after,
-  .photoLink:hover::after {
-    transform: scaleX(0.65);
   }
   .service:hover .serviceMore {
     border-color: var(--accent);
@@ -746,10 +665,6 @@
   .heroActions {
     gap: 6px;
   }
-  .heroActions .primary {
-    min-height: 48px;
-    padding: 12px 18px;
-  }
   .heroCaption {
     left: 20px;
     font-size: 6px;
@@ -783,3 +698,9 @@
     transform: none;
   }
 }
+
+/* Action presentation lives in the shared system. */
+.primary,
+.lightButton,
+.photoLink { color: var(--home-white); }
+.editorialLink { color: var(--foreground); }

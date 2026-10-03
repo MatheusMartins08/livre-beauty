@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { site, navigation, services } from "@/content/salon";
+import { site, navigation } from "@/content/salon";
+import { ActionContent, ButtonLink } from "@/components/ui";
 import { DemoChannel } from "@/components/demo-channel";
 
 export function Footer() {
@@ -21,49 +22,29 @@ export function Footer() {
             <h2>Explore</h2>
             <nav aria-label="Navegação do rodapé">
               {navigation.slice(1).map((item) => (
-                <Link key={item.href} href={item.href}>
-                  {item.label}
-                </Link>
+                <ButtonLink key={item.href} href={item.href}>{item.label}</ButtonLink>
               ))}
-              <Link href="/faq">Perguntas frequentes</Link>
-            </nav>
-          </div>
-          <div>
-            <h2>Cuidado</h2>
-            <nav aria-label="Serviços do rodapé">
-              {services.map((service) => (
-                <Link key={service.id} href={`/servicos/${service.slug}`}>
-                  {service.category}
-                </Link>
-              ))}
+              <ButtonLink href="/#faq-title">Perguntas frequentes</ButtonLink>
             </nav>
           </div>
           <div className="footer-contact">
             <h2>Encontre seu tempo</h2>
             <p>{site.location}</p>
             <p>{site.hours}</p>
-            <Link href="/contato" className="text-link">
-              Conhecer o espaço
-            </Link>
-            <Link href="/agendamento" className="text-link">
-              Agendar horário
-            </Link>
+            <ButtonLink href="/#visite-title">Conhecer o espaço</ButtonLink>
+            <ButtonLink href="/agendamento">Agendar horário</ButtonLink>
           </div>
         </div>
         <div className="footer-bottom">
           <p>
-            © {new Date().getFullYear()} Livre Beauty. Projeto demonstrativo.
+            © {new Date().getFullYear()} Livre Beauty.
           </p>
           <nav aria-label="Informações legais">
-            <Link href="/privacidade">Privacidade</Link>
-            <Link href="/termos">Termos</Link>
-            <Link href="/politicas">Políticas do salão</Link>
+            <Link href="/privacidade" className="action-link"><ActionContent>Privacidade</ActionContent></Link>
+            <Link href="/termos" className="action-link"><ActionContent>Termos</ActionContent></Link>
+            <Link href="/politicas" className="action-link"><ActionContent>Políticas do salão</ActionContent></Link>
           </nav>
         </div>
-        <p className="footer-demo">
-          Marca e equipe fictícias. Imagens ilustrativas. Agendamentos e
-          mensagens são simulados.
-        </p>
       </div>
     </footer>
   );

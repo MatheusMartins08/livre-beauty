@@ -4,7 +4,6 @@ import { pageMetadata } from "@/lib/metadata";
 import {
   BookingCTA,
   ButtonLink,
-  DemoNote,
   PageIntro,
   Photo,
   SectionHeading,
@@ -12,7 +11,7 @@ import {
 
 export const metadata = pageMetadata(
   "Sobre",
-  "Conheça o conceito Livre Beauty: um ateliê de beleza com escuta, técnica e cuidado individual nos Jardins, São Paulo.",
+  "Conheça o Livre Beauty: um ateliê de beleza com escuta, técnica e cuidado individual nos Jardins, São Paulo.",
   "/sobre",
 );
 
@@ -29,7 +28,7 @@ export default function AboutPage() {
         <div data-page-reveal>
           <Photo
             src="/images/salon-interior-01.jpg"
-            alt="Ambiente ilustrativo de um ateliê de beleza iluminado e acolhedor"
+            alt="Ambiente de um ateliê de beleza iluminado e acolhedor"
             aspect="16 / 8"
             className="min-h-64"
             sizes="100vw"
@@ -71,7 +70,7 @@ export default function AboutPage() {
           <div data-page-reveal>
             <Photo
               src="/images/salon-interior-02.jpg"
-              alt="Detalhes ilustrativos do espaço de cuidado e beleza"
+              alt="Detalhes do espaço de cuidado e beleza"
               aspect="4 / 5"
               parallax
             />
@@ -100,12 +99,6 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-      <div className="container pb-12">
-        <DemoNote>
-          O Livre Beauty é um conceito de salão fictício. História, equipe,
-          localização e fotografias são demonstrativos.
-        </DemoNote>
-      </div>
       <BookingCTA />
     </PageMotion>
   );

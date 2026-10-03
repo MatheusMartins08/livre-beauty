@@ -1,6 +1,6 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Star } from "@phosphor-icons/react/ssr";
+import { Star } from "@phosphor-icons/react/ssr";
 import { site, testimonials } from "@/content/salon";
 import {
   homeContent as copy,
@@ -10,7 +10,8 @@ import {
 } from "@/content/home";
 import { pageMetadata } from "@/lib/metadata";
 import { DemoChannel } from "@/components/demo-channel";
-import { LocationMap } from "@/components/contact";
+import { LocationMap } from "@/components/location-map";
+import { ActionContent } from "@/components/ui";
 import { HomeMotion } from "@/components/home-motion";
 import { HomeFAQ } from "@/components/home-faq";
 import styles from "./home.module.css";
@@ -22,9 +23,6 @@ export const metadata = pageMetadata(
   "/",
 );
 
-function Arrow() {
-  return <ArrowUpRight size={19} weight="light" aria-hidden="true" />;
-}
 function titleLabel(title: EditorialTitle) {
   return [title.opening, title.leading, title.emphasis]
     .filter(Boolean)
@@ -51,7 +49,7 @@ export default function Home() {
       >
         <Image
           src="/images/hero-salon.jpg"
-          alt="Retrato editorial ilustrativo com cabelo escuro e luz suave"
+          alt="Retrato editorial com cabelo escuro e luz suave"
           fill
           preload
           sizes="(max-width: 767px) 160svh, calc(100vw - 48px)"
@@ -72,11 +70,11 @@ export default function Home() {
               {site.hero.description}
             </p>
             <div className={styles.heroActions} data-hero-copy>
-              <Link href="/agendamento" className={styles.primary}>
-                Agendar horário <Arrow />
+              <Link href="/agendamento" className={`action-link ${styles.primary}`}>
+                <ActionContent>Agendar horário</ActionContent>
               </Link>
-              <Link href="/servicos" className={styles.photoLink}>
-                Conhecer serviços <Arrow />
+              <Link href="/servicos" className={`action-link ${styles.photoLink}`}>
+                <ActionContent>Conhecer serviços</ActionContent>
               </Link>
             </div>
           </div>
@@ -98,8 +96,8 @@ export default function Home() {
           >
             <TitleText title={copy.about.title} />
           </h2>
-          <Link href="/sobre" className={styles.editorialLink}>
-            Nossa história <Arrow />
+          <Link href="/sobre" className={`action-link ${styles.editorialLink}`}>
+            <ActionContent>Nossa história</ActionContent>
           </Link>
         </div>
         <div className={styles.aboutRight}>
@@ -114,9 +112,6 @@ export default function Home() {
           </div>
           <div className={styles.aboutText} data-home-reveal>
             <p>{copy.about.description}</p>
-            <p className={styles.note}>
-              Um conceito de salão. Fotografias ilustrativas.
-            </p>
           </div>
         </div>
       </section>
@@ -142,11 +137,10 @@ export default function Home() {
           >
             <TitleText title={copy.manifesto.title} />
           </h2>
-          <DemoChannel channel="instagram" className={styles.photoLink}>
-            Encontre inspiração no Instagram <Arrow />
+          <DemoChannel channel="instagram" className={`action-link ${styles.photoLink}`}>
+            Encontre inspiração no Instagram
           </DemoChannel>
         </div>
-        <p className={styles.imageNote}>Fotografia ilustrativa</p>
       </section>
 
       <section
@@ -167,19 +161,20 @@ export default function Home() {
         <div className={styles.serviceGrid}>
           {homeServices.map((service, index) => (
             <Link
-              href={`/servicos/${service.slug}`}
+              href={`/servicos#${service.slug}`}
               key={service.id}
               className={styles.service}
+              data-action-group
               data-home-reveal
             >
               <span className={styles.serviceNumber} aria-hidden="true">
                 0{index + 1}
               </span>
               <h3>
-                {service.category} <Arrow />
+                {service.category}
               </h3>
               <p>{service.summary}</p>
-              <span className={styles.serviceMore}>Conhecer o cuidado</span>
+              <span className={`action-link ${styles.serviceMore}`}><ActionContent>Ver serviço</ActionContent></span>
             </Link>
           ))}
         </div>
@@ -203,8 +198,8 @@ export default function Home() {
             <p className={styles.expertsDescription}>
               {copy.experts.description}
             </p>
-            <Link href="/profissionais" className={styles.lightButton}>
-              Conhecer a equipe <Arrow />
+            <Link href="/profissionais" className={`action-link ${styles.lightButton}`}>
+              <ActionContent>Conhecer a equipe</ActionContent>
             </Link>
           </div>
           <figure className={styles.expertsFigure} data-home-reveal>
@@ -217,7 +212,6 @@ export default function Home() {
                 data-home-image
               />
             </div>
-            <figcaption>Equipe fictícia · Fotografia ilustrativa</figcaption>
           </figure>
         </div>
       </section>
@@ -232,9 +226,6 @@ export default function Home() {
           <h2 id="faq-title" className={styles.sectionTitle}>
             {copy.faq.title}
           </h2>
-          <Link href="/faq" className={styles.editorialLink}>
-            Todas as perguntas <Arrow />
-          </Link>
         </div>
         <div data-home-reveal>
           <HomeFAQ items={homeFAQs} />
@@ -254,9 +245,6 @@ export default function Home() {
                 {copy.reviews.title}
               </h2>
             </div>
-            <p className={styles.note}>
-              Depoimentos fictícios, criados para esta demonstração.
-            </p>
           </div>
           <div className={styles.reviewGrid}>
             {testimonials.map((testimonial) => (
@@ -267,7 +255,7 @@ export default function Home() {
               >
                 <div
                   className={styles.stars}
-                  aria-label="Avaliação fictícia: 5 de 5 estrelas"
+                  aria-label="Avaliação: 5 de 5 estrelas"
                   role="img"
                 >
                   {Array.from({ length: 5 }, (_, index) => (
@@ -311,13 +299,10 @@ export default function Home() {
             </div>
           </dl>
           <div className={styles.visitChannels}>
-            <DemoChannel channel="instagram" className={styles.editorialLink} />
-            <DemoChannel channel="whatsapp" className={styles.editorialLink} />
-            <DemoChannel channel="phone" className={styles.editorialLink} />
+            <DemoChannel channel="instagram" className={`action-link ${styles.editorialLink}`} />
+            <DemoChannel channel="whatsapp" className={`action-link ${styles.editorialLink}`} />
+            <DemoChannel channel="phone" className={`action-link ${styles.editorialLink}`} />
           </div>
-          <p className={styles.note}>
-            {site.addressNote} Canais demonstrativos.
-          </p>
         </div>
         <div className={styles.map} data-home-reveal>
           <LocationMap />

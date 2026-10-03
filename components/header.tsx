@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, List } from "@phosphor-icons/react";
+import { List } from "@phosphor-icons/react";
 import { navigation } from "@/content/salon";
+import { ActionContent } from "@/components/ui";
 import { Dialog } from "@/components/dialog";
 
 export function Header() {
@@ -77,16 +78,16 @@ export function Header() {
             {navigation.map((item) => (
               <Link
                 key={item.href}
+                className="action-link"
                 href={item.href}
                 aria-current={pathname === item.href ? "page" : undefined}
               >
-                {item.label}
+                <ActionContent>{item.label}</ActionContent>
               </Link>
             ))}
           </nav>
-          <Link href="/agendamento" className="header-book">
-            Agendar horário
-            <ArrowUpRight size={16} aria-hidden="true" />
+          <Link href="/agendamento" className="action-link header-book">
+            <ActionContent>Agendar horário</ActionContent>
           </Link>
           <button
             type="button"
@@ -114,17 +115,16 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
+              className="action-link"
               onClick={finishMenu}
               aria-current={pathname === item.href ? "page" : undefined}
             >
-              {item.label}
-              <ArrowUpRight size={23} aria-hidden="true" />
+              <ActionContent>{item.label}</ActionContent>
             </Link>
           ))}
         </nav>
-        <Link href="/agendamento" className="button" onClick={finishMenu}>
-          Agendar horário
-          <ArrowUpRight size={18} aria-hidden="true" />
+        <Link href="/agendamento" className="action-link button" onClick={finishMenu}>
+          <ActionContent>Agendar horário</ActionContent>
         </Link>
         <p className="fine-print">
           Beleza com liberdade. Cuidado com intenção.

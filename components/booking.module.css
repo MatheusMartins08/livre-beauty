@@ -238,13 +238,6 @@
   color: var(--muted);
   margin-top: 0.3rem;
 }
-.demoReminder {
-  font-size: 0.85rem;
-  line-height: 1.7;
-  background: var(--surface);
-  padding: 1.2rem;
-  margin-top: 1.5rem;
-}
 .summary {
   padding: 1.8rem;
   background: var(--surface);
@@ -372,8 +365,7 @@
 }
 
 .choice.selected,
-.timeChoice.selected,
-.demoReminder {
+.timeChoice.selected {
   --muted: var(--text-body);
 }
 .choice.selected,

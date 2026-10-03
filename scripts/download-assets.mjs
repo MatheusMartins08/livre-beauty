@@ -24,10 +24,7 @@ const imageAssets = [
   { name: "stylist-02.jpg", id: 18935840, portrait: true },
   { name: "stylist-03.jpg", id: 32809130, portrait: true },
   { name: "stylist-04.jpg", id: 30576237, portrait: true },
-  { name: "result-before-01.jpg", id: 3993290 },
-  { name: "result-after-01.jpg", id: 3993463 },
   { name: "gallery-01.jpg", id: 3992873 },
-  { name: "gallery-02.jpg", id: 7440055 },
   { name: "gallery-03.jpg", id: 16153366 },
   { name: "gallery-04.jpg", id: 3993463 },
   { name: "gallery-05.jpg", id: 14730878 },
@@ -37,10 +34,7 @@ const imageAssets = [
 ];
 
 const fontAssets = [
-  ["cormorant-garamond.ttf", "cormorantgaramond/CormorantGaramond%5Bwght%5D.ttf"],
-  ["cormorant-garamond-italic.ttf", "cormorantgaramond/CormorantGaramond-Italic%5Bwght%5D.ttf"],
   ["cormorant-garamond.LICENSE.txt", "cormorantgaramond/OFL.txt"],
-  ["geist.ttf", "geist/Geist%5Bwght%5D.ttf"],
   ["geist.LICENSE.txt", "geist/OFL.txt"],
 ];
 
@@ -118,7 +112,6 @@ if (!process.argv.includes("--images-only")) {
 
   const cssBytes = await download(googleFontsCssUrl, { "User-Agent": modernBrowserAgent });
   const css = cssBytes.toString("utf8");
-  await writeFile(path.join(fontsDirectory, "google-fonts-source.css"), cssBytes);
   const latinFaces = [...css.matchAll(/\/\* latin \*\/\s*@font-face\s*\{([^}]+)\}/g)].map((match) => match[1]);
 
   for (const asset of woff2FontAssets) {

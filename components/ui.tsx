@@ -2,8 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowUpRight } from "@phosphor-icons/react/ssr";
-import { type Service, type Stylist } from "@/content/salon";
-import { bookingHref, priceLabel } from "@/lib/utils";
+import { type Stylist } from "@/content/salon";
+import { bookingHref } from "@/lib/utils";
+
+export function ActionContent({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <span className="action-label">{children}</span>
+      <ArrowUpRight className="action-arrow" size={18} weight="light" aria-hidden="true" />
+    </>
+  );
+}
 
 export function ButtonLink({
   href,
@@ -19,10 +28,9 @@ export function ButtonLink({
   return (
     <Link
       href={href}
-      className={`button ${secondary ? "button-secondary" : ""} ${className}`}
+      className={`action-link button ${secondary ? "button-secondary" : ""} ${className}`}
     >
-      {children}
-      <ArrowUpRight size={18} weight="light" aria-hidden="true" />
+      <ActionContent>{children}</ActionContent>
     </Link>
   );
 }
@@ -118,49 +126,6 @@ export function Photo({
   );
 }
 
-export function DemoNote({ children }: { children?: ReactNode }) {
-  return (
-    <p className="demo-note">
-      {children ||
-        "Fotografias ilustrativas. Livre Beauty é uma marca fictícia criada para apresentação."}
-    </p>
-  );
-}
-
-export function ServiceCard({ service }: { service: Service }) {
-  return (
-    <article className="service-card">
-      <Link
-        href={`/servicos/${service.slug}`}
-        className="image-link"
-        aria-label={`Conhecer ${service.name}`}
-      >
-        <Photo
-          src={service.image}
-          alt={`Fotografia ilustrativa de ${service.category.toLocaleLowerCase("pt-BR")}`}
-          aspect="4 / 5"
-          sizes="(max-width: 389px) calc(100vw - 40px), (max-width: 1023px) 50vw, 25vw"
-        />
-        <span className="image-link-arrow">
-          <ArrowUpRight size={24} aria-hidden="true" />
-        </span>
-      </Link>
-      <div className="service-card-heading">
-        <h3>
-          <Link href={`/servicos/${service.slug}`}>{service.name}</Link>
-        </h3>
-        <span className="fine-print">{service.duration} min</span>
-      </div>
-      <p>{service.description}</p>
-      <span className="service-price">{priceLabel(service.price)}</span>
-      <Link href={bookingHref(service.slug)} className="text-link">
-        Agendar horário
-        <ArrowUpRight size={16} aria-hidden="true" />
-      </Link>
-    </article>
-  );
-}
-
 export function StylistCard({ stylist }: { stylist: Stylist }) {
   return (
     <article className="stylist-card" data-page-section>
@@ -172,7 +137,7 @@ export function StylistCard({ stylist }: { stylist: Stylist }) {
       >
         <Photo
           src={stylist.image}
-          alt={`Retrato ilustrativo do perfil fictício de ${stylist.name}`}
+          alt={`Retrato de ${stylist.name}`}
           aspect="3 / 4"
           sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1023px) calc((100vw - 112px) / 2), 650px"
         />
@@ -182,20 +147,18 @@ export function StylistCard({ stylist }: { stylist: Stylist }) {
       </Link>
       <div className="stylist-card-heading" data-page-reveal>
         <h3>
-          <Link href={`/profissionais/${stylist.slug}`}>{stylist.name}</Link>
+          <Link href={`/profissionais/${stylist.slug}`} className="action-link action-inline"><ActionContent>{stylist.name}</ActionContent></Link>
         </h3>
         <p className="fine-print">{stylist.role}</p>
       </div>
       <p className="stylist-specialties">{stylist.specialties.join(" · ")}</p>
       <p>{stylist.description}</p>
       <div className="stylist-actions">
-        <Link href={`/profissionais/${stylist.slug}`} className="text-link">
-          Ver perfil
-          <ArrowUpRight size={16} aria-hidden="true" />
+        <Link href={`/profissionais/${stylist.slug}`} className="action-link text-link">
+          <ActionContent>Ver perfil</ActionContent>
         </Link>
-        <Link href={bookingHref(undefined, stylist.slug)} className="text-link">
-          Agendar com {stylist.name.split(" ")[0]}
-          <ArrowUpRight size={16} aria-hidden="true" />
+        <Link href={bookingHref(undefined, stylist.slug)} className="action-link text-link">
+          <ActionContent>Agendar com {stylist.name.split(" ")[0]}</ActionContent>
         </Link>
       </div>
     </article>

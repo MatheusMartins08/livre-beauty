@@ -1,11 +1,11 @@
 import { BookingWizard } from "@/components/booking-wizard";
-import { DemoNote, PageIntro } from "@/components/ui";
+import { PageIntro } from "@/components/ui";
 import { pageMetadata } from "@/lib/metadata";
 import { getService, getStylist } from "@/lib/utils";
 
 export const metadata = pageMetadata(
   "Agendamento",
-  "Escolha seu serviço, profissional e horário e conheça a experiência de agendamento demonstrativa do Livre Beauty.",
+  "Escolha seu serviço, profissional e horário em uma experiência de agendamento personalizada do Livre Beauty.",
   "/agendamento",
 );
 
@@ -32,15 +32,10 @@ export default async function BookingPage({
         title="Um tempo para você."
         emphasis="para você."
         description="Escolha seu cuidado, encontre seu profissional e conheça uma experiência pensada para o seu ritmo."
-      >
-        <DemoNote>
-          Agendamento demonstrativo. Nenhuma reserva real é criada e seus dados
-          não são enviados.
-        </DemoNote>
-      </PageIntro>
+      />
       <section
         className="container section"
-        aria-label="Agendamento demonstrativo"
+        aria-label="Agendamento"
       >
         <BookingWizard
           initialServiceId={service?.id}

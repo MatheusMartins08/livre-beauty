@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { services, stylists } from "../content/salon";
+import { stylists } from "../content/salon";
 
 const routes = [
   "/",
@@ -7,13 +7,10 @@ const routes = [
   "/servicos",
   "/profissionais",
   "/galeria",
-  "/contato",
   "/agendamento",
-  "/faq",
   "/politicas",
   "/privacidade",
   "/termos",
-  ...services.map(({ slug }) => `/servicos/${slug}`),
   ...stylists.map(({ slug }) => `/profissionais/${slug}`),
 ];
 const knownRoutes = new Set(routes);
@@ -261,35 +258,32 @@ test("mobile navigation contains keyboard focus and restores its trigger", async
   await expect(trigger).toBeFocused();
 });
 
-test("demonstrative contact channels remain local and create no external navigation", async ({
-  page,
-  context,
-}) => {
+test("local channels preserve focus and never start external navigation", async ({ page, context }) => {
   const externalRequests: string[] = [];
   const popups: string[] = [];
-  await page.goto("/contato");
+  await page.goto("/");
   const origin = new URL(page.url()).origin;
-  await context.route("**/*", async (route) => {
+  await context.route("**/*", async route => {
     if (new URL(route.request().url()).origin !== origin) {
       externalRequests.push(route.request().url());
       await route.abort();
     } else await route.continue();
   });
-  context.on("page", (popup) => {
-    popups.push(popup.url());
-  });
+  context.on("page", popup => popups.push(popup.url()));
   for (const [button, label, destination] of [
-    ["Conversar pelo WhatsApp", "Converse pelo WhatsApp", "/contato"],
-    ["Ligar para a recepção", "Atendimento por telefone", "/contato"],
-    ["Enviar um e-mail", "Uma mensagem para a equipe", "/contato"],
-    ["Conhecer nosso Instagram", "Livre no Instagram", "/galeria"],
+    ["WhatsApp", "Converse pelo WhatsApp", "/agendamento"],
+    ["Telefone", "Atendimento por telefone", "/agendamento"],
+    ["Instagram", "Livre no Instagram", "/galeria"],
   ]) {
-    await page.goto("/contato");
-    const trigger = page.getByRole("button", { name: button, exact: true });
+    await page.goto("/");
+    const trigger = page.locator("main").getByRole("button", { name: button, exact: true });
     await trigger.click();
     const dialog = page.getByRole("dialog", { name: label });
     await expect(dialog).toBeVisible();
-    expect(new URL(page.url()).pathname).toBe("/contato");
+    await expect(dialog).not.toContainText(/demonstrativ|fictíci|ilustrativ/i);
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+    await trigger.click();
     await dialog.getByRole("link").click();
     await expect(page).toHaveURL(new RegExp(`${destination}$`));
     expect(new URL(page.url()).origin).toBe(origin);
@@ -298,48 +292,20 @@ test("demonstrative contact channels remain local and create no external navigat
   expect(popups).toEqual([]);
 });
 
-test("map requests begin only after opting in and contain no form data", async ({
-  page,
-}) => {
-  const mapRequests: { url: string; referer?: string }[] = [];
-  // The provider response is incidental; the app must request it only after opt-in.
-  await page.route("https://www.openstreetmap.org/**", async (route) => {
-    mapRequests.push({
-      url: route.request().url(),
-      referer: route.request().headers().referer,
-    });
-    await route.fulfill({
-      status: 200,
-      contentType: "text/html",
-      body: "<!doctype html><html><body>Mapa ilustrativo</body></html>",
-    });
+test("map requests begin only after opting in without a referrer", async ({ page }) => {
+  const requests: { url: string; referer?: string }[] = [];
+  await page.route("https://www.openstreetmap.org/**", async route => {
+    requests.push({ url: route.request().url(), referer: route.request().headers().referer });
+    await route.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><html><body>Mapa dos Jardins</body></html>" });
   });
-  await page.goto("/contato");
-  await page
-    .getByLabel("Nome", { exact: true })
-    .fill("Pessoa Teste Privacidade");
-  await page
-    .getByLabel("E-mail", { exact: true })
-    .fill("privacidade@example.com");
-  await page
-    .getByLabel("Mensagem", { exact: true })
-    .fill("Mensagem privada de exemplo");
+  await page.goto("/");
   await expect(page.locator("iframe")).toHaveCount(0);
-  expect(mapRequests).toEqual([]);
+  expect(requests).toEqual([]);
   await page.getByRole("button", { name: "Explorar a região" }).click();
-  const map = page.getByTitle(
-    "Mapa ilustrativo da região dos Jardins, São Paulo",
-  );
+  const map = page.getByTitle("Mapa da região dos Jardins, São Paulo");
   await map.scrollIntoViewIfNeeded();
   await expect(map).toBeVisible();
-  await expect.poll(() => mapRequests.length).toBe(1);
-  expect(new URL(mapRequests[0].url).hostname).toBe("www.openstreetmap.org");
-  expect(mapRequests[0].referer).toBeUndefined();
-  for (const value of [
-    "Pessoa Teste Privacidade",
-    "privacidade@example.com",
-    "Mensagem privada de exemplo",
-  ]) {
-    expect(decodeURIComponent(mapRequests[0].url)).not.toContain(value);
-  }
+  await expect.poll(() => requests.length).toBe(1);
+  expect(new URL(requests[0].url).hostname).toBe("www.openstreetmap.org");
+  expect(requests[0].referer).toBeUndefined();
 });

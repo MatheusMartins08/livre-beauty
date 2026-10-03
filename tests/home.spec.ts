@@ -179,7 +179,7 @@ test("mobile menu navigation is immediate, restores scrolling and can reopen aft
   await expect(dialog).not.toBeVisible();
 });
 
-test("home channels remain demonstrative and the map loads only on request", async ({
+test("home channels remain local and the map loads only on request", async ({
   page,
 }) => {
   const external: string[] = [];
@@ -187,7 +187,7 @@ test("home channels remain demonstrative and the map loads only on request", asy
     external.push(route.request().url());
     await route.fulfill({
       contentType: "text/html",
-      body: "<!doctype html><p>Mapa ilustrativo</p>",
+      body: "<!doctype html><p>Mapa dos Jardins</p>",
     });
   });
   await page.goto("/");
@@ -204,7 +204,7 @@ test("home channels remain demonstrative and the map loads only on request", asy
   await expect(page.locator("iframe")).toHaveCount(0);
   await visit.getByRole("button", { name: "Explorar a região" }).click();
   await expect(
-    page.getByTitle("Mapa ilustrativo da região dos Jardins, São Paulo"),
+    page.getByTitle("Mapa da região dos Jardins, São Paulo"),
   ).toBeVisible();
   await expect.poll(() => external.length).toBe(1);
 });

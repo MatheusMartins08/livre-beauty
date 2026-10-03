@@ -1,14 +1,13 @@
 import { PageMotion } from "@/components/page-motion";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { gallery, services, stylists } from "@/content/salon";
+import { services, stylists } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
 import { bookingHref, getStylist, priceLabel } from "@/lib/utils";
-import { GalleryGrid } from "@/components/gallery-grid";
 import {
+  ActionContent,
   BookingCTA,
   ButtonLink,
-  DemoNote,
   PageIntro,
   Photo,
   SectionHeading,
@@ -39,7 +38,6 @@ export default async function StylistPage({ params }: StylistPageProps) {
   const selectedServices = services.filter((service) =>
     stylist.serviceIds.includes(service.id),
   );
-  const references = gallery.filter((item) => item.stylistId === stylist.id);
 
   return (
     <PageMotion>
@@ -48,8 +46,8 @@ export default async function StylistPage({ params }: StylistPageProps) {
         title={stylist.name}
         description={stylist.role}
       >
-        <Link href="/profissionais" className="text-link mt-6 inline-flex">
-          Conhecer toda a equipe
+        <Link href="/profissionais" className="action-link text-link mt-6 inline-flex">
+          <ActionContent>Conhecer toda a equipe</ActionContent>
         </Link>
       </PageIntro>
       <section
@@ -60,7 +58,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
         <div data-page-reveal>
           <Photo
             src={stylist.image}
-            alt={`Retrato ilustrativo do perfil fictício de ${stylist.name}`}
+            alt={`Retrato de ${stylist.name}`}
             aspect="3 / 4"
           />
         </div>
@@ -74,7 +72,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
           <dl className="my-8 border-y border-[var(--line)] py-6">
             <div className="mb-5">
               <dt className="fine-print mb-2">
-                Experiência no perfil demonstrativo
+                Experiência
               </dt>
               <dd>{stylist.experience} anos</dd>
             </div>
@@ -88,12 +86,6 @@ export default async function StylistPage({ params }: StylistPageProps) {
           <ButtonLink href={bookingHref(undefined, stylist.slug)}>
             Agendar com {firstName}
           </ButtonLink>
-          <div className="mt-6">
-            <DemoNote>
-              Nome, biografia e experiência fictícios. A imagem é um retrato
-              ilustrativo e não identifica um profissional real do Livre.
-            </DemoNote>
-          </div>
         </div>
       </section>
       <section className="section surface-section">
@@ -110,9 +102,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
               >
                 <div>
                   <h3 className="mb-2 font-[family-name:var(--font-display)] text-3xl">
-                    <Link href={`/servicos/${service.slug}`}>
-                      {service.name}
-                    </Link>
+                    <Link href={`/servicos#${service.slug}`} className="action-link action-inline"><ActionContent>{service.name}</ActionContent></Link>
                   </h3>
                   <p className="fine-print">
                     {service.duration} min · {priceLabel(service.price)}
@@ -120,34 +110,16 @@ export default async function StylistPage({ params }: StylistPageProps) {
                 </div>
                 <Link
                   href={bookingHref(service.slug, stylist.slug)}
-                  className="text-link shrink-0"
+                  className="action-link text-link shrink-0"
                   aria-label={`Agendar ${service.name} com ${firstName}`}
                 >
-                  Agendar este cuidado
+                  <ActionContent>Agendar este cuidado</ActionContent>
                 </Link>
               </article>
             ))}
           </div>
         </div>
       </section>
-      {references.length > 0 && (
-        <section className="section container">
-          <SectionHeading
-            title="Um olhar para inspirar."
-            description={`Referências visuais para as especialidades do perfil de ${firstName}.`}
-          />
-          <div className="mt-10">
-            <GalleryGrid items={references} filters={false} />
-          </div>
-          <div className="mt-7">
-            <DemoNote>
-              Portfólio ilustrativo. As imagens são referências editoriais
-              associadas às especialidades e não trabalhos realizados por este
-              profissional fictício.
-            </DemoNote>
-          </div>
-        </section>
-      )}
       <BookingCTA title="O cuidado começa com uma conversa." />
     </PageMotion>
   );

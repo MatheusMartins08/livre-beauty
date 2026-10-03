@@ -13,7 +13,7 @@ import {
   type ContactDetails,
 } from "@/lib/booking";
 import { priceLabel } from "@/lib/utils";
-import { ButtonLink } from "@/components/ui";
+import { ActionContent, ButtonLink } from "@/components/ui";
 import styles from "./booking.module.css";
 
 const steps = [
@@ -33,9 +33,9 @@ const titles = [
 const descriptions = [
   "Tudo começa com o cuidado que faz sentido para você.",
   "Conheça quem cuida de você ou deixe a escolha com a nossa equipe.",
-  "Selecione um dia para conhecer a disponibilidade demonstrativa.",
-  "Use dados de exemplo para experimentar esta demonstração.",
-  "Confira os detalhes antes de concluir a demonstração.",
+  "Selecione um dia e confira os horários disponíveis.",
+  "Informe seus dados para compor o resumo da sua escolha.",
+  "Confira os detalhes antes de ver o resumo da sua escolha.",
 ];
 
 function dateLabel(date: string, full = false): string {
@@ -261,7 +261,7 @@ export function BookingWizard({
       }
     } catch {
       setMessage(
-        "Não foi possível concluir a simulação. Seus dados foram mantidos; tente novamente.",
+        "Não foi possível concluir sua escolha. Seus dados foram mantidos; tente novamente.",
       );
     } finally {
       submitting.current = false;
@@ -289,14 +289,11 @@ export function BookingWizard({
         <div className={styles.completeMark} aria-hidden="true">
           ✓
         </div>
-        <p className="eyebrow">OBRIGADO POR CONHECER O LIVRE</p>
+        <p className="eyebrow">SEU MOMENTO NO LIVRE</p>
         <h2 id="booking-complete" ref={heading} tabIndex={-1}>
-          Simulação concluída
+          Resumo da sua escolha
         </h2>
-        <p role="status">
-          Simulação concluída. Nenhuma reserva real foi criada e nenhuma
-          mensagem foi enviada.
-        </p>
+        <p role="status">Confira o serviço, o profissional e o horário que você escolheu.</p>
         <dl className={styles.confirmationDetails}>
           <div>
             <dt>Seu cuidado</dt>
@@ -318,8 +315,8 @@ export function BookingWizard({
           enviado a um serviço externo.
         </p>
         <div className={styles.confirmationActions}>
-          <button type="button" className="button" onClick={restart}>
-            Começar outra simulação
+          <button type="button" className="action-link button" onClick={restart}>
+            <ActionContent>Escolher outro horário</ActionContent>
           </button>
           <ButtonLink href="/" secondary>
             Voltar ao início
@@ -484,14 +481,14 @@ export function BookingWizard({
                     </p>
                     <button
                       type="button"
-                      className="button button-secondary"
+                      className="action-link button button-secondary"
                       onClick={() => {
                         setLoadError(false);
                         setLoading(true);
                         setRetry((value) => value + 1);
                       }}
                     >
-                      Tentar novamente
+                      <ActionContent>Tentar novamente</ActionContent>
                     </button>
                   </div>
                 )}
@@ -635,10 +632,6 @@ export function BookingWizard({
                   </p>
                 )}
               </div>
-              <p className="fine-print">
-                Nesta demonstração, use dados de exemplo. Eles ficam apenas na
-                memória desta página e não são enviados ou armazenados.
-              </p>
             </div>
           )}
 
@@ -681,10 +674,6 @@ export function BookingWizard({
                   </dd>
                 </div>
               </dl>
-              <p className={styles.demoReminder}>
-                Esta é uma simulação. Nenhuma reserva, cobrança ou mensagem será
-                criada.
-              </p>
             </div>
           )}
 
@@ -701,24 +690,19 @@ export function BookingWizard({
             {step > 0 && (
               <button
                 type="button"
-                className="button button-secondary"
+                className="action-link button button-secondary"
                 onClick={moveBack}
                 disabled={pending}
               >
-                Voltar
+                <ActionContent>Voltar</ActionContent>
               </button>
             )}
             <button
               type="submit"
-              className="button"
+              className="action-link button"
               disabled={pending || (step === 2 && loading)}
             >
-              {pending
-                ? "Concluindo…"
-                : step === 4
-                  ? "Concluir simulação"
-                  : "Continuar"}
-              <span aria-hidden="true">↗</span>
+              <ActionContent>{pending ? "Concluindo…" : step === 4 ? "Ver resumo" : "Continuar"}</ActionContent>
             </button>
           </div>
           {pending && (
@@ -758,14 +742,11 @@ export function BookingWizard({
               {service.duration} minutos de cuidado
             </span>
             <strong>{priceLabel(service.price)}</strong>
-            <span className="fine-print">Valor inicial demonstrativo.</span>
+            <span className="fine-print">Investimento inicial.</span>
           </div>
         )}
         <p className={styles.summaryNote}>
           Uma boa conversa vem antes de qualquer transformação.
-        </p>
-        <p className="fine-print">
-          Agenda demonstrativa. Nenhuma reserva real é criada.
         </p>
       </aside>
     </div>

@@ -34,7 +34,6 @@ interface HomeContent {
 }
 
 // Homepage copy is independent of the longer descriptions on the internal pages.
-// Photos, business information and the catalogue remain illustrative.
 export const homeContent: HomeContent = {
   about: {
     label: "Sobre nós",
@@ -43,14 +42,14 @@ export const homeContent: HomeContent = {
       "Somos um ateliê de beleza onde cada escolha começa com uma conversa. Entre luz natural, técnica e cuidado, criamos espaço para você se reconhecer no espelho. Um encontro com seu cabelo, seu ritmo e seu jeito de ser.",
     photo: {
       src: "/images/salon-interior-01.jpg",
-      alt: "Ambiente ilustrativo de salão com cadeiras de atendimento e luz natural",
+      alt: "Ambiente de salão com cadeiras de atendimento e luz natural",
     },
   },
   manifesto: {
     title: { opening: "Um tempo", emphasis: "só seu." },
     photo: {
       src: "/images/salon-interior-02.jpg",
-      alt: "Interior ilustrativo de salão com materiais naturais e atmosfera acolhedora",
+      alt: "Interior de salão com materiais naturais e atmosfera acolhedora",
     },
   },
   services: {
@@ -72,7 +71,7 @@ export const homeContent: HomeContent = {
       "Diferentes olhares, a mesma atenção a você. Conheça quem está por trás dos cortes, das cores e dos pequenos detalhes que fazem o cuidado acontecer.",
     photo: {
       src: "/images/service-haircut.jpg",
-      alt: "Fotografia ilustrativa de profissional realizando um corte de cabelo",
+      alt: "Fotografia de profissional realizando um corte de cabelo",
     },
   },
   faq: {
