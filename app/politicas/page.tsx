@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import Link from "next/link";
 import { salonPolicies } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
@@ -11,10 +12,11 @@ export const metadata = pageMetadata(
 
 export default function PoliciesPage() {
   return (
-    <>
+    <PageMotion animate={false}>
       <PageIntro
         eyebrow="POLÍTICAS DO SALÃO"
         title="Cuidado também é clareza."
+        emphasis="clareza."
         description="Combinados que respeitam seu tempo e preservam uma boa experiência para todos."
       />
       <div className="container grid items-start gap-10 pb-16 lg:grid-cols-[0.6fr_1.4fr] lg:gap-20 lg:pb-24">
@@ -23,7 +25,7 @@ export default function PoliciesPage() {
             Este é um modelo ilustrativo. A demonstração não cria reservas,
             cobra valores, aplica multas ou presta serviços reais.
           </DemoNote>
-          <p className="mt-6 text-sm text-[#625D57] leading-relaxed">
+          <p className="mt-6 text-sm text-[var(--text-body)] leading-relaxed">
             Se precisar de uma resposta rápida, consulte as{" "}
             <Link href="/faq" className="text-link">
               dúvidas frequentes
@@ -35,7 +37,7 @@ export default function PoliciesPage() {
           {salonPolicies.map((policy, index) => (
             <section
               key={policy.title}
-              className="border-t border-[#252422]/15 py-7 first:pt-0 first:border-t-0"
+              className="border-t border-[var(--line)] py-7 first:pt-0 first:border-t-0"
             >
               <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl">
                 <span className="fine-print mr-4 align-middle">
@@ -43,18 +45,18 @@ export default function PoliciesPage() {
                 </span>
                 {policy.title}
               </h2>
-              <p className="max-w-[65ch] text-[#625D57] leading-relaxed">
+              <p className="max-w-[65ch] text-[var(--text-body)] leading-relaxed">
                 {policy.text}
               </p>
             </section>
           ))}
-          <div className="border-t border-[#252422]/15 pt-8">
+          <div className="border-t border-[var(--line)] pt-8">
             <ButtonLink href="/contato" secondary>
               Conhecer os canais de contato
             </ButtonLink>
           </div>
         </div>
       </div>
-    </>
+    </PageMotion>
   );
 }

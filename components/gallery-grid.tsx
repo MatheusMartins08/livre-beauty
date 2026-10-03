@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
 import { type GalleryItem, stylists } from "@/content/salon";
 import { Dialog } from "@/components/dialog";
@@ -16,6 +16,12 @@ export function GalleryGrid({
   const [category, setCategory] = useState("Todos");
   const [active, setActive] = useState<number | null>(null);
   const trigger = useRef<HTMLButtonElement | null>(null);
+  const grid = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    grid.current?.dispatchEvent(
+      new Event("page-layout-change", { bubbles: true }),
+    );
+  }, [category]);
   const visible =
     category === "Todos"
       ? items
@@ -49,12 +55,13 @@ export function GalleryGrid({
           )}
         </div>
       )}
-      <div className="gallery-grid">
+      <div ref={grid} className="gallery-grid" data-page-section>
         {visible.map((item, index) => (
           <button
             key={item.id}
             type="button"
             className={`gallery-tile gallery-tile-${index % 4}`}
+            data-page-reveal
             aria-label={`Abrir imagem: ${item.title}`}
             onClick={(event) => {
               trigger.current = event.currentTarget;
@@ -105,7 +112,13 @@ export function GalleryGrid({
         {current && (
           <div>
             <div className="lightbox-photo">
-              <Image src={current.image} alt={current.alt} fill sizes="90vw" />
+              <Image
+                key={current.id}
+                src={current.image}
+                alt={current.alt}
+                fill
+                sizes="90vw"
+              />
             </div>
             <div className="lightbox-bottom">
               <div aria-live="polite">

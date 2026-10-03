@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import { gallery } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
 import { GalleryGrid } from "@/components/gallery-grid";
@@ -11,10 +12,11 @@ export const metadata = pageMetadata(
 
 export default function GalleryPage() {
   return (
-    <>
+    <PageMotion>
       <PageIntro
         eyebrow="GALERIA"
         title="Beleza em suas muitas formas."
+        emphasis="muitas formas."
         description="Texturas, luz, movimento. Referências para imaginar o que pode ser seu."
       />
       <section
@@ -34,6 +36,6 @@ export default function GalleryPage() {
         title="Uma referência. Muitas possibilidades."
         description="Traga o que inspira você. Vamos conversar sobre um resultado que respeite seus fios."
       />
-    </>
+    </PageMotion>
   );
 }

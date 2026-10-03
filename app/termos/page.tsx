@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/metadata";
 import { DemoNote, PageIntro } from "@/components/ui";
@@ -10,10 +11,11 @@ export const metadata = pageMetadata(
 
 export default function TermsPage() {
   return (
-    <>
+    <PageMotion animate={false}>
       <PageIntro
         eyebrow="TERMOS"
         title="Termos de uso."
+        emphasis="uso."
         description="Informações para explorar a apresentação do Livre Beauty."
       />
       <div className="container grid items-start gap-10 pb-16 lg:grid-cols-[0.6fr_1.4fr] lg:gap-20 lg:pb-24">
@@ -23,9 +25,9 @@ export default function TermsPage() {
             experiência de navegação demonstrativa.
           </DemoNote>
         </aside>
-        <div className="space-y-9 text-[#625D57] leading-relaxed">
+        <div className="space-y-9 text-[var(--text-body)] leading-relaxed">
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Finalidade da apresentação
             </h2>
             <p>
@@ -37,7 +39,7 @@ export default function TermsPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Agendamento e contato
             </h2>
             <p>
@@ -58,7 +60,7 @@ export default function TermsPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Imagens e resultados
             </h2>
             <p>
@@ -70,7 +72,7 @@ export default function TermsPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Dados informados
             </h2>
             <p>
@@ -85,7 +87,7 @@ export default function TermsPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Políticas demonstrativas
             </h2>
             <p>
@@ -99,7 +101,7 @@ export default function TermsPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Atualizações
             </h2>
             <p>
@@ -109,7 +111,7 @@ export default function TermsPage() {
               refletir essa operação antes de sua ativação.
             </p>
           </section>
-          <p className="border-t border-[#252422]/15 pt-7 text-sm">
+          <p className="border-t border-[var(--line)] pt-7 text-sm">
             Para conhecer a experiência, explore os{" "}
             <Link href="/servicos" className="text-link">
               serviços
@@ -122,6 +124,6 @@ export default function TermsPage() {
           </p>
         </div>
       </div>
-    </>
+    </PageMotion>
   );
 }

@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { gallery, services, stylists } from "@/content/salon";
@@ -42,7 +43,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
   );
 
   return (
-    <>
+    <PageMotion>
       <PageIntro
         eyebrow={service.category.toLocaleUpperCase("pt-BR")}
         title={service.name}
@@ -53,22 +54,25 @@ export default async function ServicePage({ params }: ServicePageProps) {
         </Link>
       </PageIntro>
       <section
-        className="container grid items-start gap-10 pb-16 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 lg:pb-24"
+        className="container detail-intro editorial-split"
+        data-page-section
         aria-label="Sobre este cuidado"
       >
-        <Photo
-          src={service.image}
-          alt={`Referência ilustrativa de ${service.category.toLocaleLowerCase("pt-BR")}`}
-          aspect="4 / 5"
-        />
-        <div className="lg:py-6">
+        <div data-page-reveal>
+          <Photo
+            src={service.image}
+            alt={`Referência ilustrativa de ${service.category.toLocaleLowerCase("pt-BR")}`}
+            aspect="4 / 5"
+          />
+        </div>
+        <div className="detail-copy" data-page-reveal>
           <h2 className="mb-5 font-[family-name:var(--font-display)] text-4xl leading-[1.1] md:text-5xl">
             Feito para os seus fios.
           </h2>
-          <p className="max-w-[55ch] text-[#625D57] leading-relaxed">
+          <p className="max-w-[55ch] text-[var(--text-body)] leading-relaxed">
             {service.detail}
           </p>
-          <dl className="my-8 grid grid-cols-2 gap-5 border-y border-[#252422]/15 py-6">
+          <dl className="my-8 grid grid-cols-2 gap-5 border-y border-[var(--line)] py-6">
             <div>
               <dt className="fine-print mb-2">Tempo reservado</dt>
               <dd>{service.duration} minutos</dd>
@@ -81,7 +85,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
           <h3 className="mb-4 font-[family-name:var(--font-display)] text-2xl">
             Antes e depois do cuidado
           </h3>
-          <ul className="mb-8 space-y-3 pl-5 text-[#625D57] leading-relaxed list-disc marker:text-[#A34E3D]">
+          <ul className="mb-8 space-y-3 pl-5 text-[var(--text-body)] leading-relaxed list-disc marker:text-[var(--accent)]">
             {service.care.map((care) => (
               <li key={care}>{care}</li>
             ))}
@@ -97,7 +101,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
           </div>
         </div>
       </section>
-      <section className="section bg-[#F0ECE5]">
+      <section className="section surface-section" data-page-section>
         <div className="container">
           <SectionHeading
             title="Encontre quem cuida de você."
@@ -107,18 +111,19 @@ export default async function ServicePage({ params }: ServicePageProps) {
             {compatibleStylists.map((stylist) => (
               <article
                 key={stylist.id}
-                className="flex items-center gap-5 border-t border-[#252422]/15 pt-6"
+                data-page-reveal
+                className="compatible-stylist"
               >
                 <Link
                   href={`/profissionais/${stylist.slug}`}
                   aria-label={`Conhecer ${stylist.name}`}
-                  className="block w-24 shrink-0 sm:w-28"
+                  className="compatible-stylist-photo"
                 >
                   <Photo
                     src={stylist.image}
                     alt={`Retrato ilustrativo do perfil fictício de ${stylist.name}`}
                     aspect="3 / 4"
-                    sizes="112px"
+                    sizes="(max-width: 767px) 100px, 160px"
                   />
                 </Link>
                 <div className="min-w-0">
@@ -156,6 +161,6 @@ export default async function ServicePage({ params }: ServicePageProps) {
         </section>
       )}
       <BookingCTA title="Seu jeito merece um cuidado seu." />
-    </>
+    </PageMotion>
   );
 }

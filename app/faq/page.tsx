@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import Link from "next/link";
 import { faqs } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
@@ -12,10 +13,11 @@ export const metadata = pageMetadata(
 
 export default function FAQPage() {
   return (
-    <>
+    <PageMotion>
       <PageIntro
         eyebrow="DÚVIDAS FREQUENTES"
         title="Antes de vir, saiba mais."
+        emphasis="saiba mais."
         description="As respostas para planejar seu tempo com tranquilidade."
       />
       <section
@@ -26,7 +28,7 @@ export default function FAQPage() {
           <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl">
             Podemos ajudar.
           </h2>
-          <p className="mb-5 text-[#625D57] leading-relaxed">
+          <p className="mb-5 text-[var(--text-body)] leading-relaxed">
             Do primeiro cuidado à manutenção em casa, queremos que cada escolha
             seja bem informada.
           </p>
@@ -42,7 +44,7 @@ export default function FAQPage() {
         </div>
         <div>
           <FAQAccordion items={faqs} />
-          <p className="mt-8 text-sm text-[#625D57] leading-relaxed">
+          <p className="mt-8 text-sm text-[var(--text-body)] leading-relaxed">
             Para consultar as condições com mais detalhes, veja as{" "}
             <Link href="/politicas" className="text-link">
               políticas do salão
@@ -52,6 +54,6 @@ export default function FAQPage() {
         </div>
       </section>
       <BookingCTA title="Tudo pronto para seu próximo cuidado?" />
-    </>
+    </PageMotion>
   );
 }

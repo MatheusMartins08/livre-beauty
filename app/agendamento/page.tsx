@@ -30,6 +30,7 @@ export default async function BookingPage({
       <PageIntro
         eyebrow="SEU MOMENTO NO LIVRE"
         title="Um tempo para você."
+        emphasis="para você."
         description="Escolha seu cuidado, encontre seu profissional e conheça uma experiência pensada para o seu ritmo."
       >
         <DemoNote>

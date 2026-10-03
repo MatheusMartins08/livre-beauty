@@ -50,10 +50,7 @@ export function Header() {
     setMenuOpen(false);
   };
   const closeMenu = () => {
-    if (
-      !isHome ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       finishMenu();
       return;
     }

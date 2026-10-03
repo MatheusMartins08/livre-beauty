@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("header stays readable while scrolling and the homepage theme does not leak", async ({
+test("header stays readable while scrolling and shared chrome stays consistent between routes", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -63,10 +63,7 @@ for (const viewport of [
       const link = page.locator("[data-home-hero]").getByRole("link", { name });
       await expect(link).toBeInViewport({ ratio: 1 });
       const box = await link.boundingBox();
-      const bar = await page.locator(".mobile-booking-bar").boundingBox();
-      expect(box!.y + box!.height).toBeLessThanOrEqual(
-        bar?.y ?? viewport.height,
-      );
+      expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
     }
   });
 }

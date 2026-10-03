@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import { services, stylists } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
 import { StylistDirectory } from "@/components/stylist-directory";
@@ -11,10 +12,11 @@ export const metadata = pageMetadata(
 
 export default function ProfessionalsPage() {
   return (
-    <>
+    <PageMotion>
       <PageIntro
         eyebrow="NOSSA EQUIPE"
         title="Mãos que cuidam. Olhares que entendem."
+        emphasis="entendem."
         description="Técnicas diferentes, uma mesma intenção: ouvir com atenção e criar com você."
       />
       <section
@@ -33,6 +35,6 @@ export default function ProfessionalsPage() {
         title="Escolha com quem viver seu próximo capítulo."
         description="Conheça as especialidades ou deixe a escolha aberta. O cuidado começa na conversa."
       />
-    </>
+    </PageMotion>
   );
 }

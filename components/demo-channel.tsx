@@ -92,24 +92,3 @@ export function DemoChannel({
     </>
   );
 }
-
-export function FloatingContact() {
-  return (
-    <>
-      <div className="floating-contact">
-        <DemoChannel channel="whatsapp" className="floating-whatsapp">
-          Vamos conversar
-        </DemoChannel>
-      </div>
-      <div className="mobile-booking-bar">
-        <Link href="/agendamento">
-          Agendar horário
-          <ArrowUpRight size={18} aria-hidden="true" />
-        </Link>
-        <DemoChannel channel="whatsapp" className="mobile-whatsapp">
-          <span className="sr-only">WhatsApp</span>
-        </DemoChannel>
-      </div>
-    </>
-  );
-}

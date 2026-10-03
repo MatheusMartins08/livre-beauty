@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import { services } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
 import { ServiceDirectory } from "@/components/service-directory";
@@ -11,10 +12,11 @@ export const metadata = pageMetadata(
 
 export default function ServicesPage() {
   return (
-    <>
+    <PageMotion>
       <PageIntro
         eyebrow="SERVIÇOS"
         title="Cuidado que acompanha você."
+        emphasis="acompanha você."
         description="Da primeira conversa ao último detalhe, cada escolha respeita sua textura, sua rotina e seu jeito de se ver."
       />
       <section
@@ -34,6 +36,6 @@ export default function ServicesPage() {
         title="Ainda não sabe por onde começar?"
         description="A primeira conversa ajuda a encontrar o cuidado que faz sentido para você."
       />
-    </>
+    </PageMotion>
   );
 }

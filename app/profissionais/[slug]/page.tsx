@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { gallery, services, stylists } from "@/content/salon";
@@ -41,7 +42,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
   const references = gallery.filter((item) => item.stylistId === stylist.id);
 
   return (
-    <>
+    <PageMotion>
       <PageIntro
         eyebrow="NOSSA EQUIPE"
         title={stylist.name}
@@ -52,22 +53,25 @@ export default async function StylistPage({ params }: StylistPageProps) {
         </Link>
       </PageIntro>
       <section
-        className="container grid items-start gap-10 pb-16 lg:grid-cols-[0.8fr_1fr] lg:gap-24 lg:pb-24"
+        className="container detail-intro editorial-split profile-intro"
+        data-page-section
         aria-label={`Conheça ${stylist.name}`}
       >
-        <Photo
-          src={stylist.image}
-          alt={`Retrato ilustrativo do perfil fictício de ${stylist.name}`}
-          aspect="3 / 4"
-        />
-        <div className="lg:py-7">
+        <div data-page-reveal>
+          <Photo
+            src={stylist.image}
+            alt={`Retrato ilustrativo do perfil fictício de ${stylist.name}`}
+            aspect="3 / 4"
+          />
+        </div>
+        <div className="detail-copy" data-page-reveal>
           <p className="mb-7 max-w-[34ch] font-[family-name:var(--font-display)] text-3xl leading-[1.2] md:text-[2.6rem]">
             {stylist.description}
           </p>
-          <p className="max-w-[55ch] text-[#625D57] leading-relaxed">
+          <p className="max-w-[55ch] text-[var(--text-body)] leading-relaxed">
             {stylist.biography}
           </p>
-          <dl className="my-8 border-y border-[#252422]/15 py-6">
+          <dl className="my-8 border-y border-[var(--line)] py-6">
             <div className="mb-5">
               <dt className="fine-print mb-2">
                 Experiência no perfil demonstrativo
@@ -92,7 +96,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
           </div>
         </div>
       </section>
-      <section className="section bg-[#F0ECE5]">
+      <section className="section surface-section">
         <div className="container grid gap-9 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
           <SectionHeading
             title={`Cuidados com ${firstName}.`}
@@ -102,7 +106,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
             {selectedServices.map((service) => (
               <article
                 key={service.id}
-                className="flex flex-col gap-5 border-b border-[#252422]/15 py-6 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-5 border-b border-[var(--line)] py-6 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <h3 className="mb-2 font-[family-name:var(--font-display)] text-3xl">
@@ -145,6 +149,6 @@ export default async function StylistPage({ params }: StylistPageProps) {
         </section>
       )}
       <BookingCTA title="O cuidado começa com uma conversa." />
-    </>
+    </PageMotion>
   );
 }

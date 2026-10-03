@@ -37,9 +37,9 @@
   color: var(--foreground);
 }
 .reached .stepNumber {
-  background: var(--accent);
-  color: var(--background);
-  border-color: var(--accent);
+  background: var(--foreground);
+  color: var(--soft-white);
+  border-color: var(--foreground);
 }
 .stepIntro {
   margin-bottom: 2rem;
@@ -126,7 +126,7 @@
 .choice.selected,
 .timeChoice.selected {
   border-color: var(--accent);
-  background: #f4ebe5;
+  background: var(--surface);
 }
 .dateSelect {
   max-width: 28rem;
@@ -164,7 +164,7 @@
   padding: 1.25rem;
   background: var(--surface);
   font-size: 0.9rem;
-  color: var(--muted);
+  color: var(--text-body);
   line-height: 1.7;
 }
 .loading {
@@ -241,14 +241,15 @@
 .demoReminder {
   font-size: 0.85rem;
   line-height: 1.7;
-  background: #f4ebe5;
+  background: var(--surface);
   padding: 1.2rem;
   margin-top: 1.5rem;
 }
 .summary {
   padding: 1.8rem;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 0;
+  --muted: var(--text-body);
 }
 .summary h2 {
   font-size: 2rem;
@@ -299,7 +300,7 @@
   height: 3rem;
   margin: 0 auto 2rem;
   border-radius: 50%;
-  background: #f4ebe5;
+  background: var(--surface);
   color: var(--accent);
   font-size: 1.4rem;
 }
@@ -366,6 +367,43 @@
     animation: none;
   }
   .choice {
+    transition: none;
+  }
+}
+
+.choice.selected,
+.timeChoice.selected,
+.demoReminder {
+  --muted: var(--text-body);
+}
+.choice.selected,
+.timeChoice.selected {
+  border-color: var(--foreground);
+}
+.stepNumber {
+  flex-shrink: 0;
+}
+.timeChoice {
+  transition:
+    border-color 180ms var(--ease-out),
+    background-color 180ms var(--ease-out);
+}
+.choice:hover,
+.timeChoice:hover {
+  border-color: var(--line);
+}
+.choice.selected:hover,
+.timeChoice.selected:hover {
+  border-color: var(--foreground);
+}
+@media (hover: hover) and (pointer: fine) {
+  .choice:hover,
+  .timeChoice:hover {
+    border-color: var(--accent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeChoice {
     transition: none;
   }
 }

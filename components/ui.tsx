@@ -53,18 +53,35 @@ export function PageIntro({
   title,
   description,
   children,
+  emphasis,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
   children?: ReactNode;
+  emphasis?: string;
 }) {
+  const emphasisStart = emphasis ? title.indexOf(emphasis) : -1;
   return (
-    <section className="page-intro container">
-      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-      <h1 className="display-title">{title}</h1>
-      {description && <p className="page-description">{description}</p>}
-      {children}
+    <section className="page-intro container" data-page-section>
+      <div className="intro-heading" data-page-reveal>
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+        <h1 className="display-title">
+          {emphasisStart >= 0 && emphasis ? (
+            <>
+              {title.slice(0, emphasisStart)}
+              <em>{emphasis}</em>
+              {title.slice(emphasisStart + emphasis.length)}
+            </>
+          ) : (
+            title
+          )}
+        </h1>
+      </div>
+      <div className="intro-copy" data-page-reveal>
+        {description && <p className="page-description">{description}</p>}
+        {children}
+      </div>
     </section>
   );
 }
@@ -76,6 +93,7 @@ export function Photo({
   className = "",
   sizes = "(max-width: 767px) 100vw, 50vw",
   preload = false,
+  parallax = false,
 }: {
   src: string;
   alt: string;
@@ -83,6 +101,7 @@ export function Photo({
   className?: string;
   sizes?: string;
   preload?: boolean;
+  parallax?: boolean;
 }) {
   return (
     <div className={`photo ${className}`} style={{ aspectRatio: aspect }}>
@@ -92,7 +111,8 @@ export function Photo({
         fill
         sizes={sizes}
         preload={preload}
-        className="photo-image"
+        className={`photo-image${parallax ? " photo-parallax" : ""}`}
+        data-page-parallax={parallax || undefined}
       />
     </div>
   );
@@ -143,23 +163,24 @@ export function ServiceCard({ service }: { service: Service }) {
 
 export function StylistCard({ stylist }: { stylist: Stylist }) {
   return (
-    <article className="stylist-card">
+    <article className="stylist-card" data-page-section>
       <Link
         href={`/profissionais/${stylist.slug}`}
         className="image-link"
+        data-page-reveal
         aria-label={`Conhecer ${stylist.name}`}
       >
         <Photo
           src={stylist.image}
           alt={`Retrato ilustrativo do perfil fictício de ${stylist.name}`}
           aspect="3 / 4"
-          sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw"
+          sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1023px) calc((100vw - 112px) / 2), 650px"
         />
         <span className="image-link-arrow">
           <ArrowUpRight size={24} aria-hidden="true" />
         </span>
       </Link>
-      <div className="stylist-card-heading">
+      <div className="stylist-card-heading" data-page-reveal>
         <h3>
           <Link href={`/profissionais/${stylist.slug}`}>{stylist.name}</Link>
         </h3>
@@ -189,8 +210,8 @@ export function BookingCTA({
   description?: string;
 }) {
   return (
-    <section className="booking-cta">
-      <div className="container booking-cta-inner">
+    <section className="booking-cta" data-page-section>
+      <div className="container booking-cta-inner" data-page-reveal>
         <p className="eyebrow">VAMOS CRIAR ALGO SEU</p>
         <h2>{title}</h2>
         <p>{description}</p>

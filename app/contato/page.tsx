@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import Link from "next/link";
 import { site } from "@/content/salon";
 import { pageMetadata } from "@/lib/metadata";
@@ -18,10 +19,11 @@ export const metadata = pageMetadata(
 
 export default function ContactPage() {
   return (
-    <>
+    <PageMotion>
       <PageIntro
         eyebrow="CONTATO"
         title="Vamos conversar."
+        emphasis="conversar."
         description="Sobre uma ideia, uma dúvida ou seu próximo cuidado. Toda boa experiência começa com uma conversa."
       />
       <section
@@ -32,7 +34,7 @@ export default function ContactPage() {
           <h2 className="mb-6 font-[family-name:var(--font-display)] text-4xl">
             Um primeiro encontro.
           </h2>
-          <p className="mb-7 max-w-[40ch] text-[#625D57] leading-relaxed">
+          <p className="mb-7 max-w-[40ch] text-[var(--text-body)] leading-relaxed">
             Conheça nossos canais ou experimente o formulário. Para escolher um
             cuidado e um horário, vá direto ao agendamento.
           </p>
@@ -58,18 +60,18 @@ export default function ContactPage() {
             </DemoNote>
           </div>
         </div>
-        <div className="border-t border-[#252422]/15 pt-7 lg:border-t-0 lg:border-l lg:pl-12 lg:pt-0">
+        <div className="border-t border-[var(--line)] pt-7 lg:border-t-0 lg:border-l lg:pl-12 lg:pt-0">
           <h2 className="mb-3 font-[family-name:var(--font-display)] text-3xl">
             Deixe sua mensagem.
           </h2>
-          <p className="mb-7 text-sm text-[#625D57] leading-relaxed">
+          <p className="mb-7 text-sm text-[var(--text-body)] leading-relaxed">
             Este formulário é uma simulação. Os dados ficam apenas nesta página
             e a mensagem não é enviada.
           </p>
           <ContactForm />
         </div>
       </section>
-      <section className="section bg-[#F0ECE5]">
+      <section className="section surface-section">
         <div className="container">
           <SectionHeading
             title="Um ateliê no coração dos Jardins."
@@ -91,7 +93,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <dt className="fine-print mb-2">Estacionamento</dt>
-                  <dd className="text-sm text-[#625D57] leading-relaxed">
+                  <dd className="text-sm text-[var(--text-body)] leading-relaxed">
                     {site.parking}
                   </dd>
                 </div>
@@ -104,7 +106,7 @@ export default function ContactPage() {
         </div>
       </section>
       <section className="container py-12 md:py-16">
-        <p className="max-w-[60ch] text-[#625D57] leading-relaxed">
+        <p className="max-w-[60ch] text-[var(--text-body)] leading-relaxed">
           Antes de agendar, você também pode consultar as{" "}
           <Link href="/faq" className="text-link">
             dúvidas frequentes
@@ -116,6 +118,6 @@ export default function ContactPage() {
           .
         </p>
       </section>
-    </>
+    </PageMotion>
   );
 }

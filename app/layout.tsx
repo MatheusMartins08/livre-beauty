@@ -4,8 +4,6 @@ import { site } from "@/content/salon";
 import { siteUrl, salonStructuredData } from "@/lib/metadata";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { FloatingContact } from "@/components/demo-channel";
-import { RevealController } from "@/components/reveal";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -68,8 +66,6 @@ export default function RootLayout({
         <Header />
         <main id="conteudo">{children}</main>
         <Footer />
-        <FloatingContact />
-        <RevealController />
         {structuredData && (
           <script
             type="application/ld+json"

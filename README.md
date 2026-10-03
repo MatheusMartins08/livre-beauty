@@ -49,21 +49,21 @@ Na homepage e em `/contato`, **somente ao clicar em “Explorar a região”** o
 
 ## Rotas
 
-| Rota | Conteúdo |
-| --- | --- |
-| `/` | Página inicial |
-| `/sobre` | História, valores e proposta de cuidado |
-| `/servicos` | Diretório, categorias, duração e investimento inicial |
-| `/servicos/[slug]` | Serviço, orientações, profissionais e referências |
-| `/profissionais` | Equipe com filtro por serviço |
-| `/profissionais/[slug]` | Perfil, especialidades e portfólio ilustrativo |
-| `/galeria` | Referências com filtros e visualização ampliada |
-| `/agendamento` | Agendamento demonstrativo em cinco etapas |
-| `/contato` | Formulário, canais, horários e mapa opcional |
-| `/faq` | Perguntas frequentes |
-| `/politicas` | Modelo de políticas de atendimento |
-| `/privacidade` | Funcionamento dos dados e do mapa externo |
-| `/termos` | Termos da apresentação demonstrativa |
+| Rota                    | Conteúdo                                              |
+| ----------------------- | ----------------------------------------------------- |
+| `/`                     | Página inicial                                        |
+| `/sobre`                | História, valores e proposta de cuidado               |
+| `/servicos`             | Diretório, categorias, duração e investimento inicial |
+| `/servicos/[slug]`      | Serviço, orientações, profissionais e referências     |
+| `/profissionais`        | Equipe com filtro por serviço                         |
+| `/profissionais/[slug]` | Perfil, especialidades e portfólio ilustrativo        |
+| `/galeria`              | Referências com filtros e visualização ampliada       |
+| `/agendamento`          | Agendamento demonstrativo em cinco etapas             |
+| `/contato`              | Formulário, canais, horários e mapa opcional          |
+| `/faq`                  | Perguntas frequentes                                  |
+| `/politicas`            | Modelo de políticas de atendimento                    |
+| `/privacidade`          | Funcionamento dos dados e do mapa externo             |
+| `/termos`               | Termos da apresentação demonstrativa                  |
 
 Slugs de serviço: `corte-autoral`, `coloracao-personalizada`, `balayage`, `ritual-de-tratamento`, `finalizacao-e-penteados` e `extensoes`. Slugs de profissional: `lia-monteiro`, `rafael-costa`, `marina-alves` e `sofia-dias`. Slugs desconhecidos retornam 404.
 
@@ -71,23 +71,24 @@ Os links de agendamento preservam a seleção pelos parâmetros `servico` e `pro
 
 ## Editar conteúdo e aparência
 
-| Arquivo ou pasta | O que editar |
-| --- | --- |
-| `content/salon.ts` | Marca, textos, navegação, serviços, profissionais, relações, galeria, depoimentos, FAQ e políticas |
-| `content/home.ts` | Textos resumidos, títulos editoriais, fotografias e seleção de perguntas da homepage |
-| `app/home.module.css` | Paleta, composição e acabamento exclusivos da homepage, incluindo header e rodapé nessa rota |
-| `components/home-motion.tsx` e `components/home-faq.tsx` | Timelines GSAP, parallax e FAQ animado exclusivos da homepage |
-| `content/image-credits.ts` | Autores, origem, licença e caminhos das fotografias |
-| `app/globals.css` | Cores, espaçamento, tipografia e regras responsivas |
-| `app/layout.tsx` | Fontes locais, estrutura global e configuração geral de SEO |
-| `components/ui.tsx` | Títulos, fotografias, botões, cartões e chamadas de agendamento |
-| `components/booking-wizard.tsx` | Etapas e estados do agendamento |
-| `lib/booking.ts` | Datas, horários, disponibilidade, validação e confirmação demonstrativa |
-| `components/contact.tsx` | Formulário e carregamento opcional do mapa |
-| `components/demo-channel.tsx` | Canais demonstrativos |
-| `lib/metadata.ts` | Metadados por página, URL base e dados estruturados |
-| `public/images/` | Fotografias locais |
-| `public/fonts/` | Fontes e licenças |
+| Arquivo ou pasta                                            | O que editar                                                                                       |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `content/salon.ts`                                          | Marca, textos, navegação, serviços, profissionais, relações, galeria, depoimentos, FAQ e políticas |
+| `content/home.ts`                                           | Textos resumidos, títulos editoriais, fotografias e seleção de perguntas da homepage               |
+| `app/home.module.css`                                       | Composição e acabamento exclusivos da homepage, incluindo seu hero e hover dos serviços            |
+| `components/home-motion.tsx` e `components/page-motion.tsx` | Timelines GSAP com escopos separados para homepage e páginas editoriais internas                   |
+| `content/image-credits.ts`                                  | Autores, origem, licença e caminhos das fotografias                                                |
+| `app/globals.css`                                           | Cores, espaçamento, tipografia e regras responsivas                                                |
+| `app/layout.tsx`                                            | Fontes locais, estrutura global e configuração geral de SEO                                        |
+| `components/ui.tsx`                                         | Títulos, fotografias, botões, cartões e chamadas de agendamento                                    |
+| `components/booking-wizard.tsx`                             | Etapas e estados do agendamento                                                                    |
+| `lib/booking.ts`                                            | Datas, horários, disponibilidade, validação e confirmação demonstrativa                            |
+| `components/faq-accordion.tsx`                              | FAQ nativo com animação reversível de 250 ms, compartilhado por homepage e página de dúvidas       |
+| `components/contact.tsx`                                    | Formulário e carregamento opcional do mapa                                                         |
+| `components/demo-channel.tsx`                               | Canais demonstrativos                                                                              |
+| `lib/metadata.ts`                                           | Metadados por página, URL base e dados estruturados                                                |
+| `public/images/`                                            | Fotografias locais                                                                                 |
+| `public/fonts/`                                             | Fontes e licenças                                                                                  |
 
 Em `content/salon.ts`, altere `site.showPrices` para `false` para apresentar “Investimento sob consulta”. Preserve os IDs nas relações `serviceIds` e `stylistId`; os slugs definem as URLs. Ao renomear um slug, revise links e testes.
 
@@ -95,13 +96,13 @@ O título principal é editado em `site.hero.title.opening` e `site.hero.title.e
 
 ### Homepage editorial
 
-Somente `/` usa a identidade creme + charcoal + terracota + bronze. Sua sequência é hero com moldura creme, sobre nós, fotografia com manifesto e Instagram, seis serviços, convite para conhecer os especialistas, quatro FAQs, avaliações, localização e rodapé. As páginas internas conservam a identidade anterior e o catálogo completo. O comparador não aparece mais na homepage; seu componente continua disponível no projeto.
+Todas as páginas usam a identidade creme + charcoal + terracota + bronze. A homepage mantém a sequência de hero com moldura creme, sobre nós, fotografia com manifesto e Instagram, seis serviços, convite para conhecer os especialistas, quatro FAQs, avaliações, localização e rodapé. As páginas internas preservam todo o catálogo, os textos e os fluxos demonstrativos, com a mesma paleta e tipografia editorial. Não há WhatsApp flutuante ou barra fixa inferior; o agendamento permanece no menu superior, no conteúdo e no rodapé. O comparador não aparece mais na homepage; seu componente continua disponível no projeto.
 
 Os títulos em `content/home.ts` têm `opening` (primeira linha), `emphasis` (trecho em itálico) e, opcionalmente, `leading` (texto antes do itálico). O texto visível e o nome acessível vêm desses mesmos campos. Os serviços e respostas são referências ao catálogo de `content/salon.ts`; as descrições resumidas são exclusivas da homepage.
 
-Os tokens ficam em `app/home.module.css`, sob um seletor `body:has()` que identifica a homepage renderizada no servidor. Assim, cores de header, rodapé e diálogos acompanham a rota sem alterar os tokens globais das páginas internas. O hover dos botões principais usa `#9F604A` para manter contraste; o accent geral permanece `#A86650`.
+Os tokens compartilhados ficam em `app/globals.css`: `--background`, `--surface`, `--foreground`, `--text-body`, `--muted`, `--accent`, `--bronze`, `--accent-soft`, `--line`, `--soft-white` e `--button-hover`. O hover dos botões usa `#9F604A` para contraste; o accent geral permanece `#A86650`. Sobre creme, textos pequenos usam espresso. O módulo da homepage mantém sua composição e estilos locais; header, rodapé, menu e diálogos compartilham a identidade em todas as rotas.
 
-GSAP e `@gsap/react` coordenam o hero e os reveals. As animações usam `useGSAP`, escopo local e `gsap.matchMedia()` com limpeza ao sair da página. O parallax fica limitado a 16 px na fotografia do manifesto, apenas em desktop com ponteiro preciso. Menu, hover e header usam CSS; o FAQ usa animação de altura via Web Animations API, reversível a partir da posição atual. Mudanças em `prefers-reduced-motion` desativam os movimentos e cancelam animações em curso. O conteúdo permanece visível sem JavaScript e o FAQ mantém o comportamento nativo de `details`.
+GSAP e `@gsap/react` coordenam o hero e os reveals. As animações usam `useGSAP`, escopo local e `gsap.matchMedia()` com limpeza ao sair da página. `PageMotion` recebe conteúdo renderizado no servidor e anima elementos marcados com `data-page-section` e `data-page-reveal`; agendamento e páginas legais não recebem reveals. O parallax fica limitado a 16 px nas fotografias do manifesto da homepage e da experiência em `/sobre`, apenas em desktop com ponteiro preciso. Menu, hover e header usam CSS; o FAQ usa animação de altura via Web Animations API, reversível a partir da posição atual. Filtros e FAQ emitem `page-layout-change` para atualizar posições de scroll. Mudanças em `prefers-reduced-motion` desativam os movimentos e cancelam animações em curso. O conteúdo permanece visível sem JavaScript e o FAQ mantém o comportamento nativo de `details`. Não combine o antigo `RevealController` com esses controladores.
 
 `site.isDemo` começa como `true`. Antes de representar um estabelecimento real, substitua os dados fictícios, revise os textos demonstrativos e configure a origem correta em `SITE_URL`, no ambiente ou em `.env.local`. O padrão é `http://localhost:3000`. Em `lib/metadata.ts`, confira endereço, cidade, horários e imagens de `salonStructuredData()` antes de mudar `site.isDemo` para `false`: essa mudança habilita indexação e JSON-LD de `HairSalon` no layout.
 
@@ -136,14 +137,14 @@ npm.cmd run test
 Remove-Item Env:TEST_PORT, Env:TEST_PRODUCTION
 ```
 
-| Arquivo | Cobertura |
-| --- | --- |
-| `tests/availability.spec.ts` | Datas, fuso, compatibilidade, disponibilidade e revalidação |
-| `tests/booking.spec.ts` | Etapas, pré-seleção, validação e confirmação |
-| `tests/pages.spec.ts` | Rotas, metadados, filtros, links de agendamento e 404 |
-| `tests/interface.spec.ts` | Interações, navegação, galeria, FAQ, contato e responsividade |
-| `tests/home.spec.ts` | Header na rolagem, isolamento de tema entre rotas, CTAs na primeira tela, FAQ reversível e sem JavaScript, movimento reduzido, menu e canais locais |
-| `tests/quality.spec.ts` | Todas as 21 rotas em 320, 390, 768, 1440 e 1920 px; imagens, links, console, foco, movimento reduzido e mapa opcional |
+| Arquivo                      | Cobertura                                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/availability.spec.ts` | Datas, fuso, compatibilidade, disponibilidade e revalidação                                                                                           |
+| `tests/booking.spec.ts`      | Etapas, pré-seleção, validação e confirmação                                                                                                          |
+| `tests/pages.spec.ts`        | Rotas, metadados, filtros, links de agendamento e 404                                                                                                 |
+| `tests/interface.spec.ts`    | Interações, navegação, galeria, FAQ, contato e responsividade                                                                                         |
+| `tests/home.spec.ts`         | Header na rolagem, consistência de tema entre rotas, CTAs na primeira tela, FAQ reversível e sem JavaScript, movimento reduzido, menu e canais locais |
+| `tests/quality.spec.ts`      | Todas as 21 rotas em 320, 390, 768, 1440 e 1920 px; imagens, links, console, foco, movimento reduzido e mapa opcional                                 |
 
 O estado da verificação final fica em [docs/implementation.md](docs/implementation.md).
 
@@ -156,3 +157,9 @@ As instruções do projeto em `AGENTS.md` ficam fora do bloco gerado pelo Next.j
 O envio de contato fica em `ContactForm`, em `components/contact.tsx`. Os canais externos estão concentrados em `components/demo-channel.tsx`. Nenhum serviço de e-mail, CRM, calendário ou banco de dados foi escolhido neste projeto. A integração deve definir o serviço efetivo, os tratamentos de erro e os dados necessários antes de ativar o envio.
 
 Depois das integrações, atualize confirmações, informações reais, privacidade, termos e políticas. `site.futureSections` registra possibilidades como loja, gift cards, blog, carreiras, promoções e unidades; essas rotas ainda não estão implementadas.
+
+### Composição das páginas internas
+
+`PageIntro` aceita `emphasis` opcional para destacar um trecho do título em itálico sem mudar o texto acessível. A abertura usa título à esquerda e descrição à direita, empilhados no mobile. Diretórios, perfis, galeria e conteúdo institucional mantêm suas páginas e componentes próprios. Os quatro profissionais aparecem em duas colunas no desktop/tablet e uma no mobile. O agendamento preserva cinco etapas, validação e adaptadores locais; suas cores e estados estão em `components/booking.module.css`.
+
+As verificações de identidade, ausência de controles inferiores, layout da equipe, FAQ, movimento reduzido e navegação estão em `tests/editorial.spec.ts`. A suíte de qualidade revisa todas as rotas em 320, 390, 768, 1440 e 1920 px.

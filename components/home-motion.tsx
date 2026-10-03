@@ -117,9 +117,9 @@ export function HomeMotion({
       // A completed accordion transition changes subsequent trigger positions.
       const refresh = () => ScrollTrigger.refresh();
       const root = scope.current;
-      root?.addEventListener("home-layout-change", refresh);
+      root?.addEventListener("page-layout-change", refresh);
       return () => {
-        root?.removeEventListener("home-layout-change", refresh);
+        root?.removeEventListener("page-layout-change", refresh);
         media.revert();
       };
     },

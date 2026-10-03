@@ -1,3 +1,4 @@
+import { PageMotion } from "@/components/page-motion";
 import Link from "next/link";
 import { pageMetadata } from "@/lib/metadata";
 import { DemoNote, PageIntro } from "@/components/ui";
@@ -10,10 +11,11 @@ export const metadata = pageMetadata(
 
 export default function PrivacyPage() {
   return (
-    <>
+    <PageMotion animate={false}>
       <PageIntro
         eyebrow="PRIVACIDADE"
         title="Sua privacidade, com clareza."
+        emphasis="com clareza."
         description="Como os dados funcionam nesta experiência demonstrativa."
       />
       <div className="container grid items-start gap-10 pb-16 lg:grid-cols-[0.6fr_1.4fr] lg:gap-20 lg:pb-24">
@@ -23,9 +25,9 @@ export default function PrivacyPage() {
             funcionamento atual da demonstração, sem integrações de atendimento.
           </DemoNote>
         </aside>
-        <div className="space-y-9 text-[#625D57] leading-relaxed">
+        <div className="space-y-9 text-[var(--text-body)] leading-relaxed">
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Formulários e agendamento
             </h2>
             <p>
@@ -42,7 +44,7 @@ export default function PrivacyPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Cookies e medição
             </h2>
             <p>
@@ -53,7 +55,7 @@ export default function PrivacyPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Navegação e conteúdo
             </h2>
             <p>
@@ -69,7 +71,7 @@ export default function PrivacyPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Contato e pagamentos
             </h2>
             <p>
@@ -79,7 +81,7 @@ export default function PrivacyPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Mapa opcional
             </h2>
             <p>
@@ -96,7 +98,7 @@ export default function PrivacyPage() {
             </p>
           </section>
           <section>
-            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[#252422]">
+            <h2 className="mb-4 font-[family-name:var(--font-display)] text-3xl text-[var(--foreground)]">
               Se a experiência mudar
             </h2>
             <p>
@@ -106,7 +108,7 @@ export default function PrivacyPage() {
               utilizados.
             </p>
           </section>
-          <p className="border-t border-[#252422]/15 pt-7 text-sm">
+          <p className="border-t border-[var(--line)] pt-7 text-sm">
             Leia também os{" "}
             <Link href="/termos" className="text-link">
               termos de uso
@@ -115,6 +117,6 @@ export default function PrivacyPage() {
           </p>
         </div>
       </div>
-    </>
+    </PageMotion>
   );
 }
