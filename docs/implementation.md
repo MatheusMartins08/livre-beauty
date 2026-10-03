@@ -88,4 +88,73 @@ npx.cmd --yes lighthouse@13.5.0 http://localhost:3101 --preset=desktop --chrome-
 - `package.json`, lockfile, ESLint, Next config e gitignore: scripts, dependências autorizadas, otimização e exclusão de ferramentas/artefatos.
 - `AGENTS.md`: regras do usuário preservadas fora do bloco regenerado pelo Next.js.
 
-As únicas dependências adicionadas são Phosphor Icons e Playwright. Lighthouse e o formatador foram usados temporariamente, sem alterar as dependências do projeto. O site permanece uma entrega local demonstrativa, sem publicação.
+Na entrega inicial, foram adicionados Phosphor Icons e Playwright. A refatoração da homepage acrescenta GSAP e `@gsap/react`. Lighthouse e o formatador foram usados temporariamente, sem alterar as dependências do projeto. O site permanece uma entrega local demonstrativa, sem publicação.
+
+## Refatoração editorial da homepage — 2 de outubro de 2026
+
+Somente `/` recebeu a nova identidade visual. A fotografia e a headline do hero foram preservadas, agora com moldura creme e header escuro sobre fundo claro. A composição segue sobre nós, manifesto fotográfico com Instagram, seis serviços, convite para os especialistas em uma seção charcoal com fotografia em arco, quatro FAQs, três avaliações fictícias, localização e rodapé completo.
+
+A faixa de valores, os princípios de atendimento, o comparador, o feed independente e o CTA final separado foram retirados dessa página. O catálogo, os perfis, a galeria, os formulários e o agendamento das páginas internas mantêm o comportamento anterior. Nenhuma informação de um estabelecimento real foi criada.
+
+### Arquivos desta refatoração
+
+- `app/page.tsx`: composição em Server Component, textos e fotografias do hero e das oito seções.
+- `app/home.module.css`: paleta e estilos isolados por rota, incluindo header, rodapé, diálogos, responsividade e transições CSS.
+- `content/home.ts`: conteúdo editorial tipado, títulos visuais/acessíveis e referências aos serviços e FAQs existentes.
+- `components/home-motion.tsx`: GSAP, ScrollTrigger, escopo React, limpeza, reveals e parallax de até 16 px.
+- `components/home-faq.tsx`: FAQ nativo com melhoria progressiva, estado acessível, reversão da animação e movimento reduzido.
+- `components/header.tsx`: detecção do hero mesmo com streaming e fechamento animado exclusivo do menu na homepage.
+- `components/reveal.tsx`: exclusão da homepage do controlador anterior, evitando animações duplicadas.
+- `package.json` e `package-lock.json`: somente GSAP e `@gsap/react` como novas dependências.
+- `tests/home.spec.ts` e `tests/interface.spec.ts`: regressões da nova composição, tema, header, foco, CTAs, FAQ, menu, canais e mapa.
+- `README.md` e este registro: manutenção da homepage, movimento, comandos e resultados.
+
+### Revisão de movimento
+
+Revisão aplicada com os critérios de `gsap-performance`, `review-animations`, `animate` e `transitions-polish`.
+
+| Antes da revisão | Depois | Motivo |
+| --- | --- | --- |
+| Triggers com `once` podiam ser removidos durante a inicialização de outro ScrollTrigger | Timelines não rebobinam; os triggers permanecem até a limpeza do contexto | Evitar a corrida reproduzida na inicialização do parallax |
+| Qualquer foco terminava o reveal imediatamente | Apenas foco `:focus-visible` termina o reveal | Preservar o alvo entre pointerdown e pointerup; acesso por teclado continua imediato |
+| Números bronze tinham contraste de 2,73:1 sobre ivory | Números terracota com contraste suficiente para texto grande | Preservar legibilidade; bronze permanece nas estrelas decorativas |
+| Uma imagem dimensionada apenas pela largura perdia definição no hero estreito e alto | `sizes` considera a altura do recorte mobile | Manter a fotografia nítida com `object-fit: cover` |
+
+Veredito da revisão de movimento: **aprovado**. O movimento de apresentação fica em 650–900 ms, com deslocamento de 24 px e stagger limitado. Interações ficam em 150–250 ms, sem bounce, pinning, scroll hijacking ou `will-change` permanente. O parallax é restrito a desktop com ponteiro preciso. Contextos, observers, listeners e timers têm limpeza; mudanças de preferência de movimento restauram os elementos visíveis. A animação de altura é restrita ao FAQ, onde mantém o fluxo do conteúdo, dura 250 ms e reverte a partir da altura corrente.
+
+### Comparação das páginas internas
+
+Capturas de `/sobre` e `/faq` coincidiram integralmente com as capturas anteriores. Em `/servicos`, a comparação de pixels encontrou **zero diferenças fora das fotografias**; a diferença nas imagens decorreu exclusivamente do carregamento lazy entre capturas. Cores de body, header, rodapé e título coincidiram nos três caminhos. Os testes também verificam a ida e volta entre homepage e páginas internas sem vazamento de tema.
+
+### Lighthouse da homepage refatorada
+
+Lighthouse 13.5.0, Chrome headless e build local em `http://localhost:3101`:
+
+| Medida | Mobile | Desktop |
+| --- | --- | --- |
+| Desempenho | 89 | 100 |
+| Acessibilidade | 100 | 100 |
+| Boas práticas | 100 | 100 |
+| SEO | 66 | 66 |
+| LCP | 3,7 s | 0,7 s |
+| CLS | 0 | 0 |
+| TBT | 100 ms | 0 ms |
+
+O SEO permanece limitado pelo `noindex, nofollow` intencional. O desempenho mobile é uma medição de laboratório e pode variar; a entrega não foi publicada. Relatórios: `.cache/editorial-lighthouse-mobile.json` e `.cache/editorial-lighthouse-desktop.json`.
+
+### Verificação final da refatoração
+
+| Verificação | Resultado |
+| --- | --- |
+| `npm.cmd run lint` | Sem erros ou avisos |
+| `npm.cmd run typecheck` | Geração de rotas e TypeScript aprovados |
+| `npm.cmd run build` | Build otimizado aprovado; homepage permanece estática |
+| `npm.cmd test` no build de produção | **170 testes passaram**, em 2,1 minutos |
+| Primeiro clique dos canais e mapa sob demanda | Seis repetições consecutivas aprovadas em produção após a correção |
+| axe-core, WCAG A/AA | Zero violações nas 21 rotas |
+| Revisão visual | Capturas em 320, 390, 768, 1440 e 1920 px; CTAs na primeira tela e ausência de overflow verificadas |
+| Teclado, movimento reduzido e funcionamento sem JavaScript | FAQ, menu, foco e visibilidade aprovados |
+| Imagens, links e console | Fotografias locais e destinos válidos; zero erros de console nos testes das rotas |
+| Formatação e diff | Prettier aprovado nos arquivos de código alterados; `git diff --check` sem erros |
+
+O teste que exigia um comparador na homepage foi substituído pela verificação da composição resumida autorizada. Os testes de agendamento, filtros, galeria, contato, metadados e slugs inexistentes continuam na suíte.

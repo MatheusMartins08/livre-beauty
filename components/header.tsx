@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, List } from "@phosphor-icons/react";
 import { navigation } from "@/content/salon";
 import { Dialog } from "@/components/dialog";
@@ -11,19 +11,62 @@ export function Header() {
   const pathname = usePathname();
   const [compact, setCompact] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuClosing, setMenuClosing] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isHome = pathname === "/";
   useEffect(() => {
     if (!isHome) return;
-    const hero = document.querySelector(".hero");
-    if (!hero) return;
     const observer = new IntersectionObserver(
       ([entry]) => setCompact(!entry.isIntersecting),
       { rootMargin: "-80px 0px 0px 0px" },
     );
-    observer.observe(hero);
-    return () => observer.disconnect();
+    const observeHero = () => {
+      const hero = document.querySelector("[data-home-hero]");
+      if (!hero) return false;
+      observer.observe(hero);
+      return true;
+    };
+    // App Router can stream the page after the persistent header has updated.
+    const pending = new MutationObserver(() => {
+      if (observeHero()) pending.disconnect();
+    });
+    if (!observeHero())
+      pending.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      pending.disconnect();
+    };
   }, [isHome]);
-  const closeMenu = () => setMenuOpen(false);
+  useEffect(
+    () => () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    },
+    [],
+  );
+  const finishMenu = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+    setMenuClosing(false);
+    setMenuOpen(false);
+  };
+  const closeMenu = () => {
+    if (
+      !isHome ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      finishMenu();
+      return;
+    }
+    if (closeTimer.current) return;
+    setMenuClosing(true);
+    closeTimer.current = setTimeout(finishMenu, 150);
+  };
+  const openMenu = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+    setMenuClosing(false);
+    setMenuOpen(true);
+  };
   return (
     <>
       <header
@@ -54,7 +97,7 @@ export function Header() {
             aria-label="Abrir menu"
             aria-expanded={menuOpen}
             aria-haspopup="dialog"
-            onClick={() => setMenuOpen(true)}
+            onClick={openMenu}
           >
             <List size={27} weight="light" />
           </button>
@@ -64,7 +107,7 @@ export function Header() {
         open={menuOpen}
         onClose={closeMenu}
         label="Menu de navegação"
-        className="mobile-menu"
+        className={`mobile-menu${menuClosing ? " menu-closing" : ""}`}
       >
         <p className="wordmark menu-brand">
           livre<span>BEAUTY ATELIÊ</span>
@@ -74,7 +117,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={closeMenu}
+              onClick={finishMenu}
               aria-current={pathname === item.href ? "page" : undefined}
             >
               {item.label}
@@ -82,7 +125,7 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        <Link href="/agendamento" className="button" onClick={closeMenu}>
+        <Link href="/agendamento" className="button" onClick={finishMenu}>
           Agendar horário
           <ArrowUpRight size={18} aria-hidden="true" />
         </Link>

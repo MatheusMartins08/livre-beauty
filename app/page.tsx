@@ -1,42 +1,52 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, InstagramLogo, Star } from "@phosphor-icons/react/ssr";
+import { ArrowUpRight, Star } from "@phosphor-icons/react/ssr";
+import { site, testimonials } from "@/content/salon";
 import {
-  site,
-  services,
-  stylists,
-  testimonials,
-  gallery,
-  faqs,
-} from "@/content/salon";
+  homeContent as copy,
+  homeFAQs,
+  homeServices,
+  type EditorialTitle,
+} from "@/content/home";
 import { pageMetadata } from "@/lib/metadata";
-import {
-  ButtonLink,
-  SectionHeading,
-  Photo,
-  ServiceCard,
-  StylistCard,
-  BookingCTA,
-  DemoNote,
-} from "@/components/ui";
-import { BeforeAfterSlider } from "@/components/before-after";
-import { FAQAccordion } from "@/components/faq-accordion";
 import { DemoChannel } from "@/components/demo-channel";
 import { LocationMap } from "@/components/contact";
+import { HomeMotion } from "@/components/home-motion";
+import { HomeFAQ } from "@/components/home-faq";
+import styles from "./home.module.css";
 
 const heroTitle = `${site.hero.title.opening} ${site.hero.title.emphasis}`;
-
 export const metadata = pageMetadata(
   heroTitle.replace(/\.$/, ""),
   site.description,
   "/",
 );
 
-export default function Home() {
+function Arrow() {
+  return <ArrowUpRight size={19} weight="light" aria-hidden="true" />;
+}
+function titleLabel(title: EditorialTitle) {
+  return [title.opening, title.leading, title.emphasis]
+    .filter(Boolean)
+    .join(" ");
+}
+function TitleText({ title }: { title: EditorialTitle }) {
   return (
     <>
+      {title.opening}
+      <br />
+      {title.leading && `${title.leading} `}
+      <em>{title.emphasis}</em>
+    </>
+  );
+}
+
+export default function Home() {
+  return (
+    <HomeMotion className={styles.home}>
       <section
-        className="hero"
+        className={`hero ${styles.hero}`}
+        data-home-hero
         aria-label="Livre Beauty, salão e ateliê de beleza"
       >
         <Image
@@ -44,271 +54,275 @@ export default function Home() {
           alt="Retrato editorial ilustrativo com cabelo escuro e luz suave"
           fill
           preload
-          sizes="100vw"
-          className="hero-image"
+          sizes="(max-width: 767px) 160svh, calc(100vw - 48px)"
+          className={styles.heroImage}
+          data-hero-image
         />
-        <div className="hero-content container">
-          <div className="hero-copy">
-            <p className="eyebrow">{site.hero.eyebrow}</p>
-            <h1 aria-label={heroTitle}>
+        <div className={styles.heroContent}>
+          <div className={styles.heroCopy}>
+            <p className={styles.label} data-hero-copy>
+              {site.hero.eyebrow}
+            </p>
+            <h1 aria-label={heroTitle} data-hero-copy>
               {site.hero.title.opening}
               <br />
               <em>{site.hero.title.emphasis}</em>
             </h1>
-            <p className="hero-description">{site.hero.description}</p>
-            <div className="hero-actions">
-              <ButtonLink href="/agendamento">Agendar horário</ButtonLink>
-              <Link href="/servicos" className="text-link">
-                Conhecer serviços
-                <ArrowUpRight size={18} aria-hidden="true" />
+            <p className={styles.heroDescription} data-hero-copy>
+              {site.hero.description}
+            </p>
+            <div className={styles.heroActions} data-hero-copy>
+              <Link href="/agendamento" className={styles.primary}>
+                Agendar horário <Arrow />
+              </Link>
+              <Link href="/servicos" className={styles.photoLink}>
+                Conhecer serviços <Arrow />
               </Link>
             </div>
           </div>
         </div>
-        <p className="hero-location">ATELIÊ DE BELEZA · JARDINS, SÃO PAULO</p>
+        <p className={styles.heroCaption}>BEAUTY ATELIÊ · JARDINS, SÃO PAULO</p>
       </section>
-      <div className="values-strip">
-        <div className="container">
-          {site.values.map((value) => (
-            <p key={value}>{value}</p>
-          ))}
-        </div>
-      </div>
-      <section className="section container story-grid" data-reveal>
-        <div className="story-photo-wrap">
-          <Photo
-            src="/images/salon-interior-01.jpg"
-            alt="Ambiente ilustrativo de salão, com materiais naturais e luz acolhedora"
-          />
-          <div className="story-mark">
-            beleza
-            <br />
-            sem fórmulas.
-          </div>
-        </div>
-        <div className="story-copy">
-          <SectionHeading eyebrow="A ESSÊNCIA LIVRE" title={site.story.title} />
-          <p>{site.story.description}</p>
-          <p>{site.story.second}</p>
-          <Link href="/sobre" className="text-link">
-            Conheça nossa história
-            <ArrowUpRight size={18} aria-hidden="true" />
+
+      <section
+        className={`${styles.section} ${styles.about}`}
+        aria-labelledby="sobre-title"
+        data-home-section
+      >
+        <div data-home-reveal>
+          <p className={styles.label}>{copy.about.label}</p>
+          <h2
+            id="sobre-title"
+            className={styles.largeTitle}
+            aria-label={titleLabel(copy.about.title)}
+          >
+            <TitleText title={copy.about.title} />
+          </h2>
+          <Link href="/sobre" className={styles.editorialLink}>
+            Nossa história <Arrow />
           </Link>
         </div>
-      </section>
-      <section className="section services-section">
-        <div className="container">
-          <div className="section-top">
-            <SectionHeading
-              title="Seu cabelo. Novas possibilidades."
-              description="Técnica e sensibilidade para traduzir o que faz você se sentir bem."
+        <div className={styles.aboutRight}>
+          <div className={styles.aboutPhoto} data-home-reveal>
+            <Image
+              src={copy.about.photo.src}
+              alt={copy.about.photo.alt}
+              fill
+              sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 46vw, 650px"
+              data-home-image
             />
-            <Link href="/servicos" className="text-link">
-              Todos os serviços
-              <ArrowUpRight size={18} aria-hidden="true" />
-            </Link>
           </div>
-          <div className="services-grid" data-reveal>
-            {services.slice(0, 4).map((service) => (
-              <ServiceCard service={service} key={service.id} />
-            ))}
-          </div>
-          <DemoNote>
-            Valores demonstrativos. O orçamento é personalizado após a avaliação
-            dos fios.
-          </DemoNote>
-        </div>
-      </section>
-      <section className="experience-section">
-        <Photo
-          src="/images/salon-interior-02.jpg"
-          alt="Arquitetura ilustrativa de salão com espaço confortável e iluminação suave"
-          aspect="16 / 9"
-          sizes="100vw"
-        />
-        <div className="container">
-          <div className="experience-copy" data-reveal>
-            <h2>{site.experience.title}</h2>
-            <p>{site.experience.description}</p>
-            <Link href="/sobre" className="text-link">
-              Viva a experiência Livre
-              <ArrowUpRight size={18} aria-hidden="true" />
-            </Link>
-          </div>
-        </div>
-      </section>
-      <div className="container experience-principles">
-        {site.experience.items.map((item) => (
-          <div key={item.title} data-reveal>
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-          </div>
-        ))}
-      </div>
-      <section className="section container results-grid" data-reveal>
-        <div className="results-copy">
-          <SectionHeading title="Pequenos detalhes. Um novo olhar." />
-          <p>
-            Forma, luz e movimento abrem novas possibilidades. Explore duas
-            referências da mesma sessão e descubra a diferença no acabamento.
-          </p>
-          <Link href="/galeria" className="text-link">
-            Explore nossas referências
-            <ArrowUpRight size={18} aria-hidden="true" />
-          </Link>
-        </div>
-        <BeforeAfterSlider />
-      </section>
-      <section className="section team-section">
-        <div className="container">
-          <div className="section-top">
-            <SectionHeading
-              eyebrow="QUEM CUIDA DE VOCÊ"
-              title="Talento com um toque humano."
-              description="Diferentes olhares, a mesma intenção: encontrar a beleza que faz sentido para você."
-            />
-            <Link href="/profissionais" className="text-link">
-              Conhecer a equipe
-              <ArrowUpRight size={18} aria-hidden="true" />
-            </Link>
-          </div>
-          <div className="team-grid" data-reveal>
-            {stylists.map((stylist) => (
-              <StylistCard key={stylist.id} stylist={stylist} />
-            ))}
-          </div>
-          <DemoNote>
-            Equipe fictícia e retratos ilustrativos, apresentados para
-            demonstrar a experiência do salão.
-          </DemoNote>
-        </div>
-      </section>
-      <section className="testimonials-section">
-        <div className="container">
-          <div className="testimonials-heading">
-            <h2>O cuidado deixa boas histórias.</h2>
-            <p className="fine-print">
-              Relatos fictícios para apresentar a proposta do Livre.
+          <div className={styles.aboutText} data-home-reveal>
+            <p>{copy.about.description}</p>
+            <p className={styles.note}>
+              Um conceito de salão. Fotografias ilustrativas.
             </p>
           </div>
-          <div className="testimonials-grid" data-reveal>
-            {testimonials.map((item) => (
-              <figure className="testimonial" key={item.name}>
+        </div>
+      </section>
+
+      <section
+        className={styles.manifesto}
+        aria-labelledby="manifesto-title"
+        data-home-section
+      >
+        <div className={styles.manifestoPhoto} data-home-parallax>
+          <Image
+            src={copy.manifesto.photo.src}
+            alt={copy.manifesto.photo.alt}
+            fill
+            sizes="(max-width: 767px) calc(100vw - 24px), calc(100vw - 48px)"
+          />
+        </div>
+        <div className={styles.manifestoContent}>
+          <h2
+            id="manifesto-title"
+            aria-label={titleLabel(copy.manifesto.title)}
+            data-home-reveal
+          >
+            <TitleText title={copy.manifesto.title} />
+          </h2>
+          <DemoChannel channel="instagram" className={styles.photoLink}>
+            Encontre inspiração no Instagram <Arrow />
+          </DemoChannel>
+        </div>
+        <p className={styles.imageNote}>Fotografia ilustrativa</p>
+      </section>
+
+      <section
+        className={`${styles.section} ${styles.services}`}
+        aria-labelledby="servicos-title"
+        data-home-section
+      >
+        <div className={styles.centered} data-home-reveal>
+          <p className={styles.label}>{copy.services.label}</p>
+          <h2
+            id="servicos-title"
+            className={styles.largeTitle}
+            aria-label={titleLabel(copy.services.title)}
+          >
+            <TitleText title={copy.services.title} />
+          </h2>
+        </div>
+        <div className={styles.serviceGrid}>
+          {homeServices.map((service, index) => (
+            <Link
+              href={`/servicos/${service.slug}`}
+              key={service.id}
+              className={styles.service}
+              data-home-reveal
+            >
+              <span className={styles.serviceNumber} aria-hidden="true">
+                0{index + 1}
+              </span>
+              <h3>
+                {service.category} <Arrow />
+              </h3>
+              <p>{service.summary}</p>
+              <span className={styles.serviceMore}>Conhecer o cuidado</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section
+        className={styles.experts}
+        aria-labelledby="equipe-title"
+        data-home-section
+      >
+        <div className={styles.expertsInner}>
+          <div className={styles.expertsCopy} data-home-reveal>
+            <p className={styles.label}>{copy.experts.label}</p>
+            <h2
+              id="equipe-title"
+              className={styles.largeTitle}
+              aria-label={titleLabel(copy.experts.title)}
+            >
+              <TitleText title={copy.experts.title} />
+            </h2>
+            <p className={styles.expertsDescription}>
+              {copy.experts.description}
+            </p>
+            <Link href="/profissionais" className={styles.lightButton}>
+              Conhecer a equipe <Arrow />
+            </Link>
+          </div>
+          <figure className={styles.expertsFigure} data-home-reveal>
+            <div className={styles.expertsPhoto}>
+              <Image
+                src={copy.experts.photo.src}
+                alt={copy.experts.photo.alt}
+                fill
+                sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 40vw, 560px"
+                data-home-image
+              />
+            </div>
+            <figcaption>Equipe fictícia · Fotografia ilustrativa</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        className={`${styles.section} ${styles.faq}`}
+        aria-labelledby="faq-title"
+        data-home-section
+      >
+        <div data-home-reveal>
+          <p className={styles.label}>{copy.faq.label}</p>
+          <h2 id="faq-title" className={styles.sectionTitle}>
+            {copy.faq.title}
+          </h2>
+          <Link href="/faq" className={styles.editorialLink}>
+            Todas as perguntas <Arrow />
+          </Link>
+        </div>
+        <div data-home-reveal>
+          <HomeFAQ items={homeFAQs} />
+        </div>
+      </section>
+
+      <section
+        className={styles.reviews}
+        aria-labelledby="avaliacoes-title"
+        data-home-section
+      >
+        <div className={styles.section}>
+          <div className={styles.reviewsHeading} data-home-reveal>
+            <div>
+              <p className={styles.label}>{copy.reviews.label}</p>
+              <h2 id="avaliacoes-title" className={styles.largeTitle}>
+                {copy.reviews.title}
+              </h2>
+            </div>
+            <p className={styles.note}>
+              Depoimentos fictícios, criados para esta demonstração.
+            </p>
+          </div>
+          <div className={styles.reviewGrid}>
+            {testimonials.map((testimonial) => (
+              <figure
+                key={testimonial.name}
+                className={styles.review}
+                data-home-reveal
+              >
                 <div
-                  className="testimonial-stars"
+                  className={styles.stars}
+                  aria-label="Avaliação fictícia: 5 de 5 estrelas"
                   role="img"
-                  aria-label="Avaliação ilustrativa de cinco estrelas"
                 >
                   {Array.from({ length: 5 }, (_, index) => (
                     <Star
                       key={index}
-                      size={12}
+                      size={16}
                       weight="fill"
                       aria-hidden="true"
                     />
                   ))}
                 </div>
-                <blockquote>“{item.quote}”</blockquote>
+                <blockquote>“{testimonial.quote}”</blockquote>
                 <figcaption>
-                  <cite>
-                    {item.name}
-                    <span>{item.service} · Relato demonstrativo</span>
-                  </cite>
+                  <span>{testimonial.name}</span>
+                  <span>{testimonial.service}</span>
                 </figcaption>
               </figure>
             ))}
           </div>
         </div>
       </section>
-      <section className="section container">
-        <div className="section-top">
-          <SectionHeading
-            title="Um olhar que continua."
-            description="Inspirações, texturas e os detalhes que nos movem."
-          />
-          <DemoChannel channel="instagram" className="text-link">
-            Seguir no Instagram
-          </DemoChannel>
-        </div>
-        <div className="instagram-grid" data-reveal>
-          {gallery.slice(0, 6).map((item) => (
-            <div className="instagram-tile" key={item.id}>
-              <DemoChannel
-                channel="instagram"
-                className="instagram-photo-button"
-              >
-                <span className="instagram-photo">
-                  <Image
-                    src={item.image}
-                    alt={item.alt}
-                    fill
-                    sizes="(max-width: 1023px) 33vw, 17vw"
-                  />
-                </span>
-                <span>
-                  <InstagramLogo size={28} weight="light" aria-hidden="true" />
-                  <span className="sr-only">Ver apresentação do Instagram</span>
-                </span>
-              </DemoChannel>
-            </div>
-          ))}
-        </div>
-        <DemoNote>
-          Seleção editorial de imagens ilustrativas. Sem conexão com um perfil
-          real.
-        </DemoNote>
-      </section>
-      <section className="section container faq-home-grid" data-reveal>
-        <div>
-          <SectionHeading
-            title="Tudo começa com clareza."
-            description="As respostas para chegar com tranquilidade e aproveitar seu tempo."
-          />
-          <Link href="/faq" className="text-link">
-            Todas as perguntas
-            <ArrowUpRight size={18} aria-hidden="true" />
-          </Link>
-        </div>
-        <FAQAccordion items={[faqs[0], faqs[1], faqs[3], faqs[4]]} />
-      </section>
-      <section className="section container location-home" data-reveal>
-        <div>
-          <p className="eyebrow">UM RESPIRO NA CIDADE</p>
-          <h2>
-            Nos encontre
-            <br />
-            nos Jardins.
+
+      <section
+        className={`${styles.section} ${styles.visit}`}
+        aria-labelledby="visite-title"
+        data-home-section
+      >
+        <div className={styles.visitCopy} data-home-reveal>
+          <p className={styles.label}>{copy.visit.label}</p>
+          <h2 id="visite-title" className={styles.largeTitle}>
+            {copy.visit.title}
           </h2>
-          <p className="section-description">
-            Um ateliê de portas abertas para as suas possibilidades, no coração
-            de São Paulo.
-          </p>
-          <dl className="location-facts">
+          <dl className={styles.visitFacts}>
             <div>
-              <dt>Onde</dt>
-              <dd>
-                {site.location}
-                <br />
-                Endereço ilustrativo
-              </dd>
+              <dt>Nosso lugar</dt>
+              <dd>{site.address}</dd>
             </div>
             <div>
-              <dt>Quando</dt>
-              <dd>
-                Terça a sábado
-                <br />
-                9h às 19h
-              </dd>
+              <dt>Seu tempo</dt>
+              <dd>{site.hours}</dd>
             </div>
           </dl>
-          <Link href="/contato" className="text-link">
-            Vamos conversar
-            <ArrowUpRight size={18} aria-hidden="true" />
-          </Link>
+          <div className={styles.visitChannels}>
+            <DemoChannel channel="instagram" className={styles.editorialLink} />
+            <DemoChannel channel="whatsapp" className={styles.editorialLink} />
+            <DemoChannel channel="phone" className={styles.editorialLink} />
+          </div>
+          <p className={styles.note}>
+            {site.addressNote} Canais demonstrativos.
+          </p>
         </div>
-        <LocationMap />
+        <div className={styles.map} data-home-reveal>
+          <LocationMap />
+        </div>
       </section>
-      <BookingCTA />
-    </>
+    </HomeMotion>
   );
 }

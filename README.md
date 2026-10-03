@@ -35,7 +35,7 @@ Nenhuma publicação ou implantação faz parte desta entrega.
 
 - Apresentação do salão, serviços, equipe, experiência e referências fotográficas.
 - Filtro de profissionais por serviço e de referências da galeria por categoria.
-- Galeria ampliada e comparação editorial entre referências naturais e finalizadas.
+- Galeria ampliada com filtros, legendas e navegação por teclado.
 - Agendamento em cinco etapas: serviço, profissional, data e horário, contato e revisão.
 - Horários demonstrativos no fuso `America/Sao_Paulo`, considerando duração, compatibilidade, dias de atendimento e horários já transcorridos.
 - Validação de contato e revalidação do horário antes da confirmação da simulação.
@@ -45,7 +45,7 @@ Nenhuma publicação ou implantação faz parte desta entrega.
 
 Marca, endereço, equipe, experiências, depoimentos, preços e políticas são fictícios. As fotografias são ilustrativas e não comprovam resultados realizados pelo salão. O site usa `noindex, nofollow` enquanto `site.isDemo` estiver ativo e não inclui rastreamento de marketing ou analytics.
 
-Em `/contato`, **somente ao clicar em “Explorar a região”** o navegador solicita o mapa externo do OpenStreetMap. O mapa mostra a região dos Jardins, sem indicar um estabelecimento real, e não recebe os dados dos formulários. “Como chegar à região” também abre o OpenStreetMap. Imagens e fontes do site são carregadas localmente.
+Na homepage e em `/contato`, **somente ao clicar em “Explorar a região”** o navegador solicita o mapa externo do OpenStreetMap. O mapa mostra a região dos Jardins, sem indicar um estabelecimento real, e não recebe os dados dos formulários. “Como chegar à região” também abre o OpenStreetMap. Imagens e fontes do site são carregadas localmente.
 
 ## Rotas
 
@@ -74,6 +74,9 @@ Os links de agendamento preservam a seleção pelos parâmetros `servico` e `pro
 | Arquivo ou pasta | O que editar |
 | --- | --- |
 | `content/salon.ts` | Marca, textos, navegação, serviços, profissionais, relações, galeria, depoimentos, FAQ e políticas |
+| `content/home.ts` | Textos resumidos, títulos editoriais, fotografias e seleção de perguntas da homepage |
+| `app/home.module.css` | Paleta, composição e acabamento exclusivos da homepage, incluindo header e rodapé nessa rota |
+| `components/home-motion.tsx` e `components/home-faq.tsx` | Timelines GSAP, parallax e FAQ animado exclusivos da homepage |
 | `content/image-credits.ts` | Autores, origem, licença e caminhos das fotografias |
 | `app/globals.css` | Cores, espaçamento, tipografia e regras responsivas |
 | `app/layout.tsx` | Fontes locais, estrutura global e configuração geral de SEO |
@@ -89,6 +92,16 @@ Os links de agendamento preservam a seleção pelos parâmetros `servico` e `pro
 Em `content/salon.ts`, altere `site.showPrices` para `false` para apresentar “Investimento sob consulta”. Preserve os IDs nas relações `serviceIds` e `stylistId`; os slugs definem as URLs. Ao renomear um slug, revise links e testes.
 
 O título principal é editado em `site.hero.title.opening` e `site.hero.title.emphasis`; a segunda parte recebe o destaque em itálico. O nome acessível e o título SEO são derivados desse mesmo conteúdo.
+
+### Homepage editorial
+
+Somente `/` usa a identidade creme + charcoal + terracota + bronze. Sua sequência é hero com moldura creme, sobre nós, fotografia com manifesto e Instagram, seis serviços, convite para conhecer os especialistas, quatro FAQs, avaliações, localização e rodapé. As páginas internas conservam a identidade anterior e o catálogo completo. O comparador não aparece mais na homepage; seu componente continua disponível no projeto.
+
+Os títulos em `content/home.ts` têm `opening` (primeira linha), `emphasis` (trecho em itálico) e, opcionalmente, `leading` (texto antes do itálico). O texto visível e o nome acessível vêm desses mesmos campos. Os serviços e respostas são referências ao catálogo de `content/salon.ts`; as descrições resumidas são exclusivas da homepage.
+
+Os tokens ficam em `app/home.module.css`, sob um seletor `body:has()` que identifica a homepage renderizada no servidor. Assim, cores de header, rodapé e diálogos acompanham a rota sem alterar os tokens globais das páginas internas. O hover dos botões principais usa `#9F604A` para manter contraste; o accent geral permanece `#A86650`.
+
+GSAP e `@gsap/react` coordenam o hero e os reveals. As animações usam `useGSAP`, escopo local e `gsap.matchMedia()` com limpeza ao sair da página. O parallax fica limitado a 16 px na fotografia do manifesto, apenas em desktop com ponteiro preciso. Menu, hover e header usam CSS; o FAQ usa animação de altura via Web Animations API, reversível a partir da posição atual. Mudanças em `prefers-reduced-motion` desativam os movimentos e cancelam animações em curso. O conteúdo permanece visível sem JavaScript e o FAQ mantém o comportamento nativo de `details`.
 
 `site.isDemo` começa como `true`. Antes de representar um estabelecimento real, substitua os dados fictícios, revise os textos demonstrativos e configure a origem correta em `SITE_URL`, no ambiente ou em `.env.local`. O padrão é `http://localhost:3000`. Em `lib/metadata.ts`, confira endereço, cidade, horários e imagens de `salonStructuredData()` antes de mudar `site.isDemo` para `false`: essa mudança habilita indexação e JSON-LD de `HairSalon` no layout.
 
@@ -129,6 +142,7 @@ Remove-Item Env:TEST_PORT, Env:TEST_PRODUCTION
 | `tests/booking.spec.ts` | Etapas, pré-seleção, validação e confirmação |
 | `tests/pages.spec.ts` | Rotas, metadados, filtros, links de agendamento e 404 |
 | `tests/interface.spec.ts` | Interações, navegação, galeria, FAQ, contato e responsividade |
+| `tests/home.spec.ts` | Header na rolagem, isolamento de tema entre rotas, CTAs na primeira tela, FAQ reversível e sem JavaScript, movimento reduzido, menu e canais locais |
 | `tests/quality.spec.ts` | Todas as 21 rotas em 320, 390, 768, 1440 e 1920 px; imagens, links, console, foco, movimento reduzido e mapa opcional |
 
 O estado da verificação final fica em [docs/implementation.md](docs/implementation.md).

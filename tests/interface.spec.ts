@@ -47,17 +47,17 @@ test("gallery filters, navigates in lightbox and restores focus", async ({
   await expect(thumbnail).toBeFocused();
 });
 
-test("comparison supports keyboard without changing the page", async ({
-  page,
-}) => {
+test("home keeps only the requested editorial sections", async ({ page }) => {
   await page.goto("/");
-  const slider = page.getByRole("slider", {
-    name: "Comparar referências de cabelo",
-  });
-  await expect(slider).toHaveValue("50");
-  await slider.focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(slider).toHaveValue("51");
+  await expect(page.locator("main section")).toHaveCount(8);
+  await expect(page.getByRole("slider")).toHaveCount(0);
+  await expect(
+    page.locator(".values-strip, .booking-cta, .instagram-grid, .stylist-card"),
+  ).toHaveCount(0);
+  await expect(page.locator('main a[href^="/servicos/"]')).toHaveCount(6);
+  await expect(
+    page.getByRole("heading", { name: "Conheça nossos especialistas." }),
+  ).toBeVisible();
 });
 
 test("contact validates inline and never makes a submission request", async ({

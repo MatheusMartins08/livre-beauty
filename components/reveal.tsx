@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 export function RevealController() {
   const pathname = usePathname();
   useEffect(() => {
+    if (pathname === "/") return; // The homepage owns its GSAP timelines.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const observer = new IntersectionObserver(
       (entries) => {
