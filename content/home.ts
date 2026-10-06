@@ -3,6 +3,7 @@ import { faqs, services, type Service } from "./salon";
 interface EditorialPhoto {
   src: string;
   alt: string;
+  position?: string;
 }
 export interface EditorialTitle {
   opening: string;
@@ -21,6 +22,7 @@ interface HomeContent {
     label: string;
     title: EditorialTitle;
     summaries: Record<Service["id"], string>;
+    photos: Record<Service["id"], EditorialPhoto>;
   };
   experts: {
     label: string;
@@ -28,7 +30,7 @@ interface HomeContent {
     description: string;
     photo: EditorialPhoto;
   };
-  faq: { label: string; title: string; questions: string[] };
+  faq: { label: string; title: string; groups: { title: string; questions: string[] }[] };
   reviews: { label: string; title: string };
   visit: { label: string; title: string };
 }
@@ -55,13 +57,21 @@ export const homeContent: HomeContent = {
   services: {
     label: "O que fazemos",
     title: { opening: "Seu cabelo.", emphasis: "Seu jeito." },
+    photos: {
+      corte: { src: "/images/home-service-haircut.jpg", alt: "Detalhe de corte com tesoura e pente" },
+      cor: { src: "/images/home-service-color.jpg", alt: "Coloração aplicada por uma profissional no salão" },
+      balayage: { src: "/images/home-service-balayage.jpg", alt: "Referência de cabelo loiro com ondas e nuances de luz", position: "85% center" },
+      tratamento: { src: "/images/home-service-treatment.jpg", alt: "Cuidado dos fios durante a lavagem no salão" },
+      finalizacao: { src: "/images/home-service-styling.jpg", alt: "Modelagem de ondas em cabelo castanho" },
+      extensoes: { src: "/images/home-service-extensions.jpg", alt: "Referência de comprimento e volume em cabelo longo ondulado" },
+    },
     summaries: {
-      corte: "Forma e movimento que acompanham sua textura natural.",
-      cor: "Nuances sob medida, com cuidado em cada escolha.",
-      balayage: "Luz, dimensão e um crescimento suave.",
-      tratamento: "Rituais de cuidado para devolver vida aos fios.",
-      finalizacao: "Do cotidiano às ocasiões que pedem algo especial.",
-      extensoes: "Comprimento e volume com uma integração natural.",
+      corte: "Forma e movimento para sua textura natural.",
+      cor: "Nuances sob medida para o seu estilo.",
+      balayage: "Luz e dimensão com transições suaves.",
+      tratamento: "Cuidado para devolver vida aos fios.",
+      finalizacao: "Ondas e penteados para cada ocasião.",
+      extensoes: "Comprimento e volume com efeito natural.",
     },
   },
   experts: {
@@ -77,11 +87,17 @@ export const homeContent: HomeContent = {
   faq: {
     label: "Antes do seu encontro",
     title: "Uma boa conversa começa aqui.",
-    questions: [
-      "Como funciona a primeira consulta?",
-      "Como os preços são calculados?",
-      "Posso escolher meu profissional?",
-      "Qual é a política de cancelamento?",
+    groups: [
+      { title: "Seu atendimento", questions: [
+        "Como funciona a primeira consulta?",
+        "Posso escolher meu profissional?",
+        "Como me preparar para o atendimento?",
+      ] },
+      { title: "Agenda e pagamento", questions: [
+        "Como os preços são calculados?",
+        "Qual é a política de cancelamento?",
+        "Quais formas de pagamento são aceitas?",
+      ] },
     ],
   },
   reviews: { label: "Palavras de quem se cuida", title: "O cuidado fica." },
@@ -91,7 +107,12 @@ export const homeContent: HomeContent = {
 export const homeServices = services.map((service) => ({
   ...service,
   summary: homeContent.services.summaries[service.id] ?? service.description,
+  photo: homeContent.services.photos[service.id],
 }));
-export const homeFAQs = homeContent.faq.questions.flatMap((question) =>
-  faqs.filter((item) => item.question === question),
-);
+export const homeFAQGroups = homeContent.faq.groups.map((group) => ({
+  title: group.title,
+  items: group.questions.flatMap((question) =>
+    faqs.filter((item) => item.question === question),
+  ),
+}));
+export const homeFAQs = homeFAQGroups.flatMap((group) => group.items);

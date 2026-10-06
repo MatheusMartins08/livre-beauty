@@ -326,6 +326,16 @@ export const testimonials: Testimonial[] = [
 
 export const faqs: FAQItem[] = [
   {
+    question: "Como me preparar para o atendimento?",
+    answer:
+      "Traga suas referências e conte quais produtos e procedimentos costuma usar. Para cor ou extensões, uma avaliação prévia pode ser necessária. Em caso de dúvida, converse com a equipe antes do seu horário.",
+  },
+  {
+    question: "Quais formas de pagamento são aceitas?",
+    answer:
+      "Aceitamos Pix e cartões de crédito e débito. O valor é combinado antes do serviço e o pagamento é feito no salão. Você não precisa informar dados bancários ao agendar pelo site.",
+  },
+  {
     question: "Como funciona a primeira consulta?",
     answer:
       "Começamos com uma conversa sobre sua rotina, referências e histórico do cabelo. O profissional avalia os fios, explica as possibilidades e apresenta o investimento antes de iniciar qualquer serviço.",

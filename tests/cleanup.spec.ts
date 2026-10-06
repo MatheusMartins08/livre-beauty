@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { services, stylists } from "../content/salon";
+import { homeFAQs } from "../content/home";
 
 test("removed pages return 404 and navigation keeps only active destinations", async ({ page }) => {
   for (const route of ["/contato", "/faq", ...services.map(({ slug }) => `/servicos/${slug}`)]) {
@@ -8,7 +9,7 @@ test("removed pages return 404 and navigation keeps only active destinations", a
   await page.goto("/");
   await expect(page.locator('a[href="/contato"], a[href="/faq"], a[href^="/servicos/"]')).toHaveCount(0);
   await expect(page.locator(".desktop-nav a")).toHaveCount(5);
-  await expect(page.locator("details")).toHaveCount(4);
+  await expect(page.locator("details")).toHaveCount(homeFAQs.length);
   for (const { slug } of services) {
     await expect(page.locator(`main a[href="/servicos#${slug}"]`)).toHaveCount(1);
   }

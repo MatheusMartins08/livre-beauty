@@ -13,7 +13,7 @@ const routes = [
   "/termos",
   ...stylists.map(({ slug }) => `/profissionais/${slug}`),
 ];
-const knownRoutes = new Set(routes);
+const knownRoutes = new Set([...routes, "/painel", "/painel/entrar"]);
 const widths = [320, 390, 768, 1440, 1920];
 
 test.beforeEach(async ({ page }) => {

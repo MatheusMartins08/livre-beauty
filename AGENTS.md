@@ -10,6 +10,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project Instructions
 
+## Local skills (Codex and Claude)
+
+Read `SKILLS.md` for the shared skill catalog and usage instructions.
+Codex discovers project skills in `.agents/skills/<name>/SKILL.md`.
+Claude discovers project skills in `.claude/skills/<name>/SKILL.md`.
+Before applying a relevant skill, read its complete `SKILL.md` and any required references.
+Use skills explicitly requested by the user and select the smallest relevant set for other tasks.
+User instructions take precedence over skill guidance. Preserve the project rules below.
+
 ## Project
 
 This is a professional website built for a real or fictional client.

@@ -49,6 +49,7 @@ export function Footer() {
             <Link href="/privacidade" className="nav-link">Privacidade</Link>
             <Link href="/termos" className="nav-link">Termos</Link>
             <Link href="/politicas" className="nav-link">Políticas do salão</Link>
+            <Link href="/painel/entrar" className="nav-link">Área da equipe</Link>
           </nav>
         </div>
       </div>

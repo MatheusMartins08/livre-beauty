@@ -4,7 +4,7 @@ import { Star } from "@phosphor-icons/react/ssr";
 import { site, testimonials } from "@/content/salon";
 import {
   homeContent as copy,
-  homeFAQs,
+  homeFAQGroups,
   homeServices,
   type EditorialTitle,
 } from "@/content/home";
@@ -159,7 +159,7 @@ export default function Home() {
           </h2>
         </div>
         <div className={styles.serviceGrid}>
-          {homeServices.map((service, index) => (
+          {homeServices.map((service) => (
             <Link
               href={`/servicos#${service.slug}`}
               key={service.id}
@@ -167,14 +167,22 @@ export default function Home() {
               data-action-group
               data-home-reveal
             >
-              <span className={styles.serviceNumber} aria-hidden="true">
-                0{index + 1}
-              </span>
-              <h3>
-                {service.category}
-              </h3>
-              <p>{service.summary}</p>
-              <span className={`action-link ${styles.serviceMore}`}><ActionContent>Ver serviço</ActionContent></span>
+              <div className={styles.servicePhoto}>
+                <Image
+                  src={service.photo.src}
+                  alt={service.photo.alt}
+                  style={{ objectPosition: service.photo.position }}
+                  fill
+                  sizes="(max-width: 767px) 80px, (max-width: 1023px) calc((100vw - 96px) / 2), (max-width: 1512px) calc((100vw - 176px) / 3), 445px"
+                />
+              </div>
+              <div className={styles.serviceCopy}>
+                <h3>{service.category}</h3>
+                <p>{service.summary}</p>
+                <span className={`action-link ${styles.serviceMore}`}>
+                  <ActionContent>Ver serviço</ActionContent>
+                </span>
+              </div>
             </Link>
           ))}
         </div>
@@ -221,14 +229,23 @@ export default function Home() {
         aria-labelledby="faq-title"
         data-home-section
       >
-        <div data-home-reveal>
-          <p className={styles.label}>{copy.faq.label}</p>
-          <h2 id="faq-title" className={styles.sectionTitle}>
+        <div className={styles.faqHeading} data-home-reveal>
+          <h2 id="faq-title" className={styles.faqTitle}>
             {copy.faq.title}
           </h2>
+          <p>Do primeiro encontro aos últimos detalhes: tire suas dúvidas antes de chegar.</p>
         </div>
-        <div data-home-reveal>
-          <HomeFAQ items={homeFAQs} />
+        <div className={styles.faqGroups}>
+          {homeFAQGroups.map((group) => (
+            <div className={styles.faqGroup} key={group.title} data-home-reveal>
+              <h3 className={styles.faqGroupTitle}>{group.title}</h3>
+              <HomeFAQ items={group.items} />
+            </div>
+          ))}
+        </div>
+        <div className={styles.faqHelp} data-home-reveal>
+          <p>Ainda ficou alguma dúvida? A gente conversa com você.</p>
+          <DemoChannel channel="whatsapp" className={styles.editorialLink}>Conversar com a equipe</DemoChannel>
         </div>
       </section>
 

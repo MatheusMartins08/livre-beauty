@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { site } from "@/content/salon";
 import { siteUrl, salonStructuredData } from "@/lib/metadata";
-import { Header } from "@/components/header";
+import { SiteShell } from "@/components/site-shell";
 import { Footer } from "@/components/footer";
 import "./globals.css";
 
@@ -63,9 +63,9 @@ export default function RootLayout({
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
-        <Header />
-        <main id="conteudo">{children}</main>
-        <Footer />
+        <SiteShell footer={<Footer />}>
+          <main id="conteudo">{children}</main>
+        </SiteShell>
         {structuredData && (
           <script
             type="application/ld+json"

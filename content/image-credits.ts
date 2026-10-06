@@ -11,6 +11,42 @@ const pexelsLicenseUrl = "https://www.pexels.com/license/";
 // Credits follow each local file, independently of its position in the interface.
 export const imageCredits: readonly ImageCredit[] = [
   {
+    localPath: "/images/home-service-haircut.jpg",
+    photographer: "Engin Akyurt",
+    pexelsUrl: "https://www.pexels.com/photo/person-cutting-hair-3356170/",
+    licenseUrl: pexelsLicenseUrl,
+  },
+  {
+    localPath: "/images/home-service-color.jpg",
+    photographer: "cottonbro studio",
+    pexelsUrl: "https://www.pexels.com/photo/woman-getting-her-hair-color-3993323/",
+    licenseUrl: pexelsLicenseUrl,
+  },
+  {
+    localPath: "/images/home-service-balayage.jpg",
+    photographer: "Hairlust Official",
+    pexelsUrl: "https://www.pexels.com/photo/blonde-woman-s-wavy-hair-on-pink-background-35267461/",
+    licenseUrl: pexelsLicenseUrl,
+  },
+  {
+    localPath: "/images/home-service-treatment.jpg",
+    photographer: "cottonbro studio",
+    pexelsUrl: "https://www.pexels.com/photo/woman-getting-her-hair-shampoo-3993444/",
+    licenseUrl: pexelsLicenseUrl,
+  },
+  {
+    localPath: "/images/home-service-styling.jpg",
+    photographer: "Ron Lach",
+    pexelsUrl: "https://www.pexels.com/photo/hands-holding-curling-iron-and-touching-hair-10318040/",
+    licenseUrl: pexelsLicenseUrl,
+  },
+  {
+    localPath: "/images/home-service-extensions.jpg",
+    photographer: "Casa Rio Beauty Salon",
+    pexelsUrl: "https://www.pexels.com/photo/brunette-with-wavy-hair-in-a-salon-setting-38651013/",
+    licenseUrl: pexelsLicenseUrl,
+  },
+  {
     localPath: "/images/hero-salon.jpg",
     photographer: "Ph Belu Jurado",
     pexelsUrl: "https://www.pexels.com/photo/brunette-woman-portrait-17561665/",

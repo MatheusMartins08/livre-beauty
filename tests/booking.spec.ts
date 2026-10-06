@@ -5,12 +5,52 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function chooseDateAndTime(page: Page) {
-  await page.getByLabel("Dia do atendimento").selectOption("2026-10-03");
+  await page.locator('input[name="booking-day"][value="2026-10-03"]').check();
   const times = page.getByRole("radio", { name: /^\d{2}:\d{2}/ });
   await expect(times.first()).toBeVisible();
   await times.first().check();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
 }
+
+test("calendar limits dates, supports month navigation and clears a previous time", async ({ page }) => {
+  await page.clock.setSystemTime(new Date("2026-10-15T11:00:00Z"));
+  await page.goto("/agendamento?servico=corte-autoral&profissional=lia-monteiro");
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Mês anterior" })).toBeDisabled();
+  await expect(page.locator('input[name="booking-day"][value="2026-10-14"]')).toHaveCount(0);
+  await expect(page.locator('input[name="booking-day"][value="2026-10-18"]')).toHaveCount(0);
+  await page.locator('input[name="booking-day"][value="2026-10-16"]').check();
+  const times = page.getByRole("radio", { name: /^\d{2}:\d{2}/ });
+  await expect(times.first()).toBeVisible();
+  await times.first().check();
+  await page.getByRole("button", { name: "Próximo mês" }).click();
+  await expect(page.getByText("Novembro de 2026", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Próximo mês" })).toBeDisabled();
+  await expect(page.locator('input[name="booking-day"][value="2026-11-14"]')).toHaveCount(0);
+  await page.locator('input[name="booking-day"][value="2026-11-03"]').check();
+  await expect(page.locator('input[name="time"]:checked')).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "Seu dia:" })).toContainText("3 de novembro");
+  await page.getByRole("button", { name: "Mês anterior" }).click();
+  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(0);
+  await page.getByRole("button", { name: "Próximo mês" }).click();
+  await expect(page.locator('input[name="booking-day"][value="2026-11-03"]')).toBeChecked();
+});
+
+test("calendar date validation and selection work with the keyboard", async ({ page }) => {
+  await page.goto("/agendamento?servico=corte-autoral&profissional=lia-monteiro");
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await expect(page.locator("#booking-date")).toBeFocused();
+  await expect(page.getByRole("group", { name: "Qual dia combina com você?" })).toHaveAttribute("aria-invalid", "true");
+  await page.keyboard.press("Space");
+  await expect(page.locator('input[name="booking-day"][value="2026-10-02"]')).toBeChecked();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator('input[name="booking-day"][value="2026-10-03"]')).toBeChecked();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator('input[name="booking-day"][value="2026-10-06"]')).toBeChecked();
+});
 
 async function failNextTimeZoneFormatter(page: Page) {
   // Fail the runtime dependency once, leaving the actual adapter and retry flow intact.
@@ -74,7 +114,7 @@ test("retains choices when going back and clears downstream choices after a serv
   await chooseDateAndTime(page);
   await page.getByLabel("Nome completo").fill("Pessoa Teste");
   await page.getByRole("button", { name: "Voltar", exact: true }).click();
-  await expect(page.getByLabel("Dia do atendimento")).toHaveValue("2026-10-03");
+  await expect(page.locator('input[name="booking-day"]:checked')).toHaveValue("2026-10-03");
   await expect(page.locator('input[name="time"]:checked')).toHaveCount(1);
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await expect(page.getByLabel("Nome completo")).toHaveValue("Pessoa Teste");
@@ -85,7 +125,7 @@ test("retains choices when going back and clears downstream choices after a serv
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await page.getByRole("radio", { name: /Sofia Dias/ }).check();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.getByLabel("Dia do atendimento")).toHaveValue("");
+  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(0);
 });
 
 test("validates contact fields with accessible errors and completes one local selection", async ({
@@ -161,7 +201,7 @@ test("shows loading and lets the user retry a temporary availability failure", a
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await failNextTimeZoneFormatter(page);
   await page.clock.pauseAt(new Date("2026-10-02T11:01:00Z"));
-  await page.getByLabel("Dia do atendimento").selectOption("2026-10-03");
+  await page.locator('input[name="booking-day"][value="2026-10-03"]').check();
   await expect(
     page.getByRole("status").filter({ hasText: "Consultando horários" }),
   ).toBeVisible();
@@ -172,7 +212,7 @@ test("shows loading and lets the user retry a temporary availability failure", a
   await expect(page.getByRole("main").getByRole("alert")).toContainText(
     "Não foi possível consultar os horários",
   );
-  await expect(page.getByLabel("Dia do atendimento")).toHaveValue("2026-10-03");
+  await expect(page.locator('input[name="booking-day"]:checked')).toHaveValue("2026-10-03");
   await page
     .getByRole("button", { name: "Tentar novamente", exact: true })
     .click();
@@ -189,7 +229,7 @@ test("explains a full day and returns focus to the date instead of advancing", a
   await page.goto("/agendamento?servico=extensoes&profissional=sofia-dias");
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByLabel("Dia do atendimento").selectOption("2026-10-14");
+  await page.locator('input[name="booking-day"][value="2026-10-14"]').check();
   await expect(
     page.getByRole("status").filter({ hasText: "Não há horários" }),
   ).toBeVisible();
@@ -197,11 +237,11 @@ test("explains a full day and returns focus to the date instead of advancing", a
     0,
   );
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.getByLabel("Dia do atendimento")).toBeFocused();
+  await expect(page.locator("#booking-date")).toBeFocused();
   await expect(
     page.getByRole("heading", { name: "Encontre seu horário" }),
   ).toBeVisible();
-  await page.getByLabel("Dia do atendimento").selectOption("2026-10-15");
+  await page.locator('input[name="booking-day"][value="2026-10-15"]').check();
   await expect(
     page.getByRole("radio", { name: /^\d{2}:\d{2}/ }).first(),
   ).toBeVisible();
@@ -220,7 +260,7 @@ test("changing a professional clears the previous date and time", async ({
   await page.getByRole("button", { name: "Voltar", exact: true }).click();
   await page.getByRole("radio", { name: /Marina Alves/ }).check();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.getByLabel("Dia do atendimento")).toHaveValue("");
+  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(0);
   await expect(page.getByRole("radio", { name: /^\d{2}:\d{2}/ })).toHaveCount(
     0,
   );
@@ -297,7 +337,7 @@ test("focuses date selection when a chosen time expires before continuing", asyn
   );
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByLabel("Dia do atendimento").selectOption("2026-10-03");
+  await page.locator('input[name="booking-day"][value="2026-10-03"]').check();
   const times = page.getByRole("radio", { name: /^\d{2}:\d{2}/ });
   await expect(times.first()).toBeVisible();
   await times.first().check();
@@ -306,8 +346,8 @@ test("focuses date selection when a chosen time expires before continuing", asyn
   await expect(page.locator("#booking-error")).toContainText(
     "não está mais disponível",
   );
-  await expect(page.getByLabel("Dia do atendimento")).toBeFocused();
-  await expect(page.getByLabel("Dia do atendimento")).toHaveAttribute(
+  await expect(page.locator("#booking-date")).toBeFocused();
+  await expect(page.locator("#booking-date")).toHaveAttribute(
     "aria-describedby",
     /booking-error/,
   );

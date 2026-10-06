@@ -31,6 +31,12 @@ const imageAssets = [
   { name: "gallery-06.jpg", id: 3993312 },
   { name: "gallery-07.jpg", id: 7750098 },
   { name: "gallery-08.jpg", id: 5385584 },
+  { name: "home-service-haircut.jpg", id: 3356170 },
+  { name: "home-service-color.jpg", id: 3993323 },
+  { name: "home-service-balayage.jpg", id: 35267461 },
+  { name: "home-service-treatment.jpg", id: 3993444 },
+  { name: "home-service-styling.jpg", id: 10318040 },
+  { name: "home-service-extensions.jpg", id: 38651013 },
 ];
 
 const fontAssets = [
@@ -66,7 +72,10 @@ await mkdir(imagesDirectory, { recursive: true });
 await mkdir(fontsDirectory, { recursive: true });
 const sourceImages = new Map();
 
-const selectedImageAssets = process.argv.includes("--fonts-only") ? [] : imageAssets;
+const homeServicesOnly = process.argv.includes("--home-services-only");
+const selectedImageAssets = process.argv.includes("--fonts-only") ? []
+  : homeServicesOnly ? imageAssets.filter((asset) => asset.name.startsWith("home-service-"))
+  : imageAssets;
 
 for (const asset of selectedImageAssets) {
   if (!sourceImages.has(asset.id)) {
@@ -103,7 +112,7 @@ for (const asset of selectedImageAssets) {
   console.log(`${asset.name}: ${metadata.width}×${metadata.height}, ${(output.length / 1024).toFixed(0)} KiB`);
 }
 
-if (!process.argv.includes("--images-only")) {
+if (!process.argv.includes("--images-only") && !homeServicesOnly) {
   for (const [name, source] of fontAssets) {
     const bytes = await download(`https://raw.githubusercontent.com/google/fonts/main/ofl/${source}?download=1`);
     await writeFile(path.join(fontsDirectory, name), bytes);

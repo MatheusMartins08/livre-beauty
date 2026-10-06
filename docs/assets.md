@@ -1,5 +1,29 @@
 # Assets — Livre Beauty
 
+## Fotos exclusivas da seção de serviços da homepage
+
+Adicionadas em **6 de outubro de 2026**: seis fotos do Pexels, sem repetição
+dos originais já utilizados no projeto. Créditos completos em
+`content/image-credits.ts`, sob a [licença Pexels](https://www.pexels.com/license/).
+São referências ilustrativas de serviços, sem alegação de resultados do salão.
+As fotos de balayage e extensões ilustram luz, comprimento e volume;
+não comprovam a aplicação dessas técnicas.
+
+| Arquivo | Autor | ID Pexels |
+| --- | --- | --- |
+| `home-service-haircut.jpg` | Engin Akyurt | 3356170 |
+| `home-service-color.jpg` | cottonbro studio | 3993323 |
+| `home-service-balayage.jpg` | Hairlust Official | 35267461 |
+| `home-service-treatment.jpg` | cottonbro studio | 3993444 |
+| `home-service-styling.jpg` | Ron Lach | 10318040 |
+| `home-service-extensions.jpg` | Casa Rio Beauty Salon | 38651013 |
+
+JPEGs locais com largura de 1200 px e menos de 350 KB cada; carregamento
+sob demanda e tamanhos responsivos por `next/image`. Reproduza somente
+estas fotos com `node scripts/download-assets.mjs --home-services-only`.
+O inventário completo passa a ter 26 fotografias; o registro original abaixo
+documenta as 20 anteriores.
+
 Consulta e download: **2 de outubro de 2026**.
 
 O catálogo tipado em `content/image-credits.ts` registra os 20 caminhos locais, fotógrafos, páginas originais e licenças. Os créditos acompanham cada arquivo, independentemente de sua posição na interface.

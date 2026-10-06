@@ -14,6 +14,7 @@ import {
 } from "@/lib/booking";
 import { priceLabel } from "@/lib/utils";
 import { ActionContent, ButtonLink } from "@/components/ui";
+import { BookingCalendar } from "@/components/booking-calendar";
 import styles from "./booking.module.css";
 
 const steps = [
@@ -148,6 +149,7 @@ export function BookingWizard({
   }
 
   function chooseDate(value: string) {
+    if (value === date) return;
     setDate(value);
     setSlot(null);
     setSlots([]);
@@ -442,27 +444,15 @@ export function BookingWizard({
           )}
 
           {step === 2 && (
-            <div>
-              <div className="field">
-                <label className="label" htmlFor="booking-date">
-                  Dia do atendimento
-                </label>
-                <select
-                  required
-                  id="booking-date"
-                  className={`input ${styles.dateSelect}`}
+            <div className={styles.schedule}>
+              <div>
+                <BookingCalendar
+                  dates={dates}
                   value={date}
-                  onChange={(event) => chooseDate(event.target.value)}
-                  aria-invalid={Boolean(message && !date)}
-                  aria-describedby={`booking-timezone${message ? " booking-error" : ""}`}
-                >
-                  <option value="">Selecione um dia</option>
-                  {dates.map((day) => (
-                    <option value={day} key={day}>
-                      {dateLabel(day, true)}
-                    </option>
-                  ))}
-                </select>
+                  onChange={chooseDate}
+                  invalid={Boolean(message && !date)}
+                  describedBy={`booking-timezone${message ? " booking-error" : ""}`}
+                />
                 <p className="fine-print" id="booking-timezone">
                   {site.hours}. Horários de São Paulo (Brasília).
                 </p>
@@ -502,7 +492,7 @@ export function BookingWizard({
                       aria-describedby={message ? "booking-error" : undefined}
                     >
                       <legend className={styles.timeLegend}>
-                        Horários disponíveis
+                        Horários para {dateLabel(date)}
                       </legend>
                       <div className={styles.times}>
                         {slots.map((available) => (
