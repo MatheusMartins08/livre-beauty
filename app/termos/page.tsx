@@ -1,6 +1,6 @@
 import { PageMotion } from "@/components/page-motion";
 import { pageMetadata } from "@/lib/metadata";
-import { ButtonLink, PageIntro } from "@/components/ui";
+import { PageIntro, TextLink } from "@/components/ui";
 
 export const metadata = pageMetadata("Termos de uso", "Conheça as informações de uso, agendamento, conteúdo e privacidade do Livre Beauty.", "/termos");
 
@@ -38,7 +38,7 @@ export default function TermsPage() {
           <h2>Atualizações</h2>
           <p>O conteúdo pode ser atualizado para refletir mudanças nos serviços, nos canais e no funcionamento do site.</p>
         </section>
-        <div className="legal-actions"><ButtonLink href="/politicas">Consultar as políticas</ButtonLink><ButtonLink href="/privacidade">Ler sobre privacidade</ButtonLink></div>
+        <div className="legal-actions"><TextLink href="/politicas">Consultar as políticas</TextLink><TextLink href="/privacidade">Ler sobre privacidade</TextLink></div>
       </div>
     </PageMotion>
   );

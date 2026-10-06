@@ -14,12 +14,13 @@ test("removed pages return 404 and navigation keeps only active destinations", a
   }
 });
 
-test("booking actions share text, underline and arrow feedback without layout movement", async ({ page }) => {
+test("the header booking action is a filled primary button whose arrow moves without layout movement", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   const action = page.locator(".header-book");
-  await expect(action).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(action).toHaveCSS("background-color", "rgb(36, 33, 31)");
   await expect(action.locator(".action-label")).toHaveCount(1);
+  await expect(action.locator(".action-label")).toHaveCSS("text-decoration-line", "none");
   await expect(action.locator(".action-arrow")).toHaveCount(1);
   const before = await action.boundingBox();
   await action.hover();

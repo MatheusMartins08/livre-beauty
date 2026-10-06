@@ -14,22 +14,66 @@ export function ActionContent({ children }: { children: ReactNode }) {
   );
 }
 
+export function buttonClassName({
+  secondary = false,
+  light = false,
+  compact = false,
+}: {
+  secondary?: boolean;
+  light?: boolean;
+  compact?: boolean;
+} = {}) {
+  return [
+    "button",
+    secondary && "button-secondary",
+    light && "button-light",
+    compact && "button-compact",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Filled (primary) or outlined (secondary) action; `light` for dark surfaces. */
 export function ButtonLink({
   href,
   children,
   secondary = false,
+  light = false,
+  compact = false,
   className = "",
+  onClick,
 }: {
   href: string;
   children: ReactNode;
   secondary?: boolean;
+  light?: boolean;
+  compact?: boolean;
   className?: string;
+  onClick?: () => void;
 }) {
   return (
     <Link
       href={href}
-      className={`action-link button ${secondary ? "button-secondary" : ""} ${className}`}
+      className={`${buttonClassName({ secondary, light, compact })} ${className}`.trim()}
+      onClick={onClick}
     >
+      <ActionContent>{children}</ActionContent>
+    </Link>
+  );
+}
+
+/** Editorial text action: label, underline and arrow. */
+export function TextLink({
+  href,
+  children,
+  className = "",
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={`action-link ${className}`.trim()}>
       <ActionContent>{children}</ActionContent>
     </Link>
   );
@@ -154,12 +198,10 @@ export function StylistCard({ stylist }: { stylist: Stylist }) {
       <p className="stylist-specialties">{stylist.specialties.join(" · ")}</p>
       <p>{stylist.description}</p>
       <div className="stylist-actions">
-        <Link href={`/profissionais/${stylist.slug}`} className="action-link text-link">
-          <ActionContent>Ver perfil</ActionContent>
-        </Link>
-        <Link href={bookingHref(undefined, stylist.slug)} className="action-link text-link">
-          <ActionContent>Agendar com {stylist.name.split(" ")[0]}</ActionContent>
-        </Link>
+        <ButtonLink href={bookingHref(undefined, stylist.slug)} secondary compact>
+          Agendar com {stylist.name.split(" ")[0]}
+        </ButtonLink>
+        <TextLink href={`/profissionais/${stylist.slug}`}>Ver perfil</TextLink>
       </div>
     </article>
   );
@@ -178,7 +220,7 @@ export function BookingCTA({
         <p className="eyebrow">VAMOS CRIAR ALGO SEU</p>
         <h2>{title}</h2>
         <p>{description}</p>
-        <ButtonLink href="/agendamento">Agendar horário</ButtonLink>
+        <ButtonLink href="/agendamento" light>Agendar horário</ButtonLink>
       </div>
     </section>
   );

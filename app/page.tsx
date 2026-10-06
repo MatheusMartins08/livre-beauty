@@ -11,7 +11,7 @@ import {
 import { pageMetadata } from "@/lib/metadata";
 import { DemoChannel } from "@/components/demo-channel";
 import { LocationMap } from "@/components/location-map";
-import { ActionContent } from "@/components/ui";
+import { ActionContent, ButtonLink } from "@/components/ui";
 import { HomeMotion } from "@/components/home-motion";
 import { HomeFAQ } from "@/components/home-faq";
 import styles from "./home.module.css";
@@ -70,9 +70,9 @@ export default function Home() {
               {site.hero.description}
             </p>
             <div className={styles.heroActions} data-hero-copy>
-              <Link href="/agendamento" className={`action-link ${styles.primary}`}>
-                <ActionContent>Agendar horário</ActionContent>
-              </Link>
+              <ButtonLink href="/agendamento" light>
+                Agendar horário
+              </ButtonLink>
               <Link href="/servicos" className={`action-link ${styles.photoLink}`}>
                 <ActionContent>Conhecer serviços</ActionContent>
               </Link>
@@ -137,7 +137,7 @@ export default function Home() {
           >
             <TitleText title={copy.manifesto.title} />
           </h2>
-          <DemoChannel channel="instagram" className={`action-link ${styles.photoLink}`}>
+          <DemoChannel channel="instagram" className={styles.photoLink}>
             Encontre inspiração no Instagram
           </DemoChannel>
         </div>
@@ -198,9 +198,9 @@ export default function Home() {
             <p className={styles.expertsDescription}>
               {copy.experts.description}
             </p>
-            <Link href="/profissionais" className={`action-link ${styles.lightButton}`}>
-              <ActionContent>Conhecer a equipe</ActionContent>
-            </Link>
+            <ButtonLink href="/profissionais" light secondary>
+              Conhecer a equipe
+            </ButtonLink>
           </div>
           <figure className={styles.expertsFigure} data-home-reveal>
             <div className={styles.expertsPhoto}>
@@ -299,9 +299,9 @@ export default function Home() {
             </div>
           </dl>
           <div className={styles.visitChannels}>
-            <DemoChannel channel="instagram" className={`action-link ${styles.editorialLink}`} />
-            <DemoChannel channel="whatsapp" className={`action-link ${styles.editorialLink}`} />
-            <DemoChannel channel="phone" className={`action-link ${styles.editorialLink}`} />
+            <DemoChannel channel="instagram" className={styles.editorialLink} />
+            <DemoChannel channel="whatsapp" className={styles.editorialLink} />
+            <DemoChannel channel="phone" className={styles.editorialLink} />
           </div>
         </div>
         <div className={styles.map} data-home-reveal>

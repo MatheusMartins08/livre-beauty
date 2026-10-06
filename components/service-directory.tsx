@@ -1,19 +1,15 @@
 import Link from "next/link";
 import type { Service } from "@/content/salon";
 import { bookingHref, priceLabel } from "@/lib/utils";
-import { ActionContent, ButtonLink, Photo } from "@/components/ui";
+import { ButtonLink, Photo } from "@/components/ui";
 
 export function ServiceDirectory({ items }: { items: Service[] }) {
   return (
     <>
       <nav aria-label="Categorias de serviços" className="service-category-nav">
         {items.map((service) => (
-          <Link
-            className="action-link text-link text-sm"
-            key={service.id}
-            href={`#${service.slug}`}
-          >
-            <ActionContent>{service.category}</ActionContent>
+          <Link className="chip" key={service.id} href={`#${service.slug}`}>
+            {service.category}
           </Link>
         ))}
       </nav>
@@ -50,7 +46,7 @@ export function ServiceDirectory({ items }: { items: Service[] }) {
                 <p className="mb-4">{service.duration} minutos</p>
                 <p className="mb-5 text-sm">{priceLabel(service.price)}</p>
               </div>
-              <ButtonLink href={bookingHref(service.slug)} secondary>
+              <ButtonLink href={bookingHref(service.slug)} secondary compact>
                 <span>
                   Agendar<span className="sr-only"> {service.name}</span>
                 </span>

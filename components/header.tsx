@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { List } from "@phosphor-icons/react";
 import { navigation } from "@/content/salon";
-import { ActionContent } from "@/components/ui";
+import { ActionContent, ButtonLink } from "@/components/ui";
 import { Dialog } from "@/components/dialog";
 
 export function Header() {
@@ -78,17 +78,17 @@ export function Header() {
             {navigation.map((item) => (
               <Link
                 key={item.href}
-                className="action-link"
+                className="nav-link"
                 href={item.href}
                 aria-current={pathname === item.href ? "page" : undefined}
               >
-                <ActionContent>{item.label}</ActionContent>
+                {item.label}
               </Link>
             ))}
           </nav>
-          <Link href="/agendamento" className="action-link header-book">
-            <ActionContent>Agendar horário</ActionContent>
-          </Link>
+          <ButtonLink href="/agendamento" compact className="header-book">
+            Agendar horário
+          </ButtonLink>
           <button
             type="button"
             className="menu-trigger icon-button"
@@ -123,9 +123,9 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        <Link href="/agendamento" className="action-link button" onClick={finishMenu}>
-          <ActionContent>Agendar horário</ActionContent>
-        </Link>
+        <ButtonLink href="/agendamento" onClick={finishMenu}>
+          Agendar horário
+        </ButtonLink>
         <p className="fine-print">
           Beleza com liberdade. Cuidado com intenção.
         </p>

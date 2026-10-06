@@ -37,7 +37,7 @@ test("the shared identity and absence of fixed bottom controls hold on every rou
     ).toHaveCount(0);
     await expect(page.locator(".header-book")).toHaveCSS(
       "background-color",
-      "rgba(0, 0, 0, 0)",
+      "rgb(36, 33, 31)",
     );
   }
 });

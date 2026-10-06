@@ -103,7 +103,7 @@ img {
   padding-block: 112px;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -148,52 +148,6 @@ img {
 .section-description {
   color: var(--muted);
   max-width: 57ch;
-}
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  min-height: 52px;
-  padding: 14px 25px;
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--background);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1.4;
-  white-space: nowrap;
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
-}
-.button svg,
-.text-link svg {
-  flex-shrink: 0;
-  transition: transform 0.18s ease;
-}
-.button-secondary {
-  border-color: var(--line);
-  background: transparent;
-  color: var(--foreground);
-}
-.button:active {
-  transform: scale(0.98);
-}
-.text-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  min-height: 40px;
-  color: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 6px 0;
-  background: none;
-  border: none;
-  border-bottom: 1px solid currentColor;
 }
 .icon-button {
   min-width: 44px;
@@ -257,7 +211,7 @@ img {
 }
 .wordmark span {
   font-family: var(--font-geist), Arial, sans-serif;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 400;
   letter-spacing: 0.24em;
   margin-top: 11px;
@@ -274,19 +228,6 @@ img {
   font-size: 11px;
   position: relative;
   padding-block: 12px;
-}
-.header-book {
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 20px;
-  padding: 12px 17px;
-  border: 1px solid rgb(251 249 245 / 0.5);
-}
-.header-solid .header-book {
-  background: var(--accent);
-  color: var(--background);
-  border-color: var(--accent);
 }
 .menu-trigger {
   display: none;
@@ -333,15 +274,6 @@ img {
   font-weight: 400;
   line-height: 1.12;
   padding-bottom: 5px;
-}
-.hero .button {
-  background: var(--background);
-  color: var(--foreground);
-  border-color: var(--background);
-}
-.hero .hero .text-link {
-  font-size: 12px;
-  border-bottom-color: rgb(251 249 245 / 0.5);
 }
 .hero-location {
   position: absolute;
@@ -666,7 +598,7 @@ img {
   font-size: 11px;
 }
 .footer-main h2 {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -698,7 +630,7 @@ img {
   gap: 30px;
   border-top: 1px solid var(--line);
   padding-top: 22px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
 }
 .footer-bottom p {
@@ -790,19 +722,6 @@ img {
   gap: 12px 24px;
   margin-bottom: 42px;
 }
-.filter-bar button {
-  background: none;
-  border: 0;
-  border-bottom: 1px solid transparent;
-  padding: 10px 0;
-  color: var(--muted);
-  font-size: 12px;
-  min-height: 44px;
-}
-.filter-bar button[aria-pressed="true"] {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -858,7 +777,7 @@ img {
 .gallery-caption > span > span {
   display: block;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 5px;
 }
 .lightbox {
@@ -1039,13 +958,8 @@ img {
     font-size: 44px;
   }
   .wordmark span {
-    font-size: 6px;
+    font-size: 7px;
     margin-top: 10px;
-  }
-  .header-book {
-    font-size: 10px;
-    padding: 10px 12px;
-    gap: 10px;
   }
   .hero-copy {
     max-width: 100%;
@@ -1056,7 +970,7 @@ img {
     margin-bottom: 22px;
   }
   .hero .eyebrow {
-    font-size: 8px;
+    font-size: 10px;
     margin-bottom: 26px;
   }
   .hero::after {
@@ -1145,7 +1059,7 @@ img {
     font-size: 57px;
   }
   .booking-cta .eyebrow {
-    font-size: 8px;
+    font-size: 10px;
   }
   .site-footer {
     padding-top: 56px;
@@ -1194,7 +1108,7 @@ img {
     font-size: 14px;
   }
   .page-intro .eyebrow {
-    font-size: 9px;
+    font-size: 10px;
     margin-bottom: 20px;
   }
   .gallery-grid {
@@ -1204,7 +1118,7 @@ img {
     font-size: 23px;
   }
   .gallery-caption > span > span {
-    font-size: 9px;
+    font-size: 11px;
   }
   .gallery-caption > svg {
     width: 17px;
@@ -1212,9 +1126,6 @@ img {
   .filter-bar {
     gap: 8px 19px;
     margin-bottom: 30px;
-  }
-  .filter-bar button {
-    font-size: 11px;
   }
   .dialog {
     padding: 22px;
@@ -1239,7 +1150,7 @@ img {
     gap: 0;
   }
   .lightbox-controls .fine-print {
-    font-size: 10px;
+    font-size: 11px;
   }
   .lightbox-controls .icon-button {
     min-width: 36px;
@@ -1313,6 +1224,17 @@ img {
 }
 .faq-item summary svg {
   flex-shrink: 0;
+  color: var(--muted);
+  transition: color var(--duration-quick) ease;
+}
+.faq-item summary h3 {
+  transition: color var(--duration-quick) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .faq-item summary:hover h3,
+  .faq-item summary:hover svg {
+    color: var(--button-hover);
+  }
 }
 .faq-item .faq-answer {
   grid-template-rows: 1fr;
@@ -1349,16 +1271,6 @@ img {
   background: rgb(246 241 235 / 0.95);
   border-bottom-color: rgb(215 206 198 / 0.6);
   backdrop-filter: blur(8px);
-}
-.header-book,
-.header-solid .header-book,
-.dialog .button {
-  background: var(--foreground);
-  border-color: var(--foreground);
-  color: var(--home-white);
-  transition:
-    background 180ms ease,
-    border-color 180ms ease;
 }
 .site-footer {
   background: var(--foreground);
@@ -1453,23 +1365,6 @@ img {
 }
 
 /* One visual system; page composition remains separate from the home module. */
-.button {
-  background: var(--foreground);
-  border-color: var(--foreground);
-  color: var(--soft-white);
-  transition:
-    background 180ms var(--ease-out),
-    border-color 180ms var(--ease-out),
-    color 180ms var(--ease-out);
-}
-.button-secondary {
-  background: transparent;
-  border-color: var(--foreground);
-  color: var(--foreground);
-}
-.header-book {
-  min-height: 44px;
-}
 .site-footer {
   padding-bottom: calc(28px + env(safe-area-inset-bottom));
 }
@@ -1492,11 +1387,6 @@ img {
 .dark-section .eyebrow,
 .booking-cta .eyebrow {
   color: var(--bronze);
-}
-.booking-cta .button {
-  background: var(--soft-white);
-  color: var(--foreground);
-  border-color: var(--soft-white);
 }
 [data-editorial-page],
 .booking-page {
@@ -1694,10 +1584,6 @@ img {
 .stylist-actions .text-link {
   font-size: 12px;
 }
-.filter-bar button[aria-pressed="true"] {
-  color: var(--foreground);
-  border-color: var(--accent);
-}
 .gallery-image img {
   transition: transform 250ms var(--ease-out);
 }
@@ -1762,23 +1648,6 @@ img {
   }
 }
 @media (hover: hover) and (pointer: fine) {
-  .button:hover,
-  .header-book:hover,
-  .header-solid .header-book:hover,
-  .dialog .button:hover {
-    background: var(--button-hover);
-    border-color: var(--button-hover);
-    color: var(--soft-white);
-  }
-  .button-secondary:hover {
-    background: var(--foreground);
-    border-color: var(--foreground);
-    color: var(--soft-white);
-  }
-  .button:hover svg,
-  .text-link:hover svg {
-    transform: translate(2px, -2px);
-  }
   .site-footer a:hover,
   .site-footer button:hover,
   .site-footer .footer-main nav a:hover {
@@ -1903,24 +1772,27 @@ img {
     transition: none !important;
   }
   .image-link:hover .photo-image,
-  .gallery-tile:hover img,
-  .button:hover svg,
-  .text-link:hover svg {
+  .gallery-tile:hover img {
     transform: none;
   }
 }
 
-/* One action language across pages, menus, dialogs and local forms. */
+
+/*
+ * Actions: one language in three weights.
+ * Primary (.button) is filled and reserved for conversion; secondary
+ * (.button-secondary) is outlined; tertiary (.action-link) is the editorial
+ * text + underline + arrow. Navigation, selectors and icon buttons are quieter
+ * relatives that share the same type, timing and square geometry.
+ */
 :root {
   --action-duration: 200ms;
   --action-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --action-hover-transform: translate(3px, -3px) scale(1.08);
 }
-.action-link,
-.action-link.button,
-.header-book.action-link,
-.dialog .action-link,
-.site-footer .action-link {
+
+/* Tertiary: text action. */
+.action-link {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
@@ -1929,14 +1801,12 @@ img {
   padding: 6px 0;
   border: 0;
   background: transparent;
-  box-shadow: none;
   color: inherit;
   font-size: 12px;
   font-weight: 500;
+  letter-spacing: 0.02em;
   line-height: 1.5;
   text-align: left;
-  white-space: normal;
-  transform: none;
 }
 .action-label {
   position: relative;
@@ -1951,47 +1821,242 @@ img {
   bottom: 0;
   height: 1px;
   background: currentColor;
-  transform: scaleX(1);
   transform-origin: left;
   transition: transform var(--action-duration) var(--action-ease);
 }
-.action-link .action-arrow {
+.action-arrow {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  transform: none;
   transition: transform var(--action-duration) var(--action-ease);
 }
-.action-link:active,
-.action-link.button:hover,
-.header-book.action-link:hover,
-.dialog .action-link:hover {
-  background: transparent;
-  color: inherit;
-  border: 0;
-  transform: none;
-}
 .action-link.action-inline {
-  display: inline-flex;
   vertical-align: baseline;
   min-height: 0;
   padding: 0;
   font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
   line-height: inherit;
   gap: 0.45em;
 }
-.action-inline .action-arrow { width: 0.9em; height: 0.9em; }
-.desktop-nav .action-link { font-size: 11px; gap: 6px; }
-.desktop-nav .action-arrow { width: 13px; height: 13px; }
-.header-book.action-link { font-size: 11px; flex-shrink: 0; }
-.mobile-menu nav .action-link { font-family: var(--font-cormorant), Georgia, serif; font-size: clamp(32px, 8vw, 46px); }
-.mobile-menu nav .action-arrow { width: 23px; height: 23px; }
-.site-header .action-link { color: var(--foreground); }
-.footer-main nav { gap: 2px; align-items: flex-start; }
-.footer-socials { flex-wrap: wrap; gap: 12px 24px; }
-.footer-contact > .action-link { display: flex; width: fit-content; }
-.footer-bottom .action-link { font-size: 10px; }
-.map-directions { margin-top: 16px; }
+.action-inline .action-arrow {
+  width: 0.9em;
+  height: 0.9em;
+}
+.action-link:focus-visible .action-label::after,
+[data-action-group]:focus-visible .action-label::after {
+  transform: scaleX(0.65);
+}
+.action-link:focus-visible .action-arrow,
+[data-action-group]:focus-visible .action-arrow {
+  transform: var(--action-hover-transform);
+}
+
+/* Primary and secondary buttons. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 14px 26px;
+  border: 1px solid var(--foreground);
+  border-radius: 0;
+  background: var(--foreground);
+  color: var(--soft-white);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  transition:
+    background-color var(--action-duration) var(--action-ease),
+    border-color var(--action-duration) var(--action-ease),
+    color var(--action-duration) var(--action-ease),
+    transform 120ms var(--action-ease);
+}
+.button .action-label {
+  padding-bottom: 0;
+}
+.button .action-label::after {
+  display: none;
+}
+.button .action-arrow {
+  width: 16px;
+  height: 16px;
+}
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.button:focus-visible .action-arrow {
+  transform: var(--action-hover-transform);
+}
+.button-secondary {
+  background: transparent;
+  color: var(--foreground);
+}
+.button-light {
+  background: var(--soft-white);
+  border-color: var(--soft-white);
+  color: var(--foreground);
+}
+.button-light.button-secondary {
+  background: transparent;
+  border-color: rgb(252 250 247 / 0.55);
+  color: var(--soft-white);
+}
+.button-compact {
+  min-height: 44px;
+  padding: 10px 18px;
+  gap: 10px;
+  font-size: 11px;
+}
+.button-compact .action-arrow {
+  width: 14px;
+  height: 14px;
+}
+
+/* Navigation: no arrow, the underline marks hover and the current page. */
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(50% - 0.75em - 5px);
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--action-duration) var(--action-ease);
+}
+.nav-link:focus-visible::after,
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+.nav-link[aria-current="page"]::after {
+  background: var(--accent);
+}
+
+/* Selectors: in-page filters and indexes. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  white-space: nowrap;
+  transition:
+    background-color var(--action-duration) var(--action-ease),
+    border-color var(--action-duration) var(--action-ease),
+    color var(--action-duration) var(--action-ease);
+}
+.chip[aria-pressed="true"] {
+  background: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--soft-white);
+}
+
+/* Icon buttons. */
+.icon-button {
+  transition:
+    background-color var(--action-duration) var(--action-ease),
+    border-color var(--action-duration) var(--action-ease);
+}
+.lightbox-controls .icon-button {
+  border: 1px solid var(--line);
+}
+
+/* Placement. */
+.desktop-nav .nav-link {
+  padding: 0;
+}
+.header-book {
+  flex-shrink: 0;
+}
+.mobile-menu nav > a {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+}
+.mobile-menu nav .action-link {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: clamp(32px, 8vw, 46px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.mobile-menu nav .action-label::after {
+  display: none;
+}
+.mobile-menu nav .action-arrow {
+  width: 23px;
+  height: 23px;
+  color: var(--muted);
+}
+.mobile-menu nav a[aria-current="page"] {
+  color: var(--accent);
+  font-style: italic;
+}
+.mobile-menu > .button {
+  margin-top: 8px;
+}
+.channel-dialog > .button {
+  margin-top: 25px;
+}
+.footer-main nav {
+  gap: 0;
+  align-items: flex-start;
+}
+.footer-main nav .nav-link {
+  min-height: 36px;
+  font-size: 13px;
+}
+.footer-socials {
+  flex-wrap: wrap;
+  gap: 4px 24px;
+}
+.footer-contact > .action-link {
+  display: flex;
+  width: fit-content;
+}
+.footer-contact > .button {
+  margin-top: 16px;
+}
+.stylist-actions {
+  align-items: center;
+}
+.footer-bottom .nav-link {
+  min-height: 36px;
+  font-size: 11px;
+}
+.service-category-nav {
+  gap: 8px;
+  padding-block: 0 8px;
+  border: 0;
+}
+.filter-bar {
+  gap: 8px;
+}
+.map-directions {
+  margin-top: 16px;
+}
 .legal-prose {
   max-width: 65ch;
   margin-inline: auto;
@@ -2003,32 +2068,95 @@ img {
 .legal-prose h2 { font-family: var(--font-cormorant), Georgia, serif; font-size: 32px; font-weight: 400; line-height: 1.15; margin: 0 0 18px; }
 .legal-prose p + p { margin-top: 18px; }
 .legal-actions { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--line); }
-.action-link:focus-visible .action-label::after,
-[data-action-group]:focus-visible .action-label::after { transform: scaleX(0.65); }
-.action-link:focus-visible .action-arrow,
-[data-action-group]:focus-visible .action-arrow { transform: var(--action-hover-transform); }
+
+/* Focus stays visible on dark surfaces. */
+.site-footer :focus-visible,
+.dark-section :focus-visible,
+.booking-cta :focus-visible,
+.dialog.lightbox :focus-visible {
+  outline-color: var(--bronze);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .action-link:not(:disabled):hover .action-label::after,
-  [data-action-group]:hover .action-label::after { transform: scaleX(0.65); }
+  [data-action-group]:hover .action-label::after {
+    transform: scaleX(0.65);
+  }
   .action-link:not(:disabled):hover .action-arrow,
-  [data-action-group]:hover .action-arrow { transform: var(--action-hover-transform); }
-  .service-directory-item:hover .service-photo .photo-image { transform: scale(1.025); }
+  [data-action-group]:hover .action-arrow,
+  .button:not(:disabled):hover .action-arrow {
+    transform: var(--action-hover-transform);
+  }
+  .button:not(:disabled):hover {
+    background: var(--button-hover);
+    border-color: var(--button-hover);
+    color: var(--soft-white);
+  }
+  .button-secondary:not(:disabled):hover {
+    background: var(--foreground);
+    border-color: var(--foreground);
+    color: var(--soft-white);
+  }
+  .button-light:not(:disabled):hover {
+    background: var(--accent-soft);
+    border-color: var(--accent-soft);
+    color: var(--foreground);
+  }
+  .button-light.button-secondary:not(:disabled):hover {
+    background: var(--soft-white);
+    border-color: var(--soft-white);
+    color: var(--foreground);
+  }
+  .nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  .chip:not([aria-pressed="true"]):hover {
+    border-color: var(--foreground);
+    color: var(--foreground);
+  }
+  .icon-button:hover {
+    background: var(--surface);
+  }
+  .dialog.lightbox .icon-button:hover {
+    background: rgb(252 250 247 / 0.1);
+    border-color: var(--soft-white);
+  }
+  .mobile-menu nav a:hover .action-arrow {
+    color: var(--foreground);
+  }
+  .service-directory-item:hover .service-photo .photo-image {
+    transform: scale(1.025);
+  }
 }
 @media (max-width: 1023px) {
   .footer-contact { grid-column: 1 / -1; }
 }
 @media (max-width: 767px) {
   .footer-main { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-  .header-book.action-link { font-size: 10px; gap: 7px; }
   .legal-prose { width: calc(100% - 48px); }
+  .header-book.button-compact {
+    padding-inline: 14px;
+    gap: 8px;
+  }
 }
 @media (max-width: 389px) {
-  .header-book.action-link { font-size: 9px; }
   .legal-prose { width: calc(100% - 40px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .action-label::after,
-  .action-link .action-arrow { transition: none !important; }
-  .action-link .action-arrow { transform: none !important; }
-  .service-directory-item:hover .service-photo .photo-image { transform: none; }
+  .action-arrow,
+  .nav-link::after,
+  .button,
+  .chip,
+  .icon-button {
+    transition: none !important;
+  }
+  .action-arrow,
+  .button:active:not(:disabled) {
+    transform: none !important;
+  }
+  .service-directory-item:hover .service-photo .photo-image {
+    transform: none;
+  }
 }

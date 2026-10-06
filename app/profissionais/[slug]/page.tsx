@@ -8,6 +8,7 @@ import {
   ActionContent,
   BookingCTA,
   ButtonLink,
+  buttonClassName,
   PageIntro,
   Photo,
   SectionHeading,
@@ -46,7 +47,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
         title={stylist.name}
         description={stylist.role}
       >
-        <Link href="/profissionais" className="action-link text-link mt-6 inline-flex">
+        <Link href="/profissionais" className="action-link mt-6">
           <ActionContent>Conhecer toda a equipe</ActionContent>
         </Link>
       </PageIntro>
@@ -110,7 +111,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
                 </div>
                 <Link
                   href={bookingHref(service.slug, stylist.slug)}
-                  className="action-link text-link shrink-0"
+                  className={`${buttonClassName({ secondary: true, compact: true })} shrink-0 self-start sm:self-auto`}
                   aria-label={`Agendar ${service.name} com ${firstName}`}
                 >
                   <ActionContent>Agendar este cuidado</ActionContent>

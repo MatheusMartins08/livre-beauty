@@ -1,6 +1,6 @@
 import { PageMotion } from "@/components/page-motion";
 import { pageMetadata } from "@/lib/metadata";
-import { ButtonLink, PageIntro } from "@/components/ui";
+import { PageIntro, TextLink } from "@/components/ui";
 
 export const metadata = pageMetadata("Privacidade", "Saiba como os dados do agendamento, a navegação e o mapa são tratados no Livre Beauty.", "/privacidade");
 
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <h2>Atualizações</h2>
           <p>Esta página será atualizada quando houver mudanças no tratamento das informações ou nos serviços utilizados pelo site.</p>
         </section>
-        <div className="legal-actions"><ButtonLink href="/termos">Ler os termos de uso</ButtonLink></div>
+        <div className="legal-actions"><TextLink href="/termos">Ler os termos de uso</TextLink></div>
       </div>
     </PageMotion>
   );

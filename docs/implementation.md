@@ -15,6 +15,18 @@ Entrega local com identidade editorial preservada, navegação simplificada, aç
 - Remoção de recursos antigos: comparador, controlador de reveal sem uso, exports e estilos exclusivos, cinco SVGs do template, três JPEGs sem referência ativa, TTFs e CSS de fonte arquivado.
 - Vinte fotografias, três WOFF2, licenças e créditos preservados; script de assets alinhado ao inventário atual.
 
+## Refinamento visual — sistema de ações
+
+As ações deixaram de ser todas iguais e passaram a seguir uma hierarquia, com o mesmo tipo, a mesma curva (200 ms) e cantos retos:
+
+- **Primária** (`.button`): preenchida em grafite, hover em terracota. Usada nas ações de conversão (agendar).
+- **Secundária** (`.button-secondary`): contorno. **Clara** (`.button-light`): versão para fundos escuros ou fotos. **Compacta** (`.button-compact`): usada no header, nos cards e nas linhas de serviço.
+- **Terciária** (`.action-link`): texto, sublinhado e seta. Assinatura editorial para ações de exploração.
+- **Navegação** (`.nav-link`): sem seta. O sublinhado cresce no hover e fica fixo na página atual.
+- **Seletores** (`.chip`): filtros da galeria e índice de /servicos.
+
+`ButtonLink` aceita `secondary`, `light` e `compact`. `TextLink` cobre a ação terciária. Nenhum texto fica abaixo de 11 px, exceto o subtítulo do logotipo. O foco usa bronze ou branco nas superfícies escuras.
+
 ## Contratos preservados
 
 IDs e slugs do catálogo, relações serviço/profissional, `showPrices`, metadados, parâmetros assíncronos e geração estática dos perfis. `ButtonLink` mantém suas propriedades existentes e utiliza `ActionContent` para a apresentação compartilhada. Não foram adicionadas dependências, endpoints ou integrações.

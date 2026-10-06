@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
 import { InstagramLogo, WhatsappLogo, Phone } from "@phosphor-icons/react";
 import { Dialog } from "@/components/dialog";
-import { ActionContent } from "@/components/ui";
+import { ActionContent, ButtonLink } from "@/components/ui";
 
 type Channel = "whatsapp" | "instagram" | "phone";
 const channels = {
@@ -31,7 +30,7 @@ const channels = {
   },
 };
 
-export function DemoChannel({ channel, children, className = "text-link" }: {
+export function DemoChannel({ channel, children, className = "" }: {
   channel: Channel;
   children?: ReactNode;
   className?: string;
@@ -49,9 +48,9 @@ export function DemoChannel({ channel, children, className = "text-link" }: {
           <Icon size={38} weight="light" aria-hidden="true" />
           <p>{data.text}</p>
           <blockquote>{data.message}</blockquote>
-          <Link href={channel === "instagram" ? "/galeria" : "/agendamento"} className="action-link button" onClick={() => setOpen(false)}>
-            <ActionContent>{channel === "instagram" ? "Explorar a galeria" : "Agendar horário"}</ActionContent>
-          </Link>
+          <ButtonLink href={channel === "instagram" ? "/galeria" : "/agendamento"} onClick={() => setOpen(false)}>
+            {channel === "instagram" ? "Explorar a galeria" : "Agendar horário"}
+          </ButtonLink>
         </div>
       </Dialog>
     </>

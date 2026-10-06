@@ -46,6 +46,7 @@ export function GalleryGrid({
               <button
                 key={value}
                 type="button"
+                className="chip"
                 aria-pressed={category === value}
                 onClick={() => setCategory(value)}
               >

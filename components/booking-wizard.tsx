@@ -315,7 +315,7 @@ export function BookingWizard({
           enviado a um serviço externo.
         </p>
         <div className={styles.confirmationActions}>
-          <button type="button" className="action-link button" onClick={restart}>
+          <button type="button" className="button" onClick={restart}>
             <ActionContent>Escolher outro horário</ActionContent>
           </button>
           <ButtonLink href="/" secondary>
@@ -481,7 +481,7 @@ export function BookingWizard({
                     </p>
                     <button
                       type="button"
-                      className="action-link button button-secondary"
+                      className="button button-secondary"
                       onClick={() => {
                         setLoadError(false);
                         setLoading(true);
@@ -690,7 +690,7 @@ export function BookingWizard({
             {step > 0 && (
               <button
                 type="button"
-                className="action-link button button-secondary"
+                className="button button-secondary"
                 onClick={moveBack}
                 disabled={pending}
               >
@@ -699,7 +699,7 @@ export function BookingWizard({
             )}
             <button
               type="submit"
-              className="action-link button"
+              className="button"
               disabled={pending || (step === 2 && loading)}
             >
               <ActionContent>{pending ? "Concluindo…" : step === 4 ? "Ver resumo" : "Continuar"}</ActionContent>

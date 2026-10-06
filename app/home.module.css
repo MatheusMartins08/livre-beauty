@@ -16,7 +16,7 @@
   padding-block: clamp(88px, 8vw, 144px);
 }
 .label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.6;
   letter-spacing: 0.2em;
@@ -54,7 +54,9 @@
 }
 .home .hero::after {
   z-index: 0;
-  background: linear-gradient(90deg, rgb(36 33 31 / 0.14), transparent 70%);
+  background:
+    linear-gradient(90deg, rgb(36 33 31 / 0.3), transparent 65%),
+    linear-gradient(0deg, rgb(36 33 31 / 0.28), transparent 40%);
   pointer-events: none;
 }
 .heroImage {
@@ -104,7 +106,7 @@
   bottom: 28px;
   margin: 0;
   color: var(--home-white);
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.17em;
 }
 
@@ -206,14 +208,15 @@
 .service {
   display: block;
   min-width: 0;
-  padding: 0 0 8px;
+  padding: 28px 0 8px;
+  border-top: 1px solid var(--line);
   position: relative;
   isolation: isolate;
 }
 .service::before {
   content: "";
   position: absolute;
-  inset: -16px;
+  inset: 0 -16px -16px;
   z-index: -1;
   background: rgb(216 198 184 / 0.28);
   opacity: 0;
@@ -245,22 +248,16 @@
   line-height: 1.15;
   margin-bottom: 16px;
 }
-.service h3 svg {
-  color: var(--foreground);
-  flex-shrink: 0;
-  transition: transform 180ms var(--ease-out);
-}
 .service p {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.8;
   max-width: 30ch;
   margin-bottom: 18px;
   transition: color 180ms ease;
 }
 .serviceMore {
-  font-size: 10px;
-  letter-spacing: 0.02em;
+  font-size: 12px;
 }
 .experts {
   background: var(--foreground);
@@ -335,6 +332,7 @@
 }
 .faq :global(.faq-answer p) {
   color: var(--home-body);
+  font-size: 14px;
   padding: 0 20px 28px 0;
 }
 .reviews {
@@ -361,6 +359,8 @@
 }
 .review {
   margin: 0;
+  padding-top: 28px;
+  border-top: 1px solid rgb(117 106 100 / 0.3);
 }
 .stars {
   display: flex;
@@ -382,8 +382,13 @@
   font-size: 12px;
   color: var(--home-body);
 }
+.review figcaption span:first-child {
+  color: var(--foreground);
+  font-weight: 500;
+}
 .review figcaption span:last-child {
-  font-size: 10px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 .visit {
   display: grid;
@@ -400,7 +405,7 @@
   margin-bottom: 28px;
 }
 .visitFacts dt {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -438,12 +443,6 @@
   }
   .service:hover p {
     color: var(--home-body);
-  }
-  .service:hover svg {
-    transform: translate(2px, -2px);
-  }
-  .service:hover .serviceMore {
-    border-color: var(--accent);
   }
   .expertsFigure:hover img {
     transform: scale(1.025);
@@ -514,8 +513,8 @@
     margin-bottom: 22px;
   }
   .heroDescription {
-    font-size: 13px;
-    max-width: 270px;
+    font-size: 14px;
+    max-width: 290px;
     margin-bottom: 24px;
   }
   .heroImage {
@@ -531,7 +530,7 @@
   .heroCaption {
     left: 24px;
     bottom: 20px;
-    font-size: 7px;
+    font-size: 10px;
     letter-spacing: 0.13em;
   }
   .heroActions {
@@ -540,7 +539,7 @@
     gap: 12px;
   }
   .label {
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.16em;
     margin-bottom: 20px;
   }
@@ -567,10 +566,6 @@
   .home .manifesto h2 {
     font-size: clamp(82px, 23vw, 125px);
   }
-  .manifestoContent .photoLink {
-    font-size: 11px;
-    gap: 10px;
-  }
   .imageNote {
     font-size: 9px;
     right: 18px;
@@ -588,7 +583,7 @@
   }
   .serviceNumber {
     position: absolute;
-    top: 6px;
+    top: 34px;
     left: 0;
     font-size: 25px;
   }
@@ -660,14 +655,15 @@
   }
   .heroDescription {
     line-height: 1.6;
-    font-size: 12px;
+    font-size: 13px;
   }
   .heroActions {
     gap: 6px;
   }
   .heroCaption {
     left: 20px;
-    font-size: 6px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
   }
   .home .hero h1 {
     font-size: 55px;
@@ -699,8 +695,13 @@
   }
 }
 
-/* Action presentation lives in the shared system. */
-.primary,
-.lightButton,
+/* Action presentation lives in the shared system; only color is local. */
 .photoLink { color: var(--home-white); }
 .editorialLink { color: var(--foreground); }
+.home .hero :focus-visible,
+.manifesto :focus-visible {
+  outline-color: var(--home-white);
+}
+.experts :focus-visible {
+  outline-color: var(--home-bronze);
+}
