@@ -10,6 +10,60 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Project Instructions
 
+## Harness de conclusão e GitHub
+
+Estas regras se aplicam a todos os chats e agentes que trabalham neste projeto.
+
+- Repositório: `https://github.com/MatheusMartins08/livre-beauty.git`.
+- Remoto esperado: `origin`. Confira as URLs de fetch e push antes de publicar;
+  a forma SSH do mesmo repositório também é válida. Se o destino for diferente,
+  explique a divergência antes de enviar ou alterar o remoto.
+- No início da tarefa, confira `git status --short`, a branch atual e os diffs
+  existentes. Registre quais mudanças já estavam pendentes para não misturá-las
+  ao trabalho novo nem descartá-las.
+- Conclua a implementação, revise o diff e execute as verificações pertinentes
+  antes de solicitar o aceite. Não rode testes da aplicação para mudanças
+  exclusivamente documentais. Em alterações de código, siga os comandos e
+  verificações do projeto conforme o escopo.
+- Ao entregar, resuma o resultado, liste os arquivos, informe as verificações
+  e explique como testar. Identifique o escopo exato do commit, a branch e o
+  destino. Termine perguntando: "Está tudo OK com o resultado? Posso fazer o
+  commit e enviar estas alterações para o GitHub?"
+- Aguarde a resposta. Se o usuário pedir ajustes, faça-os e solicite o aceite
+  novamente. Se responder que está OK ou autorizar o envio, faça commit e push
+  do escopo apresentado sem repetir a pergunta. Silêncio ou uma nova tarefa
+  não autorizam a publicação. Uma instrução explícita do usuário dispensando
+  esse fluxo tem precedência.
+- Após o aceite, confira se o diff continua sendo o aprovado. Adicione apenas
+  os arquivos ou trechos correspondentes, com caminhos explícitos ou staging
+  por hunks. Não inclua alterações anteriores, de outros chats ou de outros
+  agentes sem apresentá-las ao usuário e obter aceite para esse escopo.
+- Nunca versione `.env.local`, outros arquivos de ambiente privados, tokens,
+  dumps com dados pessoais, `.next/`, `node_modules/`, `.cache/`,
+  `playwright-report/` ou `test-results/`. `.env.example` pode ser versionado
+  somente com placeholders e comentários, sem credenciais.
+- Revise `git diff --cached --check` e `git diff --cached` antes do commit.
+  Prefira um commit por mudança lógica, com mensagem descritiva usando
+  `feat:`, `fix:`, `docs:`, `refactor:`, `test:` ou `chore:`.
+- Publique a branch atual em `origin`, usando upstream quando necessário.
+  Se trabalhar em uma branch de tarefa, envie essa branch e informe o link;
+  não faça merge em `main` automaticamente. Não altere versões do pacote nem
+  crie tags de release sem necessidade ou pedido específico.
+- Não use force push, não apague branches remotas e não reescreva o histórico
+  publicado. Se o remoto avançou, investigue e integre de forma segura,
+  preservando as mudanças locais; não use reset destrutivo para contornar.
+- Se faltar autenticação, identidade Git ou permissão, ou o envio falhar,
+  explique a causa e informe o que foi efetivamente concluído. Não invente
+  nome/e-mail de autor nem grave tokens no projeto.
+- Verifique que o remoto recebeu o commit e entregue branch, hash e link:
+  `https://github.com/MatheusMartins08/livre-beauty/commit/<hash>`.
+  Informe as alterações que continuam pendentes fora do escopo aprovado.
+- Depois de confirmar o push, encerre a tarefa sem pedir novamente o aceite
+  para a mesma publicação. Tarefas somente de consulta não geram commits vazios.
+- Quando houver colaboração entre agentes, o agente principal reúne o
+  resultado, pede o aceite e publica; subagentes não fazem commits ou pushes
+  independentes do trabalho compartilhado.
+
 ## Local skills (Codex and Claude)
 
 Read `SKILLS.md` for the shared skill catalog and usage instructions.
@@ -99,5 +153,15 @@ After making changes:
 Do not rewrite unrelated files.
 
 Do not invent APIs, database schemas or external services without telling me.
+
+## Supabase
+
+- Read `docs/database.md` before database work.
+- Version all schema changes in `supabase/migrations/`.
+- Apply DDL only with MCP `apply_migration`; never with `execute_sql`.
+- Enable RLS on every application table.
+- Never expose the Supabase secret key in client code.
+- Apply `supabase/seed_demo.sql` only to a confirmed development project.
+- Keep Next.js integration as a separate phase after database validation.
 
 When something fails, investigate the root cause before attempting a fix.
