@@ -11,6 +11,13 @@ const pexelsLicenseUrl = "https://www.pexels.com/license/";
 // Credits follow each local file, independently of its position in the interface.
 export const imageCredits: readonly ImageCredit[] = [
   {
+    localPath: "/images/contact-salon.jpg",
+    photographer: "The Ghazi",
+    pexelsUrl:
+      "https://www.pexels.com/photo/modern-minimalist-beauty-salon-interior-design-33412989/",
+    licenseUrl: pexelsLicenseUrl,
+  },
+  {
     localPath: "/images/home-service-haircut.jpg",
     photographer: "Engin Akyurt",
     pexelsUrl: "https://www.pexels.com/photo/person-cutting-hair-3356170/",

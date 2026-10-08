@@ -641,6 +641,10 @@ img {
   gap: 22px;
 }
 .dialog {
+  /* Tailwind's reset removes the native dialog's auto-centering margin. */
+  position: fixed;
+  inset: 0;
+  margin: auto;
   border: 0;
   padding: 30px;
   width: min(600px, calc(100vw - 32px));
@@ -659,7 +663,9 @@ img {
   gap: 20px;
   margin-bottom: 24px;
 }
-.dialog-top h2 {
+.dialog .dialog-top h2 {
+  color: inherit;
+  text-transform: none;
   font-family: var(--font-cormorant), Georgia, serif;
   font-size: 30px;
   line-height: 1.2;

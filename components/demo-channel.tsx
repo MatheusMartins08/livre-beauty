@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import Image from "next/image";
 import { InstagramLogo, WhatsappLogo, Phone } from "@phosphor-icons/react";
 import { Dialog } from "@/components/dialog";
-import { ActionContent, ButtonLink } from "@/components/ui";
+import { ActionContent, ButtonLink, buttonClassName } from "@/components/ui";
+import { useWhatsAppHref } from "@/components/contact-provider";
+import styles from "./demo-channel.module.css";
 
 type Channel = "whatsapp" | "instagram" | "phone";
 const channels = {
@@ -38,20 +41,71 @@ export function DemoChannel({ channel, children, className = "" }: {
   const [open, setOpen] = useState(false);
   const data = channels[channel];
   const Icon = data.icon;
+  const whatsappHref = useWhatsAppHref();
+  const isWhatsApp = channel === "whatsapp";
   return (
     <>
-      <button type="button" className={`action-link ${className}`} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={`action-link ${className}`}
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+      >
         <ActionContent>{children || data.label}</ActionContent>
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} label={data.title}>
-        <div className="channel-dialog">
-          <Icon size={38} weight="light" aria-hidden="true" />
-          <p>{data.text}</p>
-          <blockquote>{data.message}</blockquote>
-          <ButtonLink href={channel === "instagram" ? "/galeria" : "/agendamento"} onClick={() => setOpen(false)}>
-            {channel === "instagram" ? "Explorar a galeria" : "Agendar horário"}
-          </ButtonLink>
-        </div>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        label={data.title}
+        className={isWhatsApp ? styles.popup : ""}
+      >
+        {isWhatsApp ? (
+          <div className={styles.content}>
+            {open && (
+              <div className={styles.photo}>
+                <Image
+                  src="/images/contact-salon.jpg"
+                  alt=""
+                  fill
+                  sizes="720px"
+                  quality={90}
+                  className={styles.photoImage}
+                />
+              </div>
+            )}
+            <div className={styles.copy}>
+              <Icon size={36} weight="light" aria-hidden="true" className={styles.icon} />
+              <p className={styles.description}>{data.text}</p>
+              <blockquote className={styles.quote}>{data.message}</blockquote>
+              <div className={styles.actions}>
+                <a
+                  href={whatsappHref}
+                  className={buttonClassName()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Abrir conversa no WhatsApp (abre em nova aba)"
+                >
+                  <ActionContent>Abrir conversa no WhatsApp</ActionContent>
+                </a>
+                <ButtonLink href="/agendamento" secondary onClick={() => setOpen(false)}>
+                  Agendar horário
+                </ButtonLink>
+              </div>
+              <p className={styles.note}>
+                A conversa abre em uma nova aba. Envie a mensagem quando quiser.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="channel-dialog">
+            <Icon size={38} weight="light" aria-hidden="true" />
+            <p>{data.text}</p>
+            <blockquote>{data.message}</blockquote>
+            <ButtonLink href={channel === "instagram" ? "/galeria" : "/agendamento"} onClick={() => setOpen(false)}>
+              {channel === "instagram" ? "Explorar a galeria" : "Agendar horário"}
+            </ButtonLink>
+          </div>
+        )}
       </Dialog>
     </>
   );

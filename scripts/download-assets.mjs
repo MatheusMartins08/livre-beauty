@@ -8,10 +8,10 @@ const imagesDirectory = path.join(projectRoot, "public", "images");
 const fontsDirectory = path.join(projectRoot, "public", "fonts");
 
 // Photography is licensed under the Pexels License. Source/author details:
-// content/image-credits.ts and docs/assets.md. All images remain photographs;
-// no image generation is used. hero-salon.jpg is maintained manually; see
-// docs/assets.md.
+// content/image-credits.ts and docs/assets.md. contact-salon.jpg is a stock
+// interior render. hero-salon.jpg is maintained manually; see docs/assets.md.
 const imageAssets = [
+  { name: "contact-salon.jpg", id: 33412989, extension: "png", width: 1600 },
   { name: "salon-interior-01.jpg", id: 7750098, width: 1600 },
   { name: "salon-interior-02.jpg", id: 7750099, width: 1600 },
   { name: "service-haircut.jpg", id: 3992873 },
@@ -81,7 +81,7 @@ for (const asset of selectedImageAssets) {
   if (!sourceImages.has(asset.id)) {
     const localSource = path.join(imagesDirectory, "_review", "full", `${asset.id}.jpg`);
     const source = await readFile(localSource).catch(() => download(
-      `https://images.pexels.com/photos/${asset.id}/pexels-photo-${asset.id}.jpeg?auto=compress&cs=tinysrgb&w=1920&q=90`,
+      `https://images.pexels.com/photos/${asset.id}/pexels-photo-${asset.id}.${asset.extension ?? "jpeg"}?auto=compress&cs=tinysrgb&w=1920&q=90&fm=jpg`,
     ));
     sourceImages.set(asset.id, source);
   }

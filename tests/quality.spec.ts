@@ -258,7 +258,7 @@ test("mobile navigation contains keyboard focus and restores its trigger", async
   await expect(trigger).toBeFocused();
 });
 
-test("local channels preserve focus and never start external navigation", async ({ page, context }) => {
+test("contact channels preserve focus and keep their secondary navigation local", async ({ page, context }) => {
   const externalRequests: string[] = [];
   const popups: string[] = [];
   await page.goto("/");
@@ -284,7 +284,7 @@ test("local channels preserve focus and never start external navigation", async 
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();
     await trigger.click();
-    await dialog.getByRole("link").click();
+    await dialog.getByRole("link", { name: button === "Instagram" ? "Explorar a galeria" : "Agendar horário", exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`${destination}$`));
     expect(new URL(page.url()).origin).toBe(origin);
   }

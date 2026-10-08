@@ -4,6 +4,7 @@ import { site } from "@/content/salon";
 import { siteUrl, salonStructuredData } from "@/lib/metadata";
 import { SiteShell } from "@/components/site-shell";
 import { Footer } from "@/components/footer";
+import { ContactProvider } from "@/components/contact-provider";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -54,6 +55,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const structuredData = salonStructuredData();
+  const digits = process.env.WHATSAPP_NUMBER?.replace(/\D/g, "") ?? "";
+  const recipient = /^[1-9]\d{9,14}$/.test(digits) ? digits : "";
+  const whatsappHref = `https://wa.me/${recipient}?text=${encodeURIComponent(
+    "Olá, equipe Livre Beauty! Vim pelo site e gostaria de conversar sobre os cuidados e os horários disponíveis.",
+  )}`;
   return (
     <html
       lang="pt-BR"
@@ -63,9 +69,11 @@ export default function RootLayout({
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
-        <SiteShell footer={<Footer />}>
-          <main id="conteudo">{children}</main>
-        </SiteShell>
+        <ContactProvider href={whatsappHref}>
+          <SiteShell footer={<Footer />}>
+            <main id="conteudo">{children}</main>
+          </SiteShell>
+        </ContactProvider>
         {structuredData && (
           <script
             type="application/ld+json"

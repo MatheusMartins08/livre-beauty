@@ -1,0 +1,106 @@
+.popup:global(.dialog) {
+  width: min(800px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  padding: 36px;
+  box-shadow: 0 24px 80px rgb(36 33 31 / 0.2);
+  scrollbar-color: var(--accent-soft) var(--background);
+  scrollbar-width: thin;
+}
+.popup :global(.dialog-top) {
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.popup:global(.dialog) :global(.dialog-top h2) {
+  color: var(--foreground);
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: clamp(32px, 3.5vw, 42px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  text-transform: none;
+}
+.popup :global(.dialog-top .icon-button) {
+  flex-shrink: 0;
+}
+.content {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 32px;
+}
+.photo {
+  position: relative;
+  min-height: 340px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.photoImage {
+  object-fit: cover;
+  object-position: 40% center;
+}
+.copy {
+  min-width: 0;
+}
+.icon {
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.copy .description {
+  color: var(--text-body);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+.quote {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 29px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 24px 0 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  text-wrap: pretty;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.popup .actions :global(.button) {
+  white-space: normal;
+  color: var(--soft-white);
+}
+.popup .actions :global(.button-secondary) {
+  color: var(--foreground);
+}
+.copy .note {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 16px 0 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .popup .actions :global(.button-secondary:hover) {
+    color: var(--soft-white);
+  }
+}
+@media (max-width: 639px) {
+  .popup:global(.dialog) {
+    padding: 24px;
+  }
+  .popup :global(.dialog-top) {
+    margin-bottom: 20px;
+  }
+  .content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .photo {
+    display: none;
+  }
+  .quote {
+    font-size: 28px;
+    margin-block: 22px 26px;
+  }
+}

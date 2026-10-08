@@ -1,5 +1,17 @@
 # Assets — Livre Beauty
 
+## Imagem do popup de contato
+
+`contact-salon.jpg` usa a imagem de **The Ghazi**,
+[Modern Minimalist Beauty Salon Interior Design — 33412989](https://www.pexels.com/photo/modern-minimalist-beauty-salon-interior-design-33412989/),
+obtida no Pexels em **7 de outubro de 2026**, sob a
+[licença Pexels](https://www.pexels.com/license/).
+O arquivo original não contém marca d'água. É um render de interior,
+usado como referência visual de ambiente; não documenta o espaço do Livre Beauty.
+Os tons de areia, a iluminação suave e os detalhes dourados acompanham o tema do site.
+O JPEG local tem 1600 × 1014 px e é otimizado pelo `next/image` no popup.
+O download pode ser reproduzido por `scripts/download-assets.mjs`.
+
 ## Fotos exclusivas da seção de serviços da homepage
 
 Adicionadas em **6 de outubro de 2026**: seis fotos do Pexels, sem repetição
