@@ -3,7 +3,7 @@ import { site, navigation } from "@/content/salon";
 import { ButtonLink, TextLink } from "@/components/ui";
 import { DemoChannel } from "@/components/demo-channel";
 
-export function Footer() {
+export function Footer({ location, hours }: { location: string; hours: string }) {
   return (
     <footer className="site-footer">
       <div className="container">
@@ -33,8 +33,8 @@ export function Footer() {
           </div>
           <div className="footer-contact">
             <h2>Encontre seu tempo</h2>
-            <p>{site.location}</p>
-            <p>{site.hours}</p>
+            <p>{location}</p>
+            <p>{hours}</p>
             <TextLink href="/#visite-title">Conhecer o espaço</TextLink>
             <ButtonLink href="/agendamento" light compact>
               Agendar horário

@@ -9,7 +9,7 @@ import styles from "./booking.module.css";
 
 export function BookingConfirmation({
   slot,
-  service,
+  services,
   stylist,
   clientName,
   dateText,
@@ -18,7 +18,7 @@ export function BookingConfirmation({
   whatsappNumber,
 }: {
   slot: BookingSlot;
-  service?: Service;
+  services: Service[];
   stylist?: Stylist;
   clientName: string;
   dateText: string;
@@ -26,13 +26,17 @@ export function BookingConfirmation({
   onRestart: () => void;
   whatsappNumber?: string;
 }) {
-  const whatsappHref = service && stylist
+  const serviceName = services.map((service) => service.name).join(" + ");
+  const whatsappHref = services.length && stylist
     ? bookingWhatsAppHref({
         slot,
         clientName,
-        serviceName: service.name,
+        serviceName,
         stylistName: stylist.name,
-        durationMinutes: service.duration,
+        durationMinutes: services.reduce(
+          (sum, service) => sum + service.duration,
+          0,
+        ),
         salonName: site.name,
         phoneNumber: whatsappNumber,
       })
@@ -52,7 +56,7 @@ export function BookingConfirmation({
       <dl className={styles.confirmationDetails}>
         <div>
           <dt>Seu cuidado</dt>
-          <dd>{service?.name}</dd>
+          <dd>{serviceName}</dd>
         </div>
         <div>
           <dt>Profissional</dt>

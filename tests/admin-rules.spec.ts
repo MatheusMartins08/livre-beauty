@@ -9,6 +9,8 @@ const appointment: AdminAppointment = {
   time: "09:00",
   clientId: "client-a",
   serviceId: "corte",
+  serviceIds: ["corte"],
+  serviceNames: ["Corte autoral"],
   bookedWith: "lia",
   performedBy: "lia",
   status: "concluido",
@@ -18,11 +20,25 @@ const appointment: AdminAppointment = {
   durationMinutes: 60,
 };
 const catalog: SalonCatalog = {
-  services: services.map((service) => ({ ...service, active: true })),
-  stylists: stylists.map((stylist) => ({ ...stylist, active: true })),
-  businessHours: Array.from({ length: 7 }, (_, weekday) => ({
+  services: services.map((service) => ({
+    ...service,
+    active: true,
+    deleted: false,
+    summary: "",
+    imagePosition: "50% 50%",
+    homeImage: null,
+    homeImageAlt: "",
+    homeImagePosition: "50% 50%",
+    componentIds: [],
+  })),
+  stylists: stylists.map((stylist) => ({
+    ...stylist,
+    active: true,
+    deleted: false,
+    imagePosition: "50% 50%",
+  })),
+  openingPeriods: [2, 3, 4, 5, 6].map((weekday) => ({
     weekday,
-    active: weekday >= 2,
     opens_at: "09:00",
     closes_at: "19:00",
   })),
@@ -34,14 +50,7 @@ const catalog: SalonCatalog = {
 };
 
 test("historical notes can change after the current catalog or opening hours change", () => {
-  const closed = {
-    ...catalog,
-    services: [],
-    businessHours: catalog.businessHours.map((day) => ({
-      ...day,
-      active: false,
-    })),
-  };
+  const closed = { ...catalog, services: [], openingPeriods: [] };
   expect(
     appointmentError(
       { ...appointment, notes: "Updated" },
@@ -93,4 +102,50 @@ test("rejects simultaneous appointments for the same client across professionals
   expect(
     appointmentError({ ...next, status: "cancelado" }, [appointment], catalog),
   ).toBeNull();
+});
+
+test("respects salon closures, special hours and professional blocks", () => {
+  const exception = { id: "x", reason: "", startsOn: "2026-10-09", endsOn: "2026-10-09" };
+  const next = {
+    ...appointment,
+    id: "new",
+    date: "2026-10-09",
+    time: "10:00",
+    status: "agendado" as const,
+  };
+  expect(appointmentError(next, [], catalog)).toBeNull();
+  expect(
+    appointmentError(next, [], catalog, [
+      { ...exception, kind: "fechado", stylistId: null, opensAt: null, closesAt: null },
+    ]),
+  ).toContain("dia de funcionamento");
+  expect(
+    appointmentError({ ...next, time: "15:00" }, [], catalog, [
+      { ...exception, kind: "horario_especial", stylistId: null, opensAt: "09:00", closesAt: "14:00" },
+    ]),
+  ).toContain("horário de funcionamento");
+  const lunch = { ...exception, kind: "bloqueio" as const, opensAt: "10:30", closesAt: "11:30" };
+  expect(
+    appointmentError(next, [], catalog, [{ ...lunch, stylistId: "lia" }]),
+  ).toContain("indisponível");
+  expect(
+    appointmentError(next, [], catalog, [{ ...lunch, stylistId: "marina" }]),
+  ).toBeNull();
+});
+
+test("uses the sum of the services when an appointment has several", () => {
+  const multi = {
+    ...appointment,
+    id: "multi",
+    date: "2026-10-09",
+    time: "17:00",
+    status: "agendado" as const,
+    serviceIds: ["corte", "tratamento"],
+    serviceNames: ["Corte autoral", "Ritual de tratamento"],
+    durationMinutes: undefined,
+  };
+  expect(appointmentError(multi, [], catalog)).toBeNull();
+  expect(appointmentError({ ...multi, time: "17:30" }, [], catalog)).toContain(
+    "horário de funcionamento",
+  );
 });

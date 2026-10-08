@@ -59,6 +59,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
             src={stylist.image}
             alt={`Retrato de ${stylist.name}`}
             aspect="3 / 4"
+            position={stylist.imagePosition}
           />
         </div>
         <div className="detail-copy" data-page-reveal>

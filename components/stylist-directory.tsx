@@ -8,7 +8,7 @@ export function StylistDirectory({
   items,
   services,
 }: {
-  items: Stylist[];
+  items: (Stylist & { imagePosition?: string })[];
   services: Service[];
 }) {
   const [serviceId, setServiceId] = useState("");

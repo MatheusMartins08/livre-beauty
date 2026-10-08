@@ -6,7 +6,6 @@ import { useCatalog } from "@/components/catalog-provider";
 import {
   charge,
   currency,
-  demoCommissionRate,
   downloadCsv,
   formatDate,
   getPeriodRange,
@@ -22,19 +21,25 @@ export function Production({
   appointments,
   stylistId,
   role,
+  commissionRate,
   compact = false,
   onSeeAll,
 }: {
   appointments: AdminAppointment[];
   stylistId: string;
   role: AdminRole;
+  commissionRate: number;
   compact?: boolean;
   onSeeAll?: () => void;
 }) {
   const { stylists } = useCatalog();
   const people =
     role === "dono"
-      ? stylists
+      ? stylists.filter(
+          (item) =>
+            !item.deleted ||
+            appointments.some((appointment) => appointment.performedBy === item.id),
+        )
       : stylists.filter((item) => item.id === stylistId);
   return (
     <Panel
@@ -72,7 +77,10 @@ export function Production({
                   <dt>Comissão</dt>
                   <dd>
                     {currency(
-                      completed.reduce((sum, item) => sum + payout(item), 0),
+                      completed.reduce(
+                        (sum, item) => sum + payout(item, commissionRate),
+                        0,
+                      ),
                     )}
                   </dd>
                 </div>
@@ -99,12 +107,15 @@ export function Payroll({
   date,
   role,
   stylistId,
+  commissionRate,
 }: {
   appointments: AdminAppointment[];
   date: string;
   role: AdminRole;
   stylistId: string;
+  commissionRate: number;
 }) {
+  const percent = Math.round(commissionRate * 1000) / 10;
   const { services, stylists } = useCatalog();
   const [period, setPeriod] = useState<Period>("mes");
   const range = getPeriodRange(date, period);
@@ -116,7 +127,11 @@ export function Payroll({
   );
   const people =
     role === "dono"
-      ? stylists
+      ? stylists.filter(
+          (item) =>
+            !item.deleted ||
+            completed.some((appointment) => appointment.performedBy === item.id),
+        )
       : stylists.filter((item) => item.id === stylistId);
   const summaries = people.map((person) => {
     const own = completed.filter((item) => item.performedBy === person.id);
@@ -124,7 +139,7 @@ export function Payroll({
       person,
       count: own.length,
       revenue: own.reduce((sum, item) => sum + charge(item), 0),
-      total: own.reduce((sum, item) => sum + payout(item), 0),
+      total: own.reduce((sum, item) => sum + payout(item, commissionRate), 0),
     };
   });
   const totals = summaries.reduce(
@@ -148,14 +163,14 @@ export function Payroll({
         row.person.name,
         row.count,
         row.revenue.toFixed(2),
-        demoCommissionRate * 100,
+        percent,
         row.total.toFixed(2),
       ]),
       [
         "Total",
         totals.count,
         totals.revenue.toFixed(2),
-        demoCommissionRate * 100,
+        percent,
         totals.total.toFixed(2),
       ],
     ]);
@@ -210,7 +225,7 @@ export function Payroll({
                   <td data-label="Receita dos serviços">
                     {currency(row.revenue)}
                   </td>
-                  <td data-label="Comissão">{demoCommissionRate * 100}%</td>
+                  <td data-label="Comissão">{percent}%</td>
                   <td data-label="Total a repassar">
                     <strong className="lb-total">{currency(row.total)}</strong>
                   </td>
@@ -226,7 +241,7 @@ export function Payroll({
                 <td data-label="Receita dos serviços">
                   {currency(totals.revenue)}
                 </td>
-                <td data-label="Comissão">{demoCommissionRate * 100}%</td>
+                <td data-label="Comissão">{percent}%</td>
                 <td data-label="Total a repassar">
                   <strong>{currency(totals.total)}</strong>
                 </td>
@@ -235,10 +250,9 @@ export function Payroll({
           </table>
         </div>
         <p className="lb-footnote">
-          Regra de exemplo: {demoCommissionRate * 100}% do valor combinado para
-          cada serviço concluído. O percentual real será definido pelo
-          estabelecimento. Não inclui salário fixo, descontos ou pagamentos
-          efetivos.
+          Comissão de {percent}% do valor combinado de cada atendimento
+          concluído, conforme as regras do agendamento. Não inclui salário
+          fixo, descontos ou pagamentos efetivos.
         </p>
       </Panel>
       <Panel
@@ -247,9 +261,10 @@ export function Payroll({
       >
         <div className="lb-service-report">
           {services.map((service) => {
-            const count = completed.filter(
-              (item) => item.serviceId === service.id,
+            const count = completed.filter((item) =>
+              item.serviceIds.includes(service.id),
             ).length;
+            if (service.deleted && !count) return null;
             return (
               <div key={service.id}>
                 <span>{service.name}</span>
@@ -268,7 +283,8 @@ export function Payroll({
 
 export function ServiceCatalog() {
   const { services, stylists } = useCatalog();
-  const pagination = useMobilePagination(services.map((item) => item.id));
+  const items = services.filter((service) => !service.deleted);
+  const pagination = useMobilePagination(items.map((item) => item.id));
   return (
     <Panel
       title="Serviços do ateliê"
@@ -289,7 +305,7 @@ export function ServiceCatalog() {
             </tr>
           </thead>
           <tbody>
-            {services.map((service, index) => (
+            {items.map((service, index) => (
               <tr key={service.id} className={pagination.rowClass(index)}>
                 <th scope="row">{service.name}</th>
                 <td data-label="Categoria">{service.category}</td>
@@ -297,7 +313,10 @@ export function ServiceCatalog() {
                 <td data-label="A partir de">{currency(service.price)}</td>
                 <td data-label="Profissionais">
                   {stylists
-                    .filter((person) => person.serviceIds.includes(service.id))
+                    .filter(
+                      (person) =>
+                        !person.deleted && person.serviceIds.includes(service.id),
+                    )
                     .map((person) => person.name.split(" ")[0])
                     .join(", ")}
                 </td>

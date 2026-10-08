@@ -68,6 +68,12 @@ O agendamento aceita `?servico=<slug>&profissional=<slug>`, validando a existên
 
 ## Conteúdos editáveis
 
+O dono edita textos e fotos da homepage, galeria, contato, serviços, combos,
+profissionais, horários, exceções e regras do agendamento em `/painel` →
+**Edição do site**. Os arquivos abaixo continuam como conteúdo padrão e para as
+páginas que não estão no editor. Detalhes, permissões e migrations em
+[docs/site-editor.md](docs/site-editor.md).
+
 | Local | Responsabilidade |
 | --- | --- |
 | `content/salon.ts` | Marca, navegação, catálogo, profissionais, relações, galeria, avaliações, quatro FAQs e políticas |

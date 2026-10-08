@@ -1,11 +1,20 @@
 import { services, stylists } from "../content/salon";
 import type { SalonCatalog } from "./catalog";
+import {
+  defaultOpeningPeriods,
+  fromMinutes,
+  toMinutes,
+  weeklyPeriodsFor,
+  type DayPeriod,
+} from "./opening-hours";
 
 export const BOOKING_TIME_ZONE = "America/Sao_Paulo";
+export const MAX_BOOKING_SERVICES = 5;
 
 export interface BookingSlot {
   id: string;
   serviceId: string;
+  serviceIds?: string[];
   stylistId: string;
   date: string;
   time: string;
@@ -13,7 +22,9 @@ export interface BookingSlot {
 }
 
 export interface AvailabilityRequest {
-  serviceId: string;
+  /** Services in the order they will be performed; serviceId is the legacy single form. */
+  serviceIds?: string[];
+  serviceId?: string;
   stylistId?: string;
   date: string;
 }
@@ -28,14 +39,15 @@ export interface BookingRequest {
   contact: ContactDetails;
   withoutPreference?: boolean;
 }
+/** performed_by null is an exception that blocks every professional. */
 export interface BookedRange {
-  performed_by: string;
+  performed_by: string | null;
   starts_at: string;
   ends_at: string;
 }
 export type BookingResult =
   | { ok: true; slot: BookingSlot }
-  | { ok: false; code: "unavailable" | "contact"; message: string };
+  | { ok: false; code: "unavailable" | "contact" | "services"; message: string };
 
 function localDate(date: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -54,13 +66,17 @@ export function getBookingDates(
   windowDays = 30,
   weekdays = [2, 3, 4, 5, 6],
 ): string[] {
+  return windowDates(now, windowDays).filter((date) =>
+    weekdays.includes(new Date(`${date}T12:00:00Z`).getUTCDay()),
+  );
+}
+
+/** Every local date from today within the booking window. */
+export function windowDates(now = new Date(), windowDays = 30): string[] {
   const firstDay = new Date(`${localDate(now)}T12:00:00Z`);
-  return Array.from(
-    { length: windowDays },
-    (_, index) => new Date(firstDay.getTime() + index * 86_400_000),
-  )
-    .filter((date) => weekdays.includes(date.getUTCDay()))
-    .map((date) => date.toISOString().slice(0, 10));
+  return Array.from({ length: windowDays }, (_, index) =>
+    new Date(firstDay.getTime() + index * 86_400_000).toISOString().slice(0, 10),
+  );
 }
 
 export function startInstant(date: string, time: string): string {
@@ -91,67 +107,100 @@ export function startInstant(date: string, time: string): string {
   return new Date(wallTime.getTime() - offsetMinutes * 60_000).toISOString();
 }
 
+export function requestedServiceIds(request: {
+  serviceIds?: unknown;
+  serviceId?: unknown;
+}): string[] {
+  if (Array.isArray(request.serviceIds))
+    return request.serviceIds.filter((id): id is string => typeof id === "string");
+  return typeof request.serviceId === "string" ? [request.serviceId] : [];
+}
+
+/**
+ * Explains why a list of services cannot be booked together, or returns null.
+ * A combo already includes its components, so they cannot be added again.
+ */
+export function selectionError(
+  serviceIds: string[],
+  catalogServices: { id: string; componentIds?: string[] }[],
+): string | null {
+  if (!serviceIds.length) return "Selecione um serviço para continuar.";
+  if (serviceIds.length > MAX_BOOKING_SERVICES)
+    return `Escolha até ${MAX_BOOKING_SERVICES} serviços.`;
+  if (new Set(serviceIds).size !== serviceIds.length)
+    return "Cada serviço pode ser escolhido uma vez.";
+  const parts = serviceIds.flatMap((id) => {
+    const components = catalogServices.find((item) => item.id === id)?.componentIds;
+    return components?.length ? components : [id];
+  });
+  return new Set(parts).size !== parts.length
+    ? "Um combo escolhido já inclui outro serviço da lista."
+    : null;
+}
+
 export function getAvailableSlots(
   request: AvailabilityRequest,
   now = new Date(),
   catalog?: SalonCatalog,
   booked: BookedRange[] = [],
+  dayPeriods?: DayPeriod[],
 ): BookingSlot[] {
-  const service = (catalog?.services ?? services).find(
-    (item) => item.id === request.serviceId,
+  const serviceIds = requestedServiceIds(request);
+  const serviceCatalog = catalog?.services ?? services;
+  const selected = serviceIds.map((id) =>
+    serviceCatalog.find((item) => item.id === id),
   );
-  const weekdays = catalog?.businessHours
-    .filter((day) => day.active)
-    .map((day) => day.weekday);
+  const windowDays = catalog?.bookingSettings.booking_window_days ?? 30;
   if (
-    !service ||
-    !getBookingDates(
-      now,
-      catalog?.bookingSettings.booking_window_days,
-      weekdays,
-    ).includes(request.date)
+    !selected.length ||
+    selected.some((item) => !item) ||
+    selectionError(serviceIds, serviceCatalog) ||
+    !windowDates(now, windowDays).includes(request.date)
   )
     return [];
+  const duration = selected.reduce((sum, item) => sum + item!.duration, 0);
   const compatible = (catalog?.stylists ?? stylists).filter(
     (stylist) =>
-      stylist.serviceIds.includes(service.id) &&
+      serviceIds.every((id) => stylist.serviceIds.includes(id)) &&
       (!request.stylistId || stylist.id === request.stylistId),
   );
+  const periods =
+    dayPeriods ??
+    weeklyPeriodsFor(request.date, catalog?.openingPeriods ?? defaultOpeningPeriods);
+  const interval = catalog?.bookingSettings.slot_interval_minutes ?? 30;
   const slots: BookingSlot[] = [];
-  const day = new Date(`${request.date}T12:00:00Z`).getUTCDay();
-  const hours = catalog?.businessHours.find((item) => item.weekday === day);
-  const minutesOf = (time: string) =>
-    Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
-  const opening = hours?.opens_at ? minutesOf(hours.opens_at) : 540;
-  const closing = hours?.closes_at ? minutesOf(hours.closes_at) : 1140;
-  for (
-    let minutes = opening;
-    minutes + service.duration <= closing;
-    minutes += catalog?.bookingSettings.slot_interval_minutes ?? 30
-  ) {
-    const time = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-    const startAt = startInstant(request.date, time);
-    const start = new Date(startAt).getTime();
-    if (start <= now.getTime()) continue;
-    const stylist = compatible.find(
-      (item) =>
-        !booked.some(
-          (range) =>
-            range.performed_by === item.id &&
-            start < new Date(range.ends_at).getTime() &&
-            start + service.duration * 60000 >
-              new Date(range.starts_at).getTime(),
-        ),
-    );
-    if (stylist)
-      slots.push({
-        id: `${service.id}:${stylist.id}:${request.date}:${time}`,
-        serviceId: service.id,
-        stylistId: stylist.id,
-        date: request.date,
-        time,
-        startAt,
-      });
+  for (const period of periods) {
+    const closing = toMinutes(period.closes_at);
+    for (
+      let minutes = toMinutes(period.opens_at);
+      minutes + duration <= closing;
+      minutes += interval
+    ) {
+      const time = fromMinutes(minutes);
+      const startAt = startInstant(request.date, time);
+      const start = new Date(startAt).getTime();
+      if (start <= now.getTime()) continue;
+      const end = start + duration * 60000;
+      const stylist = compatible.find(
+        (item) =>
+          !booked.some(
+            (range) =>
+              (range.performed_by === null || range.performed_by === item.id) &&
+              start < new Date(range.ends_at).getTime() &&
+              end > new Date(range.starts_at).getTime(),
+          ),
+      );
+      if (stylist)
+        slots.push({
+          id: `${serviceIds.join("+")}:${stylist.id}:${request.date}:${time}`,
+          serviceId: serviceIds[0],
+          serviceIds,
+          stylistId: stylist.id,
+          date: request.date,
+          time,
+          startAt,
+        });
+    }
   }
   return slots;
 }

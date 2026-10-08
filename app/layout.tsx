@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { site } from "@/content/salon";
 import { siteUrl, salonStructuredData } from "@/lib/metadata";
+import { formatWeeklyHours } from "@/lib/opening-hours";
+import { getPublicSite, whatsappNumber } from "@/lib/supabase/site";
 import { SiteShell } from "@/components/site-shell";
 import { Footer } from "@/components/footer";
 import { ContactProvider } from "@/components/contact-provider";
@@ -49,15 +51,15 @@ export const metadata: Metadata = {
   icons: { icon: "/icon.svg" },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const structuredData = salonStructuredData();
-  const digits = process.env.WHATSAPP_NUMBER?.replace(/\D/g, "") ?? "";
-  const recipient = /^[1-9]\d{9,14}$/.test(digits) ? digits : "";
-  const whatsappHref = `https://wa.me/${recipient}?text=${encodeURIComponent(
+  const { content, openingPeriods } = await getPublicSite();
+  const hours = formatWeeklyHours(openingPeriods);
+  const structuredData = salonStructuredData(content, openingPeriods);
+  const whatsappHref = `https://wa.me/${whatsappNumber(content)}?text=${encodeURIComponent(
     "Olá, equipe Livre Beauty! Vim pelo site e gostaria de conversar sobre os cuidados e os horários disponíveis.",
   )}`;
   return (
@@ -69,8 +71,18 @@ export default function RootLayout({
         <a href="#conteudo" className="skip-link">
           Pular para o conteúdo
         </a>
-        <ContactProvider href={whatsappHref}>
-          <SiteShell footer={<Footer />}>
+        <ContactProvider
+          contact={{
+            whatsappHref,
+            instagram: content.contact.instagram,
+            phone: content.contact.phone,
+            hours,
+            photo: content.contact.photo,
+          }}
+        >
+          <SiteShell
+            footer={<Footer location={content.contact.location} hours={hours} />}
+          >
             <main id="conteudo">{children}</main>
           </SiteShell>
         </ContactProvider>

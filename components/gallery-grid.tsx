@@ -3,14 +3,16 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
-import { type GalleryItem, stylists } from "@/content/salon";
+import type { SiteGalleryItem } from "@/lib/site-content";
 import { Dialog } from "@/components/dialog";
 
 export function GalleryGrid({
   items,
+  stylistNames,
   filters = false,
 }: {
-  items: GalleryItem[];
+  items: SiteGalleryItem[];
+  stylistNames: Record<string, string>;
   filters?: boolean;
 }) {
   const [category, setCategory] = useState("Todos");
@@ -75,6 +77,7 @@ export function GalleryGrid({
                 alt={item.alt}
                 fill
                 sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                style={item.position ? { objectPosition: item.position } : undefined}
               />
             </span>
             <span className="gallery-caption">
@@ -83,7 +86,7 @@ export function GalleryGrid({
                 <span>
                   {item.category}
                   {item.stylistId &&
-                    ` · Perfil de ${stylists.find((stylist) => stylist.id === item.stylistId)?.name || "equipe"}`}
+                    ` · Perfil de ${stylistNames[item.stylistId] || "equipe"}`}
                 </span>
               </span>
             </span>

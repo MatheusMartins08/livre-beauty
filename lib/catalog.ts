@@ -1,13 +1,23 @@
 import type { Service, Stylist } from "@/content/salon";
+import type { OpeningPeriod } from "./opening-hours";
 
-export type CatalogService = Service & { active: boolean };
-export type CatalogStylist = Stylist & { active: boolean };
-export interface BusinessHours {
-  weekday: number;
+export type CatalogService = Service & {
   active: boolean;
-  opens_at: string | null;
-  closes_at: string | null;
-}
+  /** Archived rows stay only so the history of appointments keeps its names. */
+  deleted: boolean;
+  summary: string;
+  imagePosition: string;
+  homeImage: string | null;
+  homeImageAlt: string;
+  homeImagePosition: string;
+  /** Services included in a combo; empty for a simple service. */
+  componentIds: string[];
+};
+export type CatalogStylist = Stylist & {
+  active: boolean;
+  deleted: boolean;
+  imagePosition: string;
+};
 export interface BookingSettings {
   show_prices: boolean;
   booking_window_days: number;
@@ -16,6 +26,6 @@ export interface BookingSettings {
 export interface SalonCatalog {
   services: CatalogService[];
   stylists: CatalogStylist[];
-  businessHours: BusinessHours[];
+  openingPeriods: OpeningPeriod[];
   bookingSettings: BookingSettings;
 }

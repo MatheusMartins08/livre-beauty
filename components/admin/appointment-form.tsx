@@ -1,10 +1,13 @@
 "use client";
 
 import { startTransition, useState, type FormEvent } from "react";
+import { Plus, Trash } from "@phosphor-icons/react";
 import { Dialog } from "@/components/dialog";
 import { useCatalog } from "@/components/catalog-provider";
 import { MaskedInput } from "@/components/masked-input";
 import { formatCurrencyValue, parseCurrencyInput } from "@/lib/input-masks";
+import { MAX_BOOKING_SERVICES, selectionError } from "@/lib/booking-shared";
+import type { ScheduleException } from "@/lib/opening-hours";
 import {
   appointmentError,
   paymentLabels,
@@ -21,6 +24,7 @@ export function AppointmentForm({
   date,
   clients,
   appointments,
+  exceptions,
   role,
   stylistId,
   onClose,
@@ -30,14 +34,16 @@ export function AppointmentForm({
   date: string;
   clients: AdminClient[];
   appointments: AdminAppointment[];
+  exceptions: ScheduleException[];
   role: AdminRole;
   stylistId: string;
   onClose: () => void;
   onSave: (appointment: AdminAppointment) => Promise<string | null>;
 }) {
   const catalog = useCatalog();
+  const original = appointment?.serviceIds ?? [];
   const services = catalog.services.filter(
-    (item) => item.active || item.id === appointment?.serviceId,
+    (item) => item.active || original.includes(item.id),
   );
   const stylists = catalog.stylists.filter(
     (item) => item.active || item.id === appointment?.performedBy,
@@ -45,19 +51,30 @@ export function AppointmentForm({
   const [selectedStylist, setSelectedStylist] = useState(
     appointment?.performedBy ?? (stylistId || stylists[0]?.id || ""),
   );
-  const [serviceId, setServiceId] = useState(
-    appointment?.serviceId ??
-      stylists.find((item) => item.id === selectedStylist)?.serviceIds[0] ??
-      "",
+  const [serviceIds, setServiceIds] = useState<string[]>(
+    appointment?.serviceIds ??
+      stylists
+        .find((item) => item.id === selectedStylist)
+        ?.serviceIds.slice(0, 1) ??
+      [],
   );
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  const compatible = services.filter(
-    (item) =>
-      stylists
-        .find((person) => person.id === selectedStylist)
-        ?.serviceIds.includes(item.id) || item.id === appointment?.serviceId,
+  const offered = (id: string, person = selectedStylist) =>
+    stylists.find((item) => item.id === person)?.serviceIds.includes(id) ||
+    original.includes(id);
+  const compatible = services.filter((item) => offered(item.id));
+  const selected = serviceIds.flatMap(
+    (id) => services.find((item) => item.id === id) ?? [],
   );
+  // Unchanged services keep the stored duration; new ones use the catalog.
+  const sameServices =
+    !!appointment && original.join("+") === serviceIds.join("+");
+  const listPrice = selected.reduce((sum, item) => sum + item.price, 0);
+
+  function changeService(index: number, id: string) {
+    setServiceIds(serviceIds.map((current, position) => (position === index ? id : current)));
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
@@ -71,12 +88,22 @@ export function AppointmentForm({
       setError("Informe um valor entre R$ 0,00 e R$ 100.000,00.");
       return;
     }
+    const invalidSelection =
+      selected.length === serviceIds.length
+        ? selectionError(serviceIds, services)
+        : "Escolha serviços disponíveis.";
+    if (invalidSelection) {
+      setError(invalidSelection);
+      return;
+    }
     const next = {
       id: appointment?.id ?? crypto.randomUUID(),
       date: selectedDate,
       time,
       clientId,
-      serviceId,
+      serviceId: serviceIds[0],
+      serviceIds,
+      serviceNames: selected.map((item) => item.name),
       bookedWith: appointment?.bookedWith ?? selectedStylist,
       performedBy: selectedStylist,
       status,
@@ -84,15 +111,11 @@ export function AppointmentForm({
       paymentMethod: (String(form.get("payment")) ||
         null) as PaymentMethod | null,
       notes: String(form.get("notes")).trim(),
-      durationMinutes:
-        appointment &&
-        appointment.serviceId === serviceId &&
-        appointment.date === selectedDate &&
-        appointment.time === time
-          ? appointment.durationMinutes
-          : services.find((item) => item.id === serviceId)?.duration,
+      durationMinutes: sameServices
+        ? appointment.durationMinutes
+        : selected.reduce((sum, item) => sum + item.duration, 0),
     };
-    const validation = appointmentError(next, appointments, catalog);
+    const validation = appointmentError(next, appointments, catalog, exceptions);
     if (validation) {
       setError(validation);
       return;
@@ -145,33 +168,16 @@ export function AppointmentForm({
               onChange={(event) => {
                 const value = event.target.value;
                 setSelectedStylist(value);
-                if (
-                  !stylists
-                    .find((person) => person.id === value)!
-                    .serviceIds.includes(serviceId)
-                )
-                  setServiceId(
-                    stylists.find((person) => person.id === value)!
-                      .serviceIds[0],
-                  );
+                // Keep only what the new professional offers.
+                const kept = serviceIds.filter((id) => offered(id, value));
+                const first = stylists.find((person) => person.id === value)
+                  ?.serviceIds[0];
+                setServiceIds(kept.length ? kept : first ? [first] : []);
               }}
             >
               {stylists.map((person) => (
                 <option value={person.id} key={person.id}>
                   {person.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="lb-field">
-            Serviço
-            <select
-              value={serviceId}
-              onChange={(event) => setServiceId(event.target.value)}
-            >
-              {compatible.map((service) => (
-                <option key={service.id} value={service.id}>
-                  {service.name}
                 </option>
               ))}
             </select>
@@ -190,8 +196,6 @@ export function AppointmentForm({
             <input
               name="time"
               type="time"
-              min="09:00"
-              max="19:00"
               step="900"
               required
               defaultValue={appointment?.time ?? "10:00"}
@@ -201,17 +205,13 @@ export function AppointmentForm({
             Valor combinado (R$)
             <MaskedInput
               mask="currency"
-              key={serviceId}
+              key={serviceIds.join("+")}
               name="price"
               placeholder="0,00"
               required
-              defaultValue={
-                formatCurrencyValue(
-                  appointment?.serviceId === serviceId
-                    ? appointment.price
-                    : (services.find((item) => item.id === serviceId)?.price ?? 0),
-                )
-              }
+              defaultValue={formatCurrencyValue(
+                sameServices ? appointment.price : listPrice,
+              )}
             />
           </label>
           <label className="lb-field">
@@ -228,6 +228,59 @@ export function AppointmentForm({
             </select>
           </label>
         </div>
+        <fieldset className="lb-fieldset">
+          <legend>Serviços, na ordem do atendimento</legend>
+          {serviceIds.map((id, index) => (
+            <div className="lb-service-row" key={index}>
+              <label className="lb-field">
+                <span className="lb-sr-only">Serviço {index + 1}</span>
+                <select
+                  value={id}
+                  onChange={(event) => changeService(index, event.target.value)}
+                >
+                  {compatible
+                    .filter(
+                      (service) =>
+                        service.id === id || !serviceIds.includes(service.id),
+                    )
+                    .map((service) => (
+                      <option key={service.id} value={service.id}>
+                        {service.name} · {service.duration} min
+                      </option>
+                    ))}
+                </select>
+              </label>
+              {serviceIds.length > 1 && (
+                <button
+                  type="button"
+                  className="lb-icon-button"
+                  aria-label={`Remover serviço ${index + 1}`}
+                  onClick={() =>
+                    setServiceIds(serviceIds.filter((_, position) => position !== index))
+                  }
+                >
+                  <Trash size={17} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          ))}
+          {serviceIds.length < MAX_BOOKING_SERVICES &&
+            compatible.some((service) => !serviceIds.includes(service.id)) && (
+              <button
+                type="button"
+                className="lb-text-button"
+                onClick={() => {
+                  const next = compatible.find(
+                    (service) => !serviceIds.includes(service.id),
+                  );
+                  if (next) setServiceIds([...serviceIds, next.id]);
+                }}
+              >
+                <Plus size={16} aria-hidden="true" />
+                Adicionar serviço
+              </button>
+            )}
+        </fieldset>
         <label className="lb-field">
           Forma de pagamento
           <select
@@ -253,8 +306,8 @@ export function AppointmentForm({
           />
         </label>
         <p className="lb-help">
-          A duração segue o serviço escolhido. O valor final é combinado com o
-          cliente antes do atendimento.
+          A duração é a soma dos serviços escolhidos. O valor final é combinado
+          com o cliente antes do atendimento.
         </p>
         {error && (
           <p className="lb-form-error" role="alert">
@@ -268,7 +321,7 @@ export function AppointmentForm({
           <button
             type="submit"
             className="lb-button lb-button-primary"
-            disabled={pending || !clients.length || !serviceId}
+            disabled={pending || !clients.length || !serviceIds.length}
           >
             {pending ? "Salvando…" : "Salvar atendimento"}
           </button>

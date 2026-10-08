@@ -1,9 +1,22 @@
 import { services, stylists } from "@/content/salon";
 import type { SalonCatalog } from "./catalog";
+import {
+  blocksForDate,
+  defaultOpeningPeriods,
+  periodsForDate,
+  toMinutes,
+  type ScheduleException,
+} from "./opening-hours";
 
 export type AdminRole = "dono" | "funcionario";
 export type AdminSection =
-  "visao" | "agenda" | "clientes" | "equipe" | "fechamento" | "servicos";
+  | "visao"
+  | "agenda"
+  | "clientes"
+  | "equipe"
+  | "fechamento"
+  | "servicos"
+  | "site";
 export type AppointmentStatus =
   "agendado" | "concluido" | "faltou" | "cancelado";
 export type PaymentMethod = "pix" | "cartao" | "dinheiro";
@@ -22,7 +35,12 @@ export interface AdminAppointment {
   date: string;
   time: string;
   clientId: string;
+  /** First service; kept for code that reads a single service. */
   serviceId: string;
+  /** Every service, in the order performed. */
+  serviceIds: string[];
+  /** Names stored at booking time, so renamed or archived services still read well. */
+  serviceNames: string[];
   bookedWith: string | null;
   performedBy: string;
   status: AppointmentStatus;
@@ -32,8 +50,8 @@ export interface AdminAppointment {
   durationMinutes?: number;
 }
 
-// Illustrative business rules only; not the salon's confirmed commercial terms.
-export const demoCommissionRate = 0.5;
+// Used when the salon's configured rate is unavailable (salon_settings default).
+export const defaultCommissionRate = 0.5;
 
 export const statusLabels: Record<AppointmentStatus, string> = {
   agendado: "Agendado",
@@ -53,6 +71,7 @@ export const sectionLabels: Record<AdminSection, string> = {
   equipe: "Equipe",
   fechamento: "Fechamento",
   servicos: "Serviços",
+  site: "Edição do site",
 };
 
 export function salonToday() {
@@ -110,10 +129,14 @@ export function getPeriodRange(date: string, period: Period) {
 export function charge(appointment: AdminAppointment) {
   return appointment.price;
 }
-export function payout(appointment: AdminAppointment) {
-  return appointment.status === "concluido"
-    ? appointment.price * demoCommissionRate
-    : 0;
+export function payout(
+  appointment: AdminAppointment,
+  rate = defaultCommissionRate,
+) {
+  return appointment.status === "concluido" ? appointment.price * rate : 0;
+}
+export function serviceLabel(appointment: AdminAppointment) {
+  return appointment.serviceNames.join(" + ");
 }
 export function isClosed(date: string) {
   const day = new Date(`${date}T12:00:00Z`).getUTCDay();
@@ -128,34 +151,55 @@ export function appointmentError(
   appointment: AdminAppointment,
   appointments: AdminAppointment[],
   catalog?: SalonCatalog,
+  exceptions: ScheduleException[] = [],
 ) {
   if (appointment.status !== "agendado" && appointment.status !== "concluido")
     return null;
-  const weekday = new Date(`${appointment.date}T12:00:00Z`).getUTCDay();
-  const hours = catalog?.businessHours.find((item) => item.weekday === weekday);
+  const periods = periodsForDate(
+    appointment.date,
+    catalog?.openingPeriods ?? defaultOpeningPeriods,
+    exceptions,
+  );
   const start = timeInMinutes(appointment.time);
   const serviceCatalog = catalog?.services ?? services;
-  const service = serviceCatalog.find(
-    (item) => item.id === appointment.serviceId,
-  );
+  const catalogDuration = (ids: string[]) =>
+    ids.reduce<number | undefined>((sum, id) => {
+      const duration = serviceCatalog.find((item) => item.id === id)?.duration;
+      return sum === undefined || duration === undefined ? undefined : sum + duration;
+    }, 0);
   const previous = appointments.find((item) => item.id === appointment.id);
   const sameSchedule =
     previous &&
     previous.date === appointment.date &&
     previous.time === appointment.time &&
-    previous.serviceId === appointment.serviceId &&
+    previous.serviceIds.join("+") === appointment.serviceIds.join("+") &&
     previous.performedBy === appointment.performedBy &&
     (previous.status === "agendado" || previous.status === "concluido") &&
     previous.durationMinutes === appointment.durationMinutes;
-  if (!sameSchedule && (catalog ? !hours?.active : isClosed(appointment.date)))
+  if (!sameSchedule && !periods.length)
     return "Escolha um dia de funcionamento do ateliê.";
-  const duration = appointment.durationMinutes ?? service?.duration;
+  const duration =
+    appointment.durationMinutes ?? catalogDuration(appointment.serviceIds);
   if (!duration) return "Escolha um serviço disponível.";
   const end = start + duration;
-  const opening = hours?.opens_at ? timeInMinutes(hours.opens_at) : 540;
-  const closing = hours?.closes_at ? timeInMinutes(hours.closes_at) : 1140;
-  if (!sameSchedule && (start < opening || end > closing))
+  if (
+    !sameSchedule &&
+    !periods.some(
+      (period) =>
+        start >= toMinutes(period.opens_at) && end <= toMinutes(period.closes_at),
+    )
+  )
     return "O atendimento deve começar e terminar dentro do horário de funcionamento.";
+  if (
+    !sameSchedule &&
+    blocksForDate(appointment.date, exceptions).some(
+      (block) =>
+        (block.stylistId === null || block.stylistId === appointment.performedBy) &&
+        start < block.end &&
+        end > block.start,
+    )
+  )
+    return "O profissional está indisponível nesse horário.";
   const conflict = appointments.some((item) => {
     if (
       item.id === appointment.id ||
@@ -168,10 +212,8 @@ export function appointmentError(
     return (
       start <
         timeInMinutes(item.time) +
-          (item.durationMinutes ??
-            serviceCatalog.find((service) => service.id === item.serviceId)
-              ?.duration ??
-            0) && end > timeInMinutes(item.time)
+          (item.durationMinutes ?? catalogDuration(item.serviceIds) ?? 0) &&
+      end > timeInMinutes(item.time)
     );
   });
   return conflict
@@ -230,6 +272,8 @@ export function createDemoAppointments(today: string): AdminAppointment[] {
           time: times[slot],
           clientId: client.id,
           serviceId,
+          serviceIds: [serviceId],
+          serviceNames: [service.name],
           bookedWith: stylist.id,
           performedBy: stylist.id,
           status:

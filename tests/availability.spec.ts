@@ -2,9 +2,11 @@ import { expect, test } from "@playwright/test";
 import {
   getAvailableSlots,
   getBookingDates,
+  selectionError,
   startInstant,
   validateContactDetails,
 } from "../lib/booking-shared";
+import { formatWeeklyHours, periodsForDate, validateWeek } from "../lib/opening-hours";
 
 const fridayMorning = new Date("2026-10-02T11:00:00Z"); // Friday, 08:00 in São Paulo.
 const contact = {
@@ -174,4 +176,116 @@ test("converts local instants and rejects nonexistent dates", () => {
   ]) {
     expect(() => startInstant(date, time)).toThrow(RangeError);
   }
+});
+
+test("sums the duration of several services and requires a professional for all of them", () => {
+  const slots = getAvailableSlots(
+    { serviceIds: ["corte", "tratamento"], date: "2026-10-03" },
+    fridayMorning,
+  );
+  expect(slots.length).toBeGreaterThan(0);
+  expect(slots.every((slot) => slot.time <= "17:00")).toBe(true);
+  expect(slots.every((slot) => ["lia", "marina"].includes(slot.stylistId))).toBe(true);
+  expect(slots[0].id).toBe(`corte+tratamento:${slots[0].stylistId}:2026-10-03:${slots[0].time}`);
+  expect(slots[0].serviceIds).toEqual(["corte", "tratamento"]);
+  expect(
+    getAvailableSlots({ serviceIds: ["corte", "cor"], date: "2026-10-03" }, fridayMorning),
+  ).toEqual([]);
+  expect(
+    getAvailableSlots({ serviceIds: ["corte", "corte"], date: "2026-10-03" }, fridayMorning),
+  ).toEqual([]);
+});
+
+test("uses every opening period and never crosses a break", () => {
+  const slots = getAvailableSlots(
+    { serviceId: "corte", stylistId: "lia", date: "2026-10-03" },
+    fridayMorning,
+    undefined,
+    [],
+    [
+      { opens_at: "09:00", closes_at: "12:00" },
+      { opens_at: "13:00", closes_at: "15:00" },
+    ],
+  );
+  const times = slots.map((slot) => slot.time);
+  expect(times).toContain("11:00");
+  expect(times).not.toContain("11:30");
+  expect(times).not.toContain("12:00");
+  expect(times).toContain("13:00");
+  expect(times.at(-1)).toBe("14:00");
+});
+
+test("blocks without a professional apply to the whole team", () => {
+  const request = { serviceId: "corte", date: "2026-10-03" };
+  const blocked = [
+    {
+      performed_by: null,
+      starts_at: startInstant(request.date, "10:00"),
+      ends_at: startInstant(request.date, "12:00"),
+    },
+  ];
+  const times = getAvailableSlots(request, fridayMorning, undefined, blocked).map(
+    (slot) => slot.time,
+  );
+  for (const time of ["09:30", "10:00", "11:30"]) expect(times).not.toContain(time);
+  for (const time of ["09:00", "12:00"]) expect(times).toContain(time);
+});
+
+test("rejects a combo together with one of its parts", () => {
+  const catalog = [
+    { id: "corte" },
+    { id: "tratamento" },
+    { id: "combo", componentIds: ["corte", "tratamento"] },
+    { id: "outro-combo", componentIds: ["tratamento", "finalizacao"] },
+  ];
+  expect(selectionError(["combo"], catalog)).toBeNull();
+  expect(selectionError(["corte", "tratamento"], catalog)).toBeNull();
+  expect(selectionError(["combo", "corte"], catalog)).toContain("combo");
+  expect(selectionError(["combo", "outro-combo"], catalog)).toContain("combo");
+  expect(selectionError([], catalog)).toContain("Selecione");
+  expect(selectionError(["a", "b", "c", "d", "e", "f"], catalog)).toContain("até 5");
+});
+
+test("applies closed days and special hours before the weekly periods", () => {
+  const week = [2, 3, 4, 5, 6].map((weekday) => ({
+    weekday,
+    opens_at: "09:00",
+    closes_at: "19:00",
+  }));
+  expect(formatWeeklyHours(week)).toBe("Terça a sábado, das 9h às 19h");
+  expect(
+    formatWeeklyHours([
+      ...week.filter((period) => period.weekday !== 6),
+      { weekday: 6, opens_at: "09:00", closes_at: "12:30" },
+      { weekday: 6, opens_at: "13:30", closes_at: "17:00" },
+    ]),
+  ).toBe("Terça a sexta, das 9h às 19h · Sábado, das 9h às 12h30 e das 13h30 às 17h");
+  const exception = {
+    id: "x",
+    stylistId: null,
+    startsOn: "2026-10-03",
+    endsOn: "2026-10-03",
+    reason: "",
+  };
+  expect(
+    periodsForDate("2026-10-03", week, [
+      { ...exception, kind: "fechado", opensAt: null, closesAt: null },
+    ]),
+  ).toEqual([]);
+  expect(
+    periodsForDate("2026-10-05", week, [
+      { ...exception, startsOn: "2026-10-05", endsOn: "2026-10-05", kind: "horario_especial", opensAt: "10:00", closesAt: "14:00" },
+    ]),
+  ).toEqual([{ opens_at: "10:00", closes_at: "14:00" }]);
+  expect(
+    periodsForDate("2026-10-03", week, [
+      { ...exception, stylistId: "lia", kind: "fechado", opensAt: null, closesAt: null },
+    ]),
+  ).toEqual([{ opens_at: "09:00", closes_at: "19:00" }]);
+  expect(
+    validateWeek([
+      { weekday: 2, opens_at: "09:00", closes_at: "13:00" },
+      { weekday: 2, opens_at: "12:00", closes_at: "18:00" },
+    ]),
+  ).toEqual(["Os períodos de terça não podem se sobrepor."]);
 });

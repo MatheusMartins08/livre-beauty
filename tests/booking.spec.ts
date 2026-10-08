@@ -55,7 +55,7 @@ test("preselects only compatible query parameters", async ({ page }) => {
     "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
   );
   await expect(
-    page.getByRole("radio", { name: /Corte autoral/ }),
+    page.getByRole("checkbox", { name: /Corte autoral/ }),
   ).toBeChecked();
   await next(page);
   await expect(page.getByRole("radio", { name: /Lia Monteiro/ })).toBeChecked();
@@ -75,6 +75,30 @@ test("preselects only compatible query parameters", async ({ page }) => {
   await expect(page.locator("#booking-error")).toContainText(
     "Selecione um serviço",
   );
+});
+
+test("combines services in one booking and offers only professionals who do all of them", async ({
+  page,
+}) => {
+  await page.goto("/agendamento");
+  await page.getByRole("checkbox", { name: /Corte autoral/ }).check();
+  await page.getByRole("checkbox", { name: /Ritual de tratamento/ }).check();
+  await expect(page.getByRole("status").filter({ hasText: "2 serviços" })).toContainText(
+    "120 min",
+  );
+  const summary = page.getByRole("complementary", { name: "Resumo da sua escolha" });
+  await expect(summary).toContainText("Corte autoral + Ritual de tratamento");
+  await expect(summary).toContainText("120 minutos de cuidado");
+  await next(page);
+  await expect(page.getByRole("radio", { name: /Lia Monteiro/ })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Marina Alves/ })).toBeVisible();
+  await expect(page.getByRole("radio", { name: /Rafael Costa/ })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: /Sofia Dias/ })).toHaveCount(0);
+  await back(page);
+  await page.getByRole("checkbox", { name: /Corte autoral/ }).uncheck();
+  await page.getByRole("checkbox", { name: /Ritual de tratamento/ }).uncheck();
+  await next(page);
+  await expect(page.locator("#booking-error")).toContainText("Selecione um serviço");
 });
 
 test("calendar validates dates, supports keyboard selection and month navigation", async ({

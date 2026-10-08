@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { startTransition, useRef, useState } from "react";
 import {
   ArrowUpRight,
+  Browser,
   CalendarBlank,
   CaretLeft,
   CaretRight,
@@ -40,10 +41,12 @@ import {
   type AdminSection,
   type AppointmentStatus,
 } from "@/lib/admin";
+import { periodsForDate, type ScheduleException } from "@/lib/opening-hours";
 import { Agenda } from "./agenda";
 import { AppointmentForm } from "./appointment-form";
 import { Clients } from "./clients";
 import { Payroll, Production, ServiceCatalog } from "./reports";
+import { SiteEditor, type SiteEditorData } from "./site/site-editor";
 
 const sections: { id: AdminSection; icon: Icon; ownerOnly?: boolean }[] = [
   { id: "visao", icon: SquaresFour },
@@ -52,6 +55,7 @@ const sections: { id: AdminSection; icon: Icon; ownerOnly?: boolean }[] = [
   { id: "equipe", icon: Scissors, ownerOnly: true },
   { id: "fechamento", icon: ChartBar },
   { id: "servicos", icon: List },
+  { id: "site", icon: Browser, ownerOnly: true },
 ];
 const descriptions: Record<AdminSection, string> = {
   visao: "Um olhar para o dia. Mais espaço para cuidar.",
@@ -60,6 +64,7 @@ const descriptions: Record<AdminSection, string> = {
   equipe: "Cada profissional, cada atendimento, cada detalhe.",
   fechamento: "Atendimentos concluídos e repasses da equipe.",
   servicos: "O cuidado do Livre, organizado para a equipe.",
+  site: "Textos, fotos, serviços, equipe e horários publicados no site.",
 };
 
 export function AdminDashboard({
@@ -68,14 +73,20 @@ export function AdminDashboard({
   initialStylist,
   initialAppointments,
   initialClients,
+  exceptions,
+  commissionRate,
   accountEmail,
+  siteEditor,
 }: {
   today: string;
   initialRole: AdminRole;
   initialStylist: string;
   initialAppointments: AdminAppointment[];
   initialClients: AdminClient[];
+  exceptions: ScheduleException[];
+  commissionRate: number;
   accountEmail: string;
+  siteEditor: SiteEditorData | null;
 }) {
   const role = initialRole;
   const router = useRouter();
@@ -108,9 +119,13 @@ export function AdminDashboard({
   const active = dayAppointments.filter((item) => item.status !== "cancelado");
   const completed = active.filter((item) => item.status === "concluido");
   const revenue = completed.reduce((sum, item) => sum + charge(item), 0);
-  const commissions = completed.reduce((sum, item) => sum + payout(item), 0);
+  const commissions = completed.reduce(
+    (sum, item) => sum + payout(item, commissionRate),
+    0,
+  );
   const availableSections = sections.filter(
-    (item) => !item.ownerOnly || role === "dono",
+    (item) =>
+      (!item.ownerOnly || role === "dono") && (item.id !== "site" || siteEditor),
   );
 
   function navigate(next: AdminSection) {
@@ -129,6 +144,7 @@ export function AdminDashboard({
       { ...appointment, status },
       appointments,
       catalog,
+      exceptions,
     );
     if (validation) {
       setActionError(validation);
@@ -301,14 +317,12 @@ export function AdminDashboard({
               </button>
             )}
           </div>
-          <div className="lb-date-toolbar">
+          <div className="lb-date-toolbar" hidden={section === "site"}>
             <div>
               <CalendarBlank size={19} aria-hidden="true" />
               <span>{formatDate(date, true)}</span>
-              {!catalog.businessHours.find(
-                (day) =>
-                  day.weekday === new Date(`${date}T12:00:00Z`).getUTCDay(),
-              )?.active && (
+              {!periodsForDate(date, catalog.openingPeriods, exceptions)
+                .length && (
                 <span className="lb-badge lb-badge-neutral">
                   Ateliê fechado
                 </span>
@@ -412,7 +426,7 @@ export function AdminDashboard({
                       : "Minha comissão do dia"}
                   </dt>
                   <dd>{currency(commissions)}</dd>
-                  <small>Comissão demonstrativa</small>
+                  <small>Comissão de {Math.round(commissionRate * 1000) / 10}%</small>
                 </div>
               </dl>
               <Agenda
@@ -424,6 +438,7 @@ export function AdminDashboard({
                 appointments={dayAppointments}
                 stylistId={stylistId}
                 role={role}
+                commissionRate={commissionRate}
                 compact
                 onSeeAll={
                   role === "dono" ? () => navigate("equipe") : undefined
@@ -438,6 +453,7 @@ export function AdminDashboard({
               appointments={dayAppointments}
               stylistId={stylistId}
               role={role}
+              commissionRate={commissionRate}
             />
           )}
           {section === "fechamento" && (
@@ -446,9 +462,19 @@ export function AdminDashboard({
               date={date}
               role={role}
               stylistId={stylistId}
+              commissionRate={commissionRate}
             />
           )}
           {section === "servicos" && <ServiceCatalog />}
+          {section === "site" && siteEditor && (
+            <SiteEditor
+              data={siteEditor}
+              today={today}
+              appointments={appointments}
+              clients={clients}
+              exceptions={exceptions}
+            />
+          )}
           <footer className="lb-workspace-footer">
             <span>Livre Beauty · Feito para cuidar da sua rotina.</span>
             <button
@@ -468,6 +494,7 @@ export function AdminDashboard({
           date={date}
           clients={scopedClients}
           appointments={appointments}
+          exceptions={exceptions}
           role={role}
           stylistId={stylistId}
           onClose={() => setEditing(null)}
