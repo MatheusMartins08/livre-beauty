@@ -22,8 +22,8 @@ export function pageMetadata(
       images: [
         {
           url: "/images/hero-salon.jpg",
-          width: 1920,
-          height: 1080,
+          width: 1672,
+          height: 941,
           alt: "Livre Beauty · beleza com liberdade",
         },
       ],

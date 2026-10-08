@@ -15,6 +15,7 @@ import { ActionContent, ButtonLink } from "@/components/ui";
 import { HomeMotion } from "@/components/home-motion";
 import { HomeFAQ } from "@/components/home-faq";
 import styles from "./home.module.css";
+import heroImage from "@/public/images/hero-salon.jpg";
 
 const heroTitle = `${site.hero.title.opening} ${site.hero.title.emphasis}`;
 export const metadata = pageMetadata(
@@ -48,10 +49,11 @@ export default function Home() {
         aria-label="Livre Beauty, salão e ateliê de beleza"
       >
         <Image
-          src="/images/hero-salon.jpg"
+          src={heroImage}
           alt="Retrato editorial com cabelo escuro e luz suave"
           fill
           preload
+          quality={90}
           sizes="(max-width: 767px) 160svh, calc(100vw - 48px)"
           className={styles.heroImage}
           data-hero-image

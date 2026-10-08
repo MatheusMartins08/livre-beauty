@@ -59,7 +59,7 @@ A [licença oficial do Pexels](https://www.pexels.com/license/) permite uso grat
 
 ### Composição e reutilização
 
-O hero foi recortado em 1440 × 1080 e recebeu uma margem plana de 480 pixels à esquerda, com a mesma direção escura do fundo de estúdio. O arquivo final é **1920 × 1080**; a pessoa continua sendo a fotografia original. A margem cria área para o título. Retratos da equipe usam recorte 4:5; demais imagens preservam a proporção da foto.
+Em **7 de outubro de 2026**, `hero-salon.jpg` foi substituído por uma nova versão do retrato, gerada no OpenAI Playground e adicionada manualmente. A versão atual (gerada às 21h32, com fundo preto uniforme e sem a emenda da margem antiga) foi convertida do PNG para JPEG (qualidade 92, mozjpeg, croma 4:4:4, para não criar blocos no preto) em **1672 × 941**, com cerca de 142 KiB, e não é mais produzido por `scripts/download-assets.mjs`. Por isso, a frase "Nenhuma fotografia foi gerada por IA" acima não se aplica ao hero. O crédito Pexels permanece até a confirmação da origem da imagem. Retratos da equipe usam recorte 4:5; demais imagens preservam a proporção da foto.
 
 A repetição entre serviços e galeria é deliberada: `gallery-01.jpg`, `gallery-03.jpg`, `gallery-05.jpg` e `gallery-06.jpg` usam as fotos de seus serviços; `gallery-04.jpg` repete a referência finalizada; `gallery-07.jpg` repete o primeiro interior. Os dois interiores são da mesma série. Isso mantém continuidade e evita misturar muitos ambientes. Os nomes distintos permitem substituir cada uso futuramente.
 

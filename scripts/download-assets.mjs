@@ -9,9 +9,9 @@ const fontsDirectory = path.join(projectRoot, "public", "fonts");
 
 // Photography is licensed under the Pexels License. Source/author details:
 // content/image-credits.ts and docs/assets.md. All images remain photographs;
-// no image generation is used.
+// no image generation is used. hero-salon.jpg is maintained manually; see
+// docs/assets.md.
 const imageAssets = [
-  { name: "hero-salon.jpg", id: 17561665, hero: true },
   { name: "salon-interior-01.jpg", id: 7750098, width: 1600 },
   { name: "salon-interior-02.jpg", id: 7750099, width: 1600 },
   { name: "service-haircut.jpg", id: 3992873 },
@@ -87,18 +87,13 @@ for (const asset of selectedImageAssets) {
   }
 
   let image = sharp(sourceImages.get(asset.id)).rotate();
-  if (asset.hero) {
-    // Extend the existing dark studio backdrop with a flat dark margin for copy.
-    // This changes the composition only; the subject is the original stock photo.
-    image = image.resize(1440, 1080, { fit: "cover", position: "centre" })
-      .extend({ left: 480, right: 0, top: 0, bottom: 0, background: "#050505" });
-  } else if (asset.portrait) {
+  if (asset.portrait) {
     image = image.resize(1200, 1500, { fit: "cover", position: "attention" });
   } else {
     image = image.resize({ width: asset.width ?? 1200, withoutEnlargement: true });
   }
 
-  const limit = asset.hero ? 500_000 : 350_000;
+  const limit = 350_000;
   const base = await image.png().toBuffer();
   let quality = 83;
   let output;
