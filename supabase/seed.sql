@@ -11,6 +11,22 @@ insert into public.services (id, slug, name, category, description, duration, pr
   ('extensoes', 'extensoes', 'Extensões naturais', 'Extensões', 'Mais possibilidades. Volume e comprimento integrados ao seu estilo.', 240, 980, '/images/service-extensions.jpg', 5)
 on conflict (id) do nothing;
 
+-- Homepage summaries and photos, as in migration site_content_and_catalog_editing.
+update public.services s set
+  summary = v.summary,
+  home_image = v.home_image,
+  home_image_alt = v.home_image_alt,
+  home_image_position = v.home_image_position
+from (values
+  ('corte', 'Forma e movimento para sua textura natural.', '/images/home-service-haircut.jpg', 'Detalhe de corte com tesoura e pente', '50% 50%'),
+  ('cor', 'Nuances sob medida para o seu estilo.', '/images/home-service-color.jpg', 'Coloração aplicada por uma profissional no salão', '50% 50%'),
+  ('balayage', 'Luz e dimensão com transições suaves.', '/images/home-service-balayage.jpg', 'Referência de cabelo loiro com ondas e nuances de luz', '85% 50%'),
+  ('tratamento', 'Cuidado para devolver vida aos fios.', '/images/home-service-treatment.jpg', 'Cuidado dos fios durante a lavagem no salão', '50% 50%'),
+  ('finalizacao', 'Ondas e penteados para cada ocasião.', '/images/home-service-styling.jpg', 'Modelagem de ondas em cabelo castanho', '50% 50%'),
+  ('extensoes', 'Comprimento e volume com efeito natural.', '/images/home-service-extensions.jpg', 'Referência de comprimento e volume em cabelo longo ondulado', '50% 50%')
+) as v(id, summary, home_image, home_image_alt, home_image_position)
+where s.id = v.id and s.home_image is null and s.summary = '';
+
 insert into public.stylists (id, slug, name, role, experience, specialties, description, biography, image, sort_order) values
   ('lia', 'lia-monteiro', 'Lia Monteiro', 'Diretora criativa · cortes', 12, '{"Cortes autorais","Texturas naturais","Visagismo"}', 'Cortes com movimento e uma escuta atenta. Lia acredita que o melhor visual é aquele que acompanha você.', 'Lia é a fundadora e a mente criativa do ateliê. Sua abordagem combina precisão e sensibilidade para criar formas que valorizam a textura natural. O ponto de partida é sempre a conversa: como você vive, como gosta de se ver e quanto tempo quer dedicar ao cabelo.', '/images/stylist-01.jpg', 0),
   ('rafael', 'rafael-costa', 'Rafael Costa', 'Especialista em cor', 10, '{"Balayage","Loiros naturais","Coloração"}', 'Cor que parece ter nascido com você. Rafael cria nuances luminosas e transições delicadas.', 'Rafael traduz referências em cores possíveis para cada cabelo. Sua especialidade são os contrastes sutis e o crescimento natural. A avaliação cuidadosa e o cuidado com os fios vêm antes de qualquer mudança.', '/images/stylist-02.jpg', 1),
@@ -42,6 +58,11 @@ insert into public.business_hours (weekday, active, opens_at, closes_at) values
   (5, true, '09:00', '19:00'),
   (6, true, '09:00', '19:00')
 on conflict (weekday) do nothing;
+
+-- Weekly periods used by booking; overlapping duplicates are skipped.
+insert into public.opening_periods (weekday, opens_at, closes_at)
+select weekday, opens_at, closes_at from public.business_hours where active
+on conflict do nothing;
 
 insert into public.salon_settings (id, show_prices, time_zone, booking_window_days, slot_interval_minutes, demo_commission_rate) values
   (true, true, 'America/Sao_Paulo', 30, 30, 0.5)
