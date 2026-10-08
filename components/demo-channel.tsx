@@ -5,7 +5,8 @@ import Image from "next/image";
 import { InstagramLogo, WhatsappLogo, Phone } from "@phosphor-icons/react";
 import { Dialog } from "@/components/dialog";
 import { ActionContent, ButtonLink, buttonClassName } from "@/components/ui";
-import { useWhatsAppHref } from "@/components/contact-provider";
+import { useContact } from "@/components/contact-provider";
+import { formatPhoneInput } from "@/lib/input-masks";
 import styles from "./demo-channel.module.css";
 
 type Channel = "whatsapp" | "instagram" | "phone";
@@ -27,7 +28,7 @@ const channels = {
   phone: {
     label: "Telefone",
     title: "Atendimento por telefone",
-    text: "Um atendimento próximo, de terça a sábado, das 9h às 19h. Conheça os serviços e planeje um tempo para você.",
+    text: "Um atendimento próximo, para conhecer os serviços e planejar um tempo para você.",
     message: "Escolha seu cuidado, conheça os profissionais e encontre o seu horário.",
     icon: Phone,
   },
@@ -41,8 +42,14 @@ export function DemoChannel({ channel, children, className = "" }: {
   const [open, setOpen] = useState(false);
   const data = channels[channel];
   const Icon = data.icon;
-  const whatsappHref = useWhatsAppHref();
+  const contact = useContact();
   const isWhatsApp = channel === "whatsapp";
+  const external =
+    channel === "instagram" && contact.instagram
+      ? { href: contact.instagram, label: "Abrir o Instagram" }
+      : channel === "phone" && contact.phone
+        ? { href: `tel:+55${contact.phone}`, label: `Ligar para ${formatPhoneInput(contact.phone)}` }
+        : null;
   return (
     <>
       <button
@@ -64,12 +71,17 @@ export function DemoChannel({ channel, children, className = "" }: {
             {open && (
               <div className={styles.photo}>
                 <Image
-                  src="/images/contact-salon.jpg"
-                  alt=""
+                  src={contact.photo.src}
+                  alt={contact.photo.alt}
                   fill
                   sizes="720px"
                   quality={90}
                   className={styles.photoImage}
+                  style={
+                    contact.photo.position
+                      ? { objectPosition: contact.photo.position }
+                      : undefined
+                  }
                 />
               </div>
             )}
@@ -79,7 +91,7 @@ export function DemoChannel({ channel, children, className = "" }: {
               <blockquote className={styles.quote}>{data.message}</blockquote>
               <div className={styles.actions}>
                 <a
-                  href={whatsappHref}
+                  href={contact.whatsappHref}
                   className={buttonClassName()}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -100,7 +112,23 @@ export function DemoChannel({ channel, children, className = "" }: {
           <div className="channel-dialog">
             <Icon size={38} weight="light" aria-hidden="true" />
             <p>{data.text}</p>
+            {channel === "phone" && contact.hours && <p>{contact.hours}.</p>}
             <blockquote>{data.message}</blockquote>
+            {external && (
+              <a
+                href={external.href}
+                className={buttonClassName({ secondary: true })}
+                {...(channel === "instagram"
+                  ? {
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                      "aria-label": `${external.label} (abre em nova aba)`,
+                    }
+                  : {})}
+              >
+                <ActionContent>{external.label}</ActionContent>
+              </a>
+            )}
             <ButtonLink href={channel === "instagram" ? "/galeria" : "/agendamento"} onClick={() => setOpen(false)}>
               {channel === "instagram" ? "Explorar a galeria" : "Agendar horário"}
             </ButtonLink>

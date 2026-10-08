@@ -1541,3 +1541,247 @@
     animation: none !important;
   }
 }
+/* Site editor */
+.lb-date-toolbar[hidden] {
+  display: none;
+}
+.lb-editor,
+.lb-editor-stack {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.lb-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  overflow-x: auto;
+  background: #eee7de;
+  border-radius: 5px;
+  scrollbar-width: thin;
+}
+.lb-tabs [role="tab"] {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--lb-muted);
+  font-size: 12px;
+}
+.lb-tabs [role="tab"][aria-selected="true"] {
+  background: var(--lb-surface);
+  color: var(--lb-accent);
+  font-weight: 500;
+}
+.lb-editor-body {
+  display: grid;
+  gap: 16px;
+  padding: 0 18px 20px;
+}
+.lb-admin p.lb-feedback {
+  margin: 0;
+}
+.lb-fieldset {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--lb-line);
+  border-radius: 6px;
+}
+.lb-fieldset > legend,
+.lb-week-day > legend {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.lb-optional {
+  color: var(--lb-muted);
+  font-weight: 400;
+}
+.lb-field input[type="range"] {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--lb-accent);
+}
+.lb-photo-layout {
+  display: grid;
+  gap: 14px;
+}
+.lb-photo-preview {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid var(--lb-line);
+  border-radius: 4px;
+  background-color: #ede5dc;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: var(--lb-muted);
+  font-size: 12px;
+}
+.lb-photo-controls {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+.lb-upload-button {
+  width: fit-content;
+  cursor: pointer;
+}
+.lb-photo-controls:has(input[type="file"]:focus-visible) .lb-upload-button {
+  outline: 2px solid var(--lb-accent);
+  outline-offset: 3px;
+}
+.lb-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.lb-check input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--lb-accent);
+}
+.lb-check small {
+  display: block;
+  margin-top: 2px;
+  color: var(--lb-muted);
+  font-size: 11px;
+}
+.lb-check-disabled {
+  color: var(--lb-muted);
+  cursor: default;
+}
+.lb-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.lb-item-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+.lb-list-item-nested {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--lb-line);
+}
+.lb-catalog-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lb-catalog-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--lb-line);
+}
+.lb-catalog-list li:first-child {
+  border-top: 0;
+}
+.lb-catalog-thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  background-color: #ede5dc;
+  background-size: cover;
+}
+.lb-catalog-copy {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.lb-catalog-copy strong {
+  display: block;
+  font-weight: 500;
+}
+.lb-catalog-copy small {
+  display: block;
+  margin-top: 3px;
+  color: var(--lb-muted);
+  font-size: 11px;
+}
+.lb-admin.lb-modal-wide {
+  width: min(820px, calc(100% - 32px));
+}
+.lb-week {
+  display: grid;
+  gap: 10px;
+}
+.lb-week-day {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--lb-line);
+  border-radius: 6px;
+}
+.lb-period {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lb-period .lb-field input {
+  width: 118px;
+}
+.lb-warning {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 4px;
+  background: #f4ead8;
+  color: #5f3f1b;
+  font-size: 12px;
+}
+.lb-warning :is(p, ul) {
+  margin: 0;
+}
+.lb-warning ul {
+  padding-left: 18px;
+}
+.lb-subheading {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.lb-service-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lb-service-row .lb-field {
+  flex: 1;
+}
+@media (min-width: 560px) {
+  .lb-photo-layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+    align-items: start;
+  }
+}
+@media (min-width: 800px) {
+  .lb-form-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

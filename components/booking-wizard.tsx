@@ -10,6 +10,8 @@ import {
 import { useCatalog } from "@/components/catalog-provider";
 import {
   BOOKING_TIME_ZONE,
+  MAX_BOOKING_SERVICES,
+  selectionError,
   validateContactDetails,
   type BookingSlot,
   type ContactDetails,
@@ -37,7 +39,7 @@ const titles = [
   "Revise sua escolha",
 ];
 const descriptions = [
-  "Tudo começa com o cuidado que faz sentido para você.",
+  `Tudo começa com o cuidado que faz sentido para você. Combine até ${MAX_BOOKING_SERVICES} serviços no mesmo horário.`,
   "Conheça quem cuida de você ou deixe a escolha com a nossa equipe.",
   "Selecione um dia e confira os horários disponíveis.",
   "Informe seus dados para registrar seu agendamento.",
@@ -70,7 +72,9 @@ export function BookingWizard({
 }) {
   const { services, stylists, bookingSettings } = useCatalog();
   const [step, setStep] = useState(0);
-  const [serviceId, setServiceId] = useState(initialServiceId);
+  const [serviceIds, setServiceIds] = useState<string[]>(
+    initialServiceId ? [initialServiceId] : [],
+  );
   const [stylistChoice, setStylistChoice] = useState(initialStylistId);
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState<BookingSlot | null>(null);
@@ -92,9 +96,17 @@ export function BookingWizard({
   const submitting = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const firstRender = useRef(true);
-  const service = services.find((item) => item.id === serviceId);
-  const compatibleStylists = stylists.filter((item) =>
-    item.serviceIds.includes(serviceId),
+  const selected = serviceIds.flatMap(
+    (id) => services.find((item) => item.id === id) ?? [],
+  );
+  const selectedKey = serviceIds.join("+");
+  const totalDuration = selected.reduce((sum, item) => sum + item.duration, 0);
+  const totalPrice = selected.reduce((sum, item) => sum + item.price, 0);
+  const selectedNames = selected.map((item) => item.name).join(" + ");
+  const compatibleStylists = stylists.filter(
+    (item) =>
+      serviceIds.length > 0 &&
+      serviceIds.every((id) => item.serviceIds.includes(id)),
   );
   const selectedStylist = stylists.find(
     (item) =>
@@ -112,10 +124,10 @@ export function BookingWizard({
   }, [step, confirmation]);
 
   useEffect(() => {
-    if (!date || !serviceId || !stylistChoice) return;
+    if (!date || !selectedKey || !stylistChoice) return;
     let cancelled = false;
     loadAvailability({
-      serviceId,
+      serviceIds: selectedKey.split("+"),
       stylistId: stylistChoice === "any" ? undefined : stylistChoice,
       date,
     })
@@ -133,7 +145,7 @@ export function BookingWizard({
     return () => {
       cancelled = true;
     };
-  }, [date, serviceId, stylistChoice, retry]);
+  }, [date, selectedKey, stylistChoice, retry]);
 
   function clearTime() {
     setDate("");
@@ -143,16 +155,29 @@ export function BookingWizard({
     setLoadError(false);
   }
 
-  function chooseService(id: string) {
-    if (id === serviceId) return;
-    // A professional-only link keeps its initial choice for the first compatible service.
-    const keepInitial =
-      !serviceId &&
+  /** Why a service cannot be added to the current selection, if anything. */
+  function addError(id: string) {
+    if (serviceIds.includes(id)) return null;
+    return serviceIds.length >= MAX_BOOKING_SERVICES
+      ? `Escolha até ${MAX_BOOKING_SERVICES} serviços.`
+      : selectionError([...serviceIds, id], services);
+  }
+
+  function toggleService(id: string) {
+    const next = serviceIds.includes(id)
+      ? serviceIds.filter((item) => item !== id)
+      : [...serviceIds, id];
+    if (!serviceIds.includes(id) && addError(id)) return;
+    // A professional chosen earlier, or from a profile link, stays while compatible.
+    const keepStylist =
+      stylistChoice === "any" ||
       stylists.some(
-        (item) => item.id === stylistChoice && item.serviceIds.includes(id),
+        (item) =>
+          item.id === stylistChoice &&
+          next.every((serviceId) => item.serviceIds.includes(serviceId)),
       );
-    setServiceId(id);
-    if (!keepInitial) setStylistChoice("");
+    setServiceIds(next);
+    if (!keepStylist || !next.length) setStylistChoice("");
     clearTime();
     setMessage("");
   }
@@ -184,8 +209,12 @@ export function BookingWizard({
     event.preventDefault();
     if (submitting.current || pending) return;
     setMessage("");
-    if (step === 0 && !service) {
-      setMessage("Selecione um serviço para continuar.");
+    const invalidSelection =
+      selected.length === serviceIds.length
+        ? selectionError(serviceIds, services)
+        : "Selecione um serviço para continuar.";
+    if (step === 0 && invalidSelection) {
+      setMessage(invalidSelection);
       document
         .querySelector<HTMLInputElement>('input[name="service"]')
         ?.focus();
@@ -254,7 +283,7 @@ export function BookingWizard({
     }
     if (
       !slot ||
-      slot.serviceId !== serviceId ||
+      (slot.serviceIds ?? [slot.serviceId]).join("+") !== selectedKey ||
       slot.date !== date ||
       (stylistChoice !== "any" && slot.stylistId !== stylistChoice)
     ) {
@@ -277,6 +306,9 @@ export function BookingWizard({
           if (result.code === "unavailable") {
             clearTime();
             setStep(2);
+          } else if (result.code === "services") {
+            clearTime();
+            setStep(0);
           } else setStep(3);
         }
       } catch {
@@ -293,7 +325,7 @@ export function BookingWizard({
   function restart() {
     setConfirmation(null);
     setStep(0);
-    setServiceId("");
+    setServiceIds([]);
     setStylistChoice("");
     clearTime();
     setContact({ name: "", phone: "", email: "" });
@@ -305,7 +337,9 @@ export function BookingWizard({
     return (
       <BookingConfirmation
         slot={confirmation}
-        service={services.find((item) => item.id === confirmation.serviceId)}
+        services={(confirmation.serviceIds ?? [confirmation.serviceId]).flatMap(
+          (id) => services.find((item) => item.id === id) ?? [],
+        )}
         stylist={selectedStylist}
         clientName={contact.name}
         dateText={dateLabel(confirmation.date, true)}
@@ -347,33 +381,59 @@ export function BookingWizard({
               className={styles.choiceFieldset}
               aria-describedby={message ? "booking-error" : undefined}
             >
-              <legend className="sr-only">Serviço desejado</legend>
+              <legend className="sr-only">Serviços desejados</legend>
               <div className={styles.serviceChoices}>
-                {services.map((item) => (
-                  <label
-                    key={item.id}
-                    className={`${styles.choice} ${serviceId === item.id ? styles.selected : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      required
-                      name="service"
-                      value={item.id}
-                      checked={serviceId === item.id}
-                      onChange={() => chooseService(item.id)}
-                    />
-                    <span className={styles.choiceContent}>
-                      <span className={styles.choiceName}>{item.name}</span>
-                      <span className={styles.choiceDescription}>
-                        {item.description}
+                {services.map((item) => {
+                  const checked = serviceIds.includes(item.id);
+                  const unavailableReason = addError(item.id);
+                  const parts = item.componentIds
+                    .flatMap(
+                      (id) => services.find((part) => part.id === id)?.name ?? [],
+                    )
+                    .join(" + ");
+                  return (
+                    <label
+                      key={item.id}
+                      className={`${styles.choice} ${checked ? styles.selected : ""} ${unavailableReason ? styles.choiceDisabled : ""}`}
+                    >
+                      <input
+                        type="checkbox"
+                        name="service"
+                        value={item.id}
+                        checked={checked}
+                        disabled={Boolean(unavailableReason)}
+                        aria-describedby={
+                          unavailableReason ? `service-note-${item.id}` : undefined
+                        }
+                        onChange={() => toggleService(item.id)}
+                      />
+                      <span className={styles.choiceContent}>
+                        <span className={styles.choiceName}>{item.name}</span>
+                        <span className={styles.choiceDescription}>
+                          {parts ? `Combo com ${parts}.` : item.description}
+                        </span>
+                        <span className={styles.choiceMeta}>
+                          {item.duration} min · {investmentLabel(item.price)}
+                        </span>
+                        {unavailableReason && (
+                          <span
+                            id={`service-note-${item.id}`}
+                            className={styles.choiceNote}
+                          >
+                            {unavailableReason}
+                          </span>
+                        )}
                       </span>
-                      <span className={styles.choiceMeta}>
-                        {item.duration} min · {investmentLabel(item.price)}
-                      </span>
-                    </span>
-                  </label>
-                ))}
+                    </label>
+                  );
+                })}
               </div>
+              {selected.length > 1 && (
+                <p className={`fine-print ${styles.selectionTotal}`} role="status">
+                  {selected.length} serviços em sequência · {totalDuration} min ·{" "}
+                  {investmentLabel(totalPrice)}
+                </p>
+              )}
             </fieldset>
           )}
 
@@ -615,12 +675,11 @@ export function BookingWizard({
             <div className={styles.review}>
               <dl>
                 <div>
-                  <dt>Serviço</dt>
+                  <dt>{selected.length > 1 ? "Serviços" : "Serviço"}</dt>
                   <dd>
-                    {service?.name}
+                    {selectedNames}
                     <span>
-                      {service?.duration} minutos ·{" "}
-                      {service && investmentLabel(service.price)}
+                      {totalDuration} minutos · {investmentLabel(totalPrice)}
                     </span>
                   </dd>
                 </div>
@@ -699,8 +758,8 @@ export function BookingWizard({
         <h2>Sua escolha</h2>
         <dl>
           <div>
-            <dt>Serviço</dt>
-            <dd>{service?.name || "Vamos escolher juntos"}</dd>
+            <dt>{selected.length > 1 ? "Serviços" : "Serviço"}</dt>
+            <dd>{selectedNames || "Vamos escolher juntos"}</dd>
           </div>
           <div>
             <dt>Profissional</dt>
@@ -718,12 +777,12 @@ export function BookingWizard({
             </dd>
           </div>
         </dl>
-        {service && (
+        {selected.length > 0 && (
           <div className={styles.investment}>
             <span className="fine-print">
-              {service.duration} minutos de cuidado
+              {totalDuration} minutos de cuidado
             </span>
-            <strong>{investmentLabel(service.price)}</strong>
+            <strong>{investmentLabel(totalPrice)}</strong>
             <span className="fine-print">Investimento inicial.</span>
           </div>
         )}

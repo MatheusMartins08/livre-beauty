@@ -1,28 +1,32 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
 import { Star } from "@phosphor-icons/react/ssr";
-import { site, testimonials } from "@/content/salon";
-import {
-  homeContent as copy,
-  homeFAQGroups,
-  homeServices,
-  type EditorialTitle,
-} from "@/content/home";
+import { site } from "@/content/salon";
+import { homeServices as defaultHomeServices, type EditorialTitle } from "@/content/home";
 import { pageMetadata } from "@/lib/metadata";
+import { formatWeeklyHours } from "@/lib/opening-hours";
+import { getPublicCatalog } from "@/lib/supabase/catalog";
+import { getPublicSite } from "@/lib/supabase/site";
 import { DemoChannel } from "@/components/demo-channel";
 import { LocationMap } from "@/components/location-map";
 import { ActionContent, ButtonLink } from "@/components/ui";
 import { HomeMotion } from "@/components/home-motion";
 import { HomeFAQ } from "@/components/home-faq";
 import styles from "./home.module.css";
-import heroImage from "@/public/images/hero-salon.jpg";
 
-const heroTitle = `${site.hero.title.opening} ${site.hero.title.emphasis}`;
-export const metadata = pageMetadata(
-  heroTitle.replace(/\.$/, ""),
-  site.description,
-  "/",
-);
+export async function generateMetadata() {
+  const { content } = await getPublicSite();
+  return pageMetadata(
+    titleLabel(content.hero.title).replace(/\.$/, ""),
+    site.description,
+    "/",
+  );
+}
+
+/** Inline framing only when the owner chose one; otherwise the CSS decides. */
+function framing(position: string) {
+  return position ? { objectPosition: position } : undefined;
+}
 
 function titleLabel(title: EditorialTitle) {
   return [title.opening, title.leading, title.emphasis]
@@ -40,7 +44,31 @@ function TitleText({ title }: { title: EditorialTitle }) {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const [{ content: copy, openingPeriods }, catalog] = await Promise.all([
+    getPublicSite(),
+    // The homepage stays available with its original cards if the catalog fails.
+    getPublicCatalog().catch(() => null),
+  ]);
+  const homeServices = catalog
+    ? catalog.services.map((service) => ({
+        id: service.id,
+        slug: service.slug,
+        category: service.category,
+        summary: service.summary || service.description,
+        photo: service.homeImage
+          ? {
+              src: service.homeImage,
+              alt: service.homeImageAlt,
+              position: service.homeImagePosition,
+            }
+          : {
+              src: service.image,
+              alt: `Fotografia de ${service.category.toLocaleLowerCase("pt-BR")}`,
+              position: service.imagePosition,
+            },
+      }))
+    : defaultHomeServices;
   return (
     <HomeMotion className={styles.home}>
       <section
@@ -49,27 +77,26 @@ export default function Home() {
         aria-label="Livre Beauty, salão e ateliê de beleza"
       >
         <Image
-          src={heroImage}
-          alt="Retrato editorial com cabelo escuro e luz suave"
+          src={copy.hero.photo.src}
+          alt={copy.hero.photo.alt}
           fill
           preload
           quality={90}
           sizes="(max-width: 767px) 160svh, calc(100vw - 48px)"
           className={styles.heroImage}
+          style={framing(copy.hero.photo.position)}
           data-hero-image
         />
         <div className={styles.heroContent}>
           <div className={styles.heroCopy}>
             <p className={styles.label} data-hero-copy>
-              {site.hero.eyebrow}
+              {copy.hero.eyebrow}
             </p>
-            <h1 aria-label={heroTitle} data-hero-copy>
-              {site.hero.title.opening}
-              <br />
-              <em>{site.hero.title.emphasis}</em>
+            <h1 aria-label={titleLabel(copy.hero.title)} data-hero-copy>
+              <TitleText title={copy.hero.title} />
             </h1>
             <p className={styles.heroDescription} data-hero-copy>
-              {site.hero.description}
+              {copy.hero.description}
             </p>
             <div className={styles.heroActions} data-hero-copy>
               <ButtonLink href="/agendamento" light>
@@ -81,7 +108,9 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <p className={styles.heroCaption}>BEAUTY ATELIÊ · JARDINS, SÃO PAULO</p>
+        {copy.hero.caption && (
+          <p className={styles.heroCaption}>{copy.hero.caption}</p>
+        )}
       </section>
 
       <section
@@ -109,6 +138,7 @@ export default function Home() {
               alt={copy.about.photo.alt}
               fill
               sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 46vw, 650px"
+              style={framing(copy.about.photo.position)}
               data-home-image
             />
           </div>
@@ -129,6 +159,7 @@ export default function Home() {
             alt={copy.manifesto.photo.alt}
             fill
             sizes="(max-width: 767px) calc(100vw - 24px), calc(100vw - 48px)"
+            style={framing(copy.manifesto.photo.position)}
           />
         </div>
         <div className={styles.manifestoContent}>
@@ -173,7 +204,7 @@ export default function Home() {
                 <Image
                   src={service.photo.src}
                   alt={service.photo.alt}
-                  style={{ objectPosition: service.photo.position }}
+                  style={framing(service.photo.position ?? "")}
                   fill
                   sizes="(max-width: 767px) 80px, (max-width: 1023px) calc((100vw - 96px) / 2), (max-width: 1512px) calc((100vw - 176px) / 3), 445px"
                 />
@@ -219,6 +250,7 @@ export default function Home() {
                 alt={copy.experts.photo.alt}
                 fill
                 sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1440px) 40vw, 560px"
+                style={framing(copy.experts.photo.position)}
                 data-home-image
               />
             </div>
@@ -235,10 +267,10 @@ export default function Home() {
           <h2 id="faq-title" className={styles.faqTitle}>
             {copy.faq.title}
           </h2>
-          <p>Do primeiro encontro aos últimos detalhes: tire suas dúvidas antes de chegar.</p>
+          <p>{copy.faq.description}</p>
         </div>
         <div className={styles.faqGroups}>
-          {homeFAQGroups.map((group) => (
+          {copy.faq.groups.map((group) => (
             <div className={styles.faqGroup} key={group.title} data-home-reveal>
               <h3 className={styles.faqGroupTitle}>{group.title}</h3>
               <HomeFAQ items={group.items} />
@@ -251,51 +283,53 @@ export default function Home() {
         </div>
       </section>
 
-      <section
-        className={styles.reviews}
-        aria-labelledby="avaliacoes-title"
-        data-home-section
-      >
-        <div className={styles.section}>
-          <div className={styles.reviewsHeading} data-home-reveal>
-            <div>
-              <p className={styles.label}>{copy.reviews.label}</p>
-              <h2 id="avaliacoes-title" className={styles.largeTitle}>
-                {copy.reviews.title}
-              </h2>
+      {copy.reviews.items.length > 0 && (
+        <section
+          className={styles.reviews}
+          aria-labelledby="avaliacoes-title"
+          data-home-section
+        >
+          <div className={styles.section}>
+            <div className={styles.reviewsHeading} data-home-reveal>
+              <div>
+                <p className={styles.label}>{copy.reviews.label}</p>
+                <h2 id="avaliacoes-title" className={styles.largeTitle}>
+                  {copy.reviews.title}
+                </h2>
+              </div>
+            </div>
+            <div className={styles.reviewGrid}>
+              {copy.reviews.items.map((testimonial, index) => (
+                <figure
+                  key={`${testimonial.name}-${index}`}
+                  className={styles.review}
+                  data-home-reveal
+                >
+                  <div
+                    className={styles.stars}
+                    aria-label="Avaliação: 5 de 5 estrelas"
+                    role="img"
+                  >
+                    {Array.from({ length: 5 }, (_, index) => (
+                      <Star
+                        key={index}
+                        size={16}
+                        weight="fill"
+                        aria-hidden="true"
+                      />
+                    ))}
+                  </div>
+                  <blockquote>“{testimonial.quote}”</blockquote>
+                  <figcaption>
+                    <span>{testimonial.name}</span>
+                    <span>{testimonial.service}</span>
+                  </figcaption>
+                </figure>
+              ))}
             </div>
           </div>
-          <div className={styles.reviewGrid}>
-            {testimonials.map((testimonial) => (
-              <figure
-                key={testimonial.name}
-                className={styles.review}
-                data-home-reveal
-              >
-                <div
-                  className={styles.stars}
-                  aria-label="Avaliação: 5 de 5 estrelas"
-                  role="img"
-                >
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <Star
-                      key={index}
-                      size={16}
-                      weight="fill"
-                      aria-hidden="true"
-                    />
-                  ))}
-                </div>
-                <blockquote>“{testimonial.quote}”</blockquote>
-                <figcaption>
-                  <span>{testimonial.name}</span>
-                  <span>{testimonial.service}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section
         className={`${styles.section} ${styles.visit}`}
@@ -310,11 +344,11 @@ export default function Home() {
           <dl className={styles.visitFacts}>
             <div>
               <dt>Nosso lugar</dt>
-              <dd>{site.address}</dd>
+              <dd>{copy.contact.address}</dd>
             </div>
             <div>
               <dt>Seu tempo</dt>
-              <dd>{site.hours}</dd>
+              <dd>{formatWeeklyHours(openingPeriods)}</dd>
             </div>
           </dl>
           <div className={styles.visitChannels}>

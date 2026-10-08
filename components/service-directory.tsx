@@ -7,7 +7,7 @@ export function ServiceDirectory({
   items,
   showPrices,
 }: {
-  items: Service[];
+  items: (Service & { imagePosition?: string })[];
   showPrices: boolean;
 }) {
   return (
@@ -33,6 +33,7 @@ export function ServiceDirectory({
                 alt={`Fotografia de ${service.category.toLocaleLowerCase("pt-BR")}`}
                 aspect="5 / 4"
                 sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1023px) 45vw, 600px"
+                position={service.imagePosition}
               />
             </div>
             <div className="service-directory-copy" data-page-reveal>

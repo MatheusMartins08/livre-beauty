@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_services: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          duration: number
+          price: number
+          service_id: string
+          service_name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          duration: number
+          price: number
+          service_id: string
+          service_name: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          duration?: number
+          price?: number
+          service_id?: string
+          service_name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_services_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           booked_with: string | null
@@ -151,6 +199,33 @@ export type Database = {
         }
         Relationships: []
       }
+      opening_periods: {
+        Row: {
+          closes_at: string
+          created_at: string
+          id: string
+          opens_at: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          closes_at: string
+          created_at?: string
+          id?: string
+          opens_at: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          closes_at?: string
+          created_at?: string
+          id?: string
+          opens_at?: string
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
       salon_settings: {
         Row: {
           booking_window_days: number
@@ -184,47 +259,172 @@ export type Database = {
         }
         Relationships: []
       }
+      schedule_exceptions: {
+        Row: {
+          closes_at: string | null
+          created_at: string
+          ends_on: string
+          id: string
+          kind: string
+          opens_at: string | null
+          reason: string
+          starts_on: string
+          stylist_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string
+          ends_on: string
+          id?: string
+          kind: string
+          opens_at?: string | null
+          reason?: string
+          starts_on: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string
+          ends_on?: string
+          id?: string
+          kind?: string
+          opens_at?: string | null
+          reason?: string
+          starts_on?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_exceptions_stylist_id_fkey"
+            columns: ["stylist_id"]
+            isOneToOne: false
+            referencedRelation: "stylists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_components: {
+        Row: {
+          component_id: string
+          created_at: string
+          service_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          component_id: string
+          created_at?: string
+          service_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          component_id?: string
+          created_at?: string
+          service_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_components_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_components_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           active: boolean
           category: string
           created_at: string
+          deleted_at: string | null
           description: string
           duration: number
+          home_image: string | null
+          home_image_alt: string
+          home_image_position: string
           id: string
           image: string
+          image_position: string
           name: string
           price: number
           slug: string
           sort_order: number
+          summary: string
           updated_at: string
         }
         Insert: {
           active?: boolean
           category: string
           created_at?: string
+          deleted_at?: string | null
           description: string
           duration: number
+          home_image?: string | null
+          home_image_alt?: string
+          home_image_position?: string
           id: string
           image: string
+          image_position?: string
           name: string
           price: number
           slug: string
           sort_order?: number
+          summary?: string
           updated_at?: string
         }
         Update: {
           active?: boolean
           category?: string
           created_at?: string
+          deleted_at?: string | null
           description?: string
           duration?: number
+          home_image?: string | null
+          home_image_alt?: string
+          home_image_position?: string
           id?: string
           image?: string
+          image_position?: string
           name?: string
           price?: number
           slug?: string
           sort_order?: number
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          content: Json
+          created_at: string
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          key?: string
           updated_at?: string
         }
         Relationships: []
@@ -308,10 +508,12 @@ export type Database = {
           active: boolean
           biography: string
           created_at: string
+          deleted_at: string | null
           description: string
           experience: number
           id: string
           image: string
+          image_position: string
           name: string
           role: string
           slug: string
@@ -323,10 +525,12 @@ export type Database = {
           active?: boolean
           biography: string
           created_at?: string
+          deleted_at?: string | null
           description: string
           experience: number
           id: string
           image: string
+          image_position?: string
           name: string
           role: string
           slug: string
@@ -338,10 +542,12 @@ export type Database = {
           active?: boolean
           biography?: string
           created_at?: string
+          deleted_at?: string | null
           description?: string
           experience?: number
           id?: string
           image?: string
+          image_position?: string
           name?: string
           role?: string
           slug?: string
@@ -356,16 +562,101 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_public_booking: {
+      create_public_booking:
+        | {
+            Args: {
+              p_email: string
+              p_name: string
+              p_phone: string
+              p_service_id: string
+              p_starts_at: string
+              p_stylist_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_email: string
+              p_name: string
+              p_phone: string
+              p_service_ids: string[]
+              p_starts_at: string
+              p_stylist_id: string
+            }
+            Returns: Json
+          }
+      delete_service: { Args: { p_id: string }; Returns: string }
+      delete_stylist: { Args: { p_id: string }; Returns: string }
+      get_opening_calendar: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          closes_at: string
+          day: string
+          opens_at: string
+        }[]
+      }
+      get_staff_settings: {
+        Args: never
+        Returns: {
+          commission_rate: number
+        }[]
+      }
+      reorder_catalog: {
+        Args: { p_ids: string[]; p_kind: string }
+        Returns: undefined
+      }
+      save_appointment: {
         Args: {
-          p_email: string
-          p_name: string
-          p_phone: string
-          p_service_id: string
+          p_client_id: string
+          p_id: string
+          p_notes: string
+          p_payment_method: Database["public"]["Enums"]["payment_method"]
+          p_performed_by: string
+          p_price: number
+          p_service_ids: string[]
           p_starts_at: string
-          p_stylist_id: string
+          p_status: Database["public"]["Enums"]["appointment_status"]
         }
-        Returns: Json
+        Returns: string
+      }
+      save_opening_periods: { Args: { p_periods: Json }; Returns: undefined }
+      save_service: {
+        Args: {
+          p_active: boolean
+          p_category: string
+          p_component_ids: string[]
+          p_description: string
+          p_duration: number
+          p_home_image: string
+          p_home_image_alt: string
+          p_home_image_position: string
+          p_id: string
+          p_image: string
+          p_image_position: string
+          p_name: string
+          p_price: number
+          p_slug: string
+          p_stylist_ids: string[]
+          p_summary: string
+        }
+        Returns: string
+      }
+      save_stylist: {
+        Args: {
+          p_active: boolean
+          p_biography: string
+          p_description: string
+          p_experience: number
+          p_id: string
+          p_image: string
+          p_image_position: string
+          p_name: string
+          p_role: string
+          p_service_ids: string[]
+          p_slug: string
+          p_specialties: string[]
+        }
+        Returns: string
       }
       get_booked_ranges: {
         Args: { p_date: string; p_stylist_id?: string }

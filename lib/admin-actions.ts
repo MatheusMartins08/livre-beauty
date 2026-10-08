@@ -3,13 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { getStaffSession } from "./supabase/session";
 import { appointmentFromRow, clientFromRow } from "./admin-data";
-import { startInstant, validateContactDetails } from "./booking-shared";
+import {
+  MAX_BOOKING_SERVICES,
+  startInstant,
+  validateContactDetails,
+} from "./booking-shared";
 import {
   statusLabels,
   paymentLabels,
   type AdminAppointment,
   type AdminClient,
   type AppointmentStatus,
+  type PaymentMethod,
 } from "./admin";
 
 type SaveResult<T> = { ok: true; data: T } | { ok: false; message: string };
@@ -19,14 +24,35 @@ const noAccess = {
     "Seu acesso expirou ou você não tem permissão para esta ação. Entre novamente.",
 };
 
-function databaseMessage(error: { code?: string }): string {
+function databaseMessage(error: { code?: string; message?: string }): string {
   if (error.code === "23P01")
     return "Esse horário se sobrepõe a outro atendimento do profissional ou do cliente. Escolha outro horário.";
   if (error.code === "23505") return "Já existe um cliente com esse telefone.";
+  // Messages raised by our functions are written for the team; constraint
+  // names reported by PostgreSQL are not.
+  if (error.code?.startsWith("LB") && error.message) return error.message;
   if (error.code === "23514")
-    return "Confira o serviço, o profissional e o horário de funcionamento.";
+    return error.message && !/violates|new row/i.test(error.message)
+      ? error.message
+      : "Confira o serviço, o profissional e o horário de funcionamento.";
   if (error.code === "42501") return noAccess.message;
   return "Não foi possível salvar. Confira os dados e tente novamente.";
+}
+
+async function readAppointment(
+  supabase: NonNullable<Awaited<ReturnType<typeof getStaffSession>>>["supabase"],
+  id: string,
+) {
+  const [row, items] = await Promise.all([
+    supabase.from("appointments").select("*").eq("id", id).single(),
+    supabase
+      .from("appointment_services")
+      .select("appointment_id,sort_order,service_id,service_name")
+      .eq("appointment_id", id),
+  ]);
+  return row.error || items.error
+    ? null
+    : appointmentFromRow(row.data, items.data);
 }
 
 export async function saveAppointment(
@@ -45,6 +71,10 @@ export async function saveAppointment(
       "time",
       "notes",
     ].some((key) => typeof input[key as keyof AdminAppointment] !== "string") ||
+    !Array.isArray(input.serviceIds) ||
+    input.serviceIds.length < 1 ||
+    input.serviceIds.length > MAX_BOOKING_SERVICES ||
+    input.serviceIds.some((id) => typeof id !== "string") ||
     !/^\d{4}-\d{2}-\d{2}$/.test(input.date) ||
     !/^\d{2}:\d{2}$/.test(input.time) ||
     !Object.hasOwn(statusLabels, input.status) ||
@@ -60,20 +90,13 @@ export async function saveAppointment(
   const { supabase, profile } = session;
   if (profile.role !== "owner" && input.performedBy !== profile.stylist_id)
     return noAccess;
-  const [service, client, existing] = await Promise.all([
-    supabase
-      .from("services")
-      .select("id,duration,active")
-      .eq("id", input.serviceId)
-      .maybeSingle(),
-    supabase
-      .from("clients")
-      .select("id")
-      .eq("id", input.clientId)
-      .maybeSingle(),
-    supabase.from("appointments").select("*").eq("id", input.id).maybeSingle(),
-  ]);
-  if (service.error || client.error || existing.error)
+  // Staff only book clients visible to them under RLS, as before.
+  const client = await supabase
+    .from("clients")
+    .select("id")
+    .eq("id", input.clientId)
+    .maybeSingle();
+  if (client.error)
     return {
       ok: false,
       message: "Não foi possível conferir os dados. Tente novamente.",
@@ -85,51 +108,26 @@ export async function saveAppointment(
   } catch {
     return { ok: false, message: "Informe uma data e um horário válidos." };
   }
-  // PostgREST may format the same instant with +00:00 instead of Z.
-  const sameInstant =
-    existing.data &&
-    existing.data.service_id === input.serviceId &&
-    new Date(existing.data.starts_at).getTime() ===
-      new Date(startsAt).getTime();
-  if (!sameInstant && !service.data?.active)
-    return { ok: false, message: "Escolha um serviço ativo." };
-  const endsAt = sameInstant
-    ? existing.data!.ends_at
-    : new Date(
-        new Date(startsAt).getTime() + service.data!.duration * 60000,
-      ).toISOString();
-  const values = {
-    client_id: input.clientId,
-    service_id: input.serviceId,
-    performed_by: input.performedBy,
-    starts_at: startsAt,
-    ends_at: endsAt,
-    status: input.status,
-    price: input.price,
-    payment_method: input.paymentMethod,
-    notes: input.notes.trim(),
-  };
-  const result = existing.data
-    ? await supabase
-        .from("appointments")
-        .update(values)
-        .eq("id", input.id)
-        .select("*")
-        .single()
-    : await supabase
-        .from("appointments")
-        .insert({
-          ...values,
-          id: input.id,
-          booked_with: input.performedBy,
-          source: "painel",
-        })
-        .select("*")
-        .single();
-  if (result.error)
-    return { ok: false, message: databaseMessage(result.error) };
+  // The function writes the appointment and its services in one transaction.
+  // Unchanged services keep their booked duration; the end is computed there.
+  const { error } = await supabase.rpc("save_appointment", {
+    p_id: input.id,
+    p_client_id: input.clientId,
+    p_service_ids: input.serviceIds,
+    p_performed_by: input.performedBy,
+    p_starts_at: startsAt,
+    p_status: input.status,
+    p_price: input.price,
+    // Generated types omit SQL nullability; null means "not informed".
+    p_payment_method: input.paymentMethod as PaymentMethod,
+    p_notes: input.notes.trim(),
+  });
+  if (error) return { ok: false, message: databaseMessage(error) };
+  const saved = await readAppointment(supabase, input.id);
   revalidatePath("/painel");
-  return { ok: true, data: appointmentFromRow(result.data) };
+  return saved
+    ? { ok: true, data: saved }
+    : { ok: false, message: "Atendimento salvo. Atualize a agenda para conferir." };
 }
 
 export async function changeAppointmentStatus(
@@ -140,15 +138,18 @@ export async function changeAppointmentStatus(
   if (!session) return noAccess;
   if (typeof id !== "string" || !Object.hasOwn(statusLabels, status))
     return { ok: false, message: "Status inválido." };
-  const { data, error } = await session.supabase
+  const { error } = await session.supabase
     .from("appointments")
     .update({ status })
     .eq("id", id)
-    .select("*")
+    .select("id")
     .single();
   if (error) return { ok: false, message: databaseMessage(error) };
+  const saved = await readAppointment(session.supabase, id);
   revalidatePath("/painel");
-  return { ok: true, data: appointmentFromRow(data) };
+  return saved
+    ? { ok: true, data: saved }
+    : { ok: false, message: "Status salvo. Atualize a agenda para conferir." };
 }
 
 export async function saveClient(

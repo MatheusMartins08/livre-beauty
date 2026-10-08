@@ -8,6 +8,7 @@ import {
   currency,
   normalizeSearch,
   paymentLabels,
+  serviceLabel,
   statusLabels,
   type AdminAppointment,
   type AdminClient,
@@ -168,7 +169,9 @@ export function Agenda({
                         <span>
                           <strong>{clientName}</strong>
                           <small>
-                            {service?.name ?? "Serviço indisponível"}
+                            {serviceLabel(appointment) ||
+                              service?.name ||
+                              "Serviço indisponível"}
                           </small>
                         </span>
                       </span>

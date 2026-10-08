@@ -1,9 +1,10 @@
 import { BookingWizard } from "@/components/booking-wizard";
 import { PageIntro } from "@/components/ui";
 import { pageMetadata } from "@/lib/metadata";
-import { getPublicCatalog } from "@/lib/supabase/catalog";
+import { getOpeningCalendar, getPublicCatalog } from "@/lib/supabase/catalog";
+import { getPublicSite, whatsappNumber } from "@/lib/supabase/site";
 import { CatalogProvider } from "@/components/catalog-provider";
-import { getBookingDates } from "@/lib/booking-shared";
+import { windowDates } from "@/lib/booking-shared";
 
 export const metadata = pageMetadata(
   "Agendamento",
@@ -18,6 +19,14 @@ export default async function BookingPage({
 }) {
   const query = await searchParams;
   const catalog = await getPublicCatalog();
+  const window = windowDates(
+    new Date(),
+    catalog.bookingSettings.booking_window_days,
+  );
+  const [calendar, { content }] = await Promise.all([
+    getOpeningCalendar(window[0], window.at(-1)!),
+    getPublicSite(),
+  ]);
   const service =
     typeof query.servico === "string"
       ? catalog.services.find((item) => item.slug === query.servico)
@@ -41,16 +50,10 @@ export default async function BookingPage({
       <section className="container section" aria-label="Agendamento">
         <CatalogProvider catalog={catalog}>
           <BookingWizard
-            whatsappNumber={process.env.WHATSAPP_NUMBER}
+            whatsappNumber={whatsappNumber(content)}
             initialServiceId={service?.id}
             initialStylistId={stylist?.id}
-            dates={getBookingDates(
-              new Date(),
-              catalog.bookingSettings.booking_window_days,
-              catalog.businessHours
-                .filter((day) => day.active)
-                .map((day) => day.weekday),
-            )}
+            dates={window.filter((date) => calendar.has(date))}
           />
         </CatalogProvider>
       </section>

@@ -146,6 +146,7 @@ export function Photo({
   sizes = "(max-width: 767px) 100vw, 50vw",
   preload = false,
   parallax = false,
+  position,
 }: {
   src: string;
   alt: string;
@@ -154,6 +155,8 @@ export function Photo({
   sizes?: string;
   preload?: boolean;
   parallax?: boolean;
+  /** Framing chosen in the site editor, as "x% y%". */
+  position?: string;
 }) {
   return (
     <div className={`photo ${className}`} style={{ aspectRatio: aspect }}>
@@ -163,6 +166,7 @@ export function Photo({
         fill
         sizes={sizes}
         preload={preload}
+        style={position ? { objectPosition: position } : undefined}
         className={`photo-image${parallax ? " photo-parallax" : ""}`}
         data-page-parallax={parallax || undefined}
       />
@@ -170,7 +174,11 @@ export function Photo({
   );
 }
 
-export function StylistCard({ stylist }: { stylist: Stylist }) {
+export function StylistCard({
+  stylist,
+}: {
+  stylist: Stylist & { imagePosition?: string };
+}) {
   return (
     <article className="stylist-card" data-page-section>
       <Link
@@ -184,6 +192,7 @@ export function StylistCard({ stylist }: { stylist: Stylist }) {
           alt={`Retrato de ${stylist.name}`}
           aspect="3 / 4"
           sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1023px) calc((100vw - 112px) / 2), 650px"
+          position={stylist.imagePosition}
         />
         <span className="image-link-arrow">
           <ArrowUpRight size={24} aria-hidden="true" />

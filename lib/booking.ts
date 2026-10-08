@@ -2,30 +2,44 @@
 
 import { revalidatePath } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/server";
-import { getPublicCatalog } from "@/lib/supabase/catalog";
+import { getOpeningCalendar, getPublicCatalog } from "@/lib/supabase/catalog";
 import {
   getAvailableSlots,
+  MAX_BOOKING_SERVICES,
+  requestedServiceIds,
   validateContactDetails,
   type AvailabilityRequest,
   type BookingRequest,
   type BookingResult,
   type BookingSlot,
 } from "./booking-shared";
-import type { Database, Json } from "./supabase/database.types";
+import type { Json } from "./supabase/database.types";
 
 export async function loadAvailability(
   request: AvailabilityRequest,
 ): Promise<BookingSlot[]> {
+  const serviceIds = request ? requestedServiceIds(request) : [];
   if (
     !request ||
-    typeof request.serviceId !== "string" ||
+    !serviceIds.length ||
+    serviceIds.length > MAX_BOOKING_SERVICES ||
     typeof request.date !== "string" ||
     !/^\d{4}-\d{2}-\d{2}$/.test(request.date) ||
     (request.stylistId !== undefined && typeof request.stylistId !== "string")
   )
     return [];
-  const catalog = await getPublicCatalog();
-  if (!getAvailableSlots(request, new Date(), catalog).length) return [];
+  const normalized = {
+    serviceIds,
+    stylistId: request.stylistId,
+    date: request.date,
+  };
+  const [catalog, calendar] = await Promise.all([
+    getPublicCatalog(),
+    getOpeningCalendar(request.date, request.date),
+  ]);
+  const periods = calendar.get(request.date) ?? [];
+  if (!getAvailableSlots(normalized, new Date(), catalog, [], periods).length)
+    return [];
   const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("get_booked_ranges", {
     p_date: request.date,
@@ -33,21 +47,16 @@ export async function loadAvailability(
   });
   if (error)
     throw new Error("Não foi possível consultar os horários. Tente novamente.");
-  return getAvailableSlots(request, new Date(), catalog, data ?? []);
+  return getAvailableSlots(normalized, new Date(), catalog, data ?? [], periods);
 }
-
-// Generated PostgREST types omit SQL argument nullability. This narrow adapter
-// models the actual RPC contract without editing generated database.types.ts.
-type PublicBookingArgs = Omit<
-  Database["public"]["Functions"]["create_public_booking"]["Args"],
-  "p_stylist_id"
-> & { p_stylist_id: string | null };
 
 function isBookingResult(value: Json): value is Json & BookingResult {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   if (value.ok === false)
     return (
-      (value.code === "unavailable" || value.code === "contact") &&
+      (value.code === "unavailable" ||
+        value.code === "contact" ||
+        value.code === "services") &&
       typeof value.message === "string"
     );
   const slot = value.slot;
@@ -58,11 +67,13 @@ function isBookingResult(value: Json): value is Json & BookingResult {
     !Array.isArray(slot) &&
     ["id", "serviceId", "stylistId", "date", "time", "startAt"].every(
       (key) => typeof slot[key] === "string",
-    )
+    ) &&
+    Array.isArray(slot.serviceIds) &&
+    slot.serviceIds.every((id) => typeof id === "string")
   );
 }
 
-/** Legacy name retained; the implementation now saves a reservation. */
+/** Legacy name retained; the implementation saves a reservation. */
 export async function submitDemoBooking(
   request: BookingRequest,
 ): Promise<BookingResult> {
@@ -97,8 +108,9 @@ export async function submitDemoBooking(
     )
   )
     return unavailable;
+  const serviceIds = requestedServiceIds(slot);
   const available = await loadAvailability({
-    serviceId: slot.serviceId,
+    serviceIds,
     stylistId: request.withoutPreference ? undefined : slot.stylistId,
     date: slot.date,
   });
@@ -111,19 +123,18 @@ export async function submitDemoBooking(
     )
   )
     return unavailable;
-  const args: PublicBookingArgs = {
-    p_service_id: slot.serviceId,
-    p_stylist_id: request.withoutPreference === true ? null : slot.stylistId,
+  const supabase = createPublicClient();
+  // Generated PostgREST types omit SQL argument nullability; null means no preference.
+  const { data, error } = await supabase.rpc("create_public_booking", {
+    p_service_ids: serviceIds,
+    p_stylist_id: (request.withoutPreference === true
+      ? null
+      : slot.stylistId) as string,
     p_starts_at: slot.startAt,
     p_name: contact.name,
     p_phone: contact.phone,
     p_email: contact.email,
-  };
-  const supabase = createPublicClient();
-  const { data, error } = await supabase.rpc(
-    "create_public_booking",
-    args as Database["public"]["Functions"]["create_public_booking"]["Args"],
-  );
+  });
   if (error || !isBookingResult(data))
     throw new Error(
       "Não foi possível confirmar o agendamento. Tente novamente.",

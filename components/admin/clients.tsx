@@ -13,6 +13,7 @@ import {
   formatDate,
   normalizeSearch,
   paymentLabels,
+  serviceLabel,
   statusLabels,
   type AdminAppointment,
   type AdminClient,
@@ -134,7 +135,8 @@ export function Clients({
                         </span>
                         <small>
                           {last
-                            ? services.find(
+                            ? serviceLabel(last) ||
+                              services.find(
                                 (item) => item.id === last.serviceId,
                               )?.name
                             : "Agende o primeiro cuidado"}
@@ -225,11 +227,10 @@ export function Clients({
                   >
                     <div>
                       <strong>
-                        {
+                        {serviceLabel(item) ||
                           services.find(
                             (service) => service.id === item.serviceId,
-                          )?.name
-                        }
+                          )?.name}
                       </strong>
                       <small>
                         {formatDate(item.date)} · {item.time} ·{" "}

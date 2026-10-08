@@ -2,15 +2,34 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
-const WhatsAppContext = createContext("https://wa.me/");
+/** Contact channels edited in the panel; empty values hide their links. */
+export interface PublicContact {
+  whatsappHref: string;
+  instagram: string;
+  phone: string;
+  hours: string;
+  photo: { src: string; alt: string; position: string };
+}
 
-export function ContactProvider({ href, children }: {
-  href: string;
+const ContactContext = createContext<PublicContact>({
+  whatsappHref: "https://wa.me/",
+  instagram: "",
+  phone: "",
+  hours: "",
+  photo: { src: "/images/contact-salon.jpg", alt: "", position: "" },
+});
+
+export function ContactProvider({ contact, children }: {
+  contact: PublicContact;
   children: ReactNode;
 }) {
-  return <WhatsAppContext.Provider value={href}>{children}</WhatsAppContext.Provider>;
+  return <ContactContext.Provider value={contact}>{children}</ContactContext.Provider>;
+}
+
+export function useContact() {
+  return useContext(ContactContext);
 }
 
 export function useWhatsAppHref() {
-  return useContext(WhatsAppContext);
+  return useContext(ContactContext).whatsappHref;
 }

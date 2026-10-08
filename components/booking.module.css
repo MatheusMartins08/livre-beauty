@@ -123,6 +123,20 @@
   line-height: 1.6;
   margin-top: 0.2rem;
 }
+.choiceNote {
+  font-size: 0.75rem;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+/* Dashed instead of faded, so the explanation keeps its contrast. */
+.choice.choiceDisabled {
+  cursor: default;
+  border-style: dashed;
+  background: transparent;
+}
+.selectionTotal {
+  margin-top: 1rem;
+}
 .choice.selected,
 .timeChoice.selected {
   border-color: var(--accent);
