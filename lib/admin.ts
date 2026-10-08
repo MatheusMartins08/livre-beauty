@@ -1,4 +1,5 @@
 import { services, stylists } from "@/content/salon";
+import type { SalonCatalog } from "./catalog";
 
 export type AdminRole = "dono" | "funcionario";
 export type AdminSection =
@@ -22,12 +23,13 @@ export interface AdminAppointment {
   time: string;
   clientId: string;
   serviceId: string;
-  bookedWith: string;
+  bookedWith: string | null;
   performedBy: string;
   status: AppointmentStatus;
   price: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | null;
   notes: string;
+  durationMinutes?: number;
 }
 
 // Illustrative business rules only; not the salon's confirmed commercial terms.
@@ -125,17 +127,35 @@ export function timeInMinutes(time: string) {
 export function appointmentError(
   appointment: AdminAppointment,
   appointments: AdminAppointment[],
+  catalog?: SalonCatalog,
 ) {
   if (appointment.status !== "agendado" && appointment.status !== "concluido")
     return null;
-  if (isClosed(appointment.date))
-    return "O ateliê abre de terça a sábado. Escolha um dia de funcionamento.";
+  const weekday = new Date(`${appointment.date}T12:00:00Z`).getUTCDay();
+  const hours = catalog?.businessHours.find((item) => item.weekday === weekday);
   const start = timeInMinutes(appointment.time);
-  const end =
-    start +
-    services.find((item) => item.id === appointment.serviceId)!.duration;
-  if (start < 540 || end > 1140)
-    return "O atendimento deve começar e terminar entre 9h e 19h.";
+  const serviceCatalog = catalog?.services ?? services;
+  const service = serviceCatalog.find(
+    (item) => item.id === appointment.serviceId,
+  );
+  const previous = appointments.find((item) => item.id === appointment.id);
+  const sameSchedule =
+    previous &&
+    previous.date === appointment.date &&
+    previous.time === appointment.time &&
+    previous.serviceId === appointment.serviceId &&
+    previous.performedBy === appointment.performedBy &&
+    (previous.status === "agendado" || previous.status === "concluido") &&
+    previous.durationMinutes === appointment.durationMinutes;
+  if (!sameSchedule && (catalog ? !hours?.active : isClosed(appointment.date)))
+    return "Escolha um dia de funcionamento do ateliê.";
+  const duration = appointment.durationMinutes ?? service?.duration;
+  if (!duration) return "Escolha um serviço disponível.";
+  const end = start + duration;
+  const opening = hours?.opens_at ? timeInMinutes(hours.opens_at) : 540;
+  const closing = hours?.closes_at ? timeInMinutes(hours.closes_at) : 1140;
+  if (!sameSchedule && (start < opening || end > closing))
+    return "O atendimento deve começar e terminar dentro do horário de funcionamento.";
   const conflict = appointments.some((item) => {
     if (
       item.id === appointment.id ||
@@ -148,8 +168,10 @@ export function appointmentError(
     return (
       start <
         timeInMinutes(item.time) +
-          services.find((service) => service.id === item.serviceId)!.duration &&
-      end > timeInMinutes(item.time)
+          (item.durationMinutes ??
+            serviceCatalog.find((service) => service.id === item.serviceId)
+              ?.duration ??
+            0) && end > timeInMinutes(item.time)
     );
   });
   return conflict

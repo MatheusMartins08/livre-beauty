@@ -1,20 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { services, stylists, site } from "@/content/salon";
+import {
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
+import { useCatalog } from "@/components/catalog-provider";
 import {
   BOOKING_TIME_ZONE,
-  getAvailableSlots,
-  getBookingDates,
-  loadAvailability,
-  submitDemoBooking,
   validateContactDetails,
   type BookingSlot,
   type ContactDetails,
-} from "@/lib/booking";
+} from "@/lib/booking-shared";
+import { loadAvailability, submitDemoBooking } from "@/lib/booking";
 import { priceLabel } from "@/lib/utils";
-import { ActionContent, ButtonLink } from "@/components/ui";
+import { ActionContent } from "@/components/ui";
 import { BookingCalendar } from "@/components/booking-calendar";
+import { BookingConfirmation } from "@/components/booking-confirmation";
+import { MaskedInput } from "@/components/masked-input";
 import styles from "./booking.module.css";
 
 const steps = [
@@ -35,9 +40,13 @@ const descriptions = [
   "Tudo começa com o cuidado que faz sentido para você.",
   "Conheça quem cuida de você ou deixe a escolha com a nossa equipe.",
   "Selecione um dia e confira os horários disponíveis.",
-  "Informe seus dados para compor o resumo da sua escolha.",
-  "Confira os detalhes antes de ver o resumo da sua escolha.",
+  "Informe seus dados para registrar seu agendamento.",
+  "Confira os detalhes antes de confirmar seu horário.",
 ];
+
+function hasExpired(startAt: string) {
+  return new Date(startAt).getTime() <= Date.now();
+}
 
 function dateLabel(date: string, full = false): string {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -51,10 +60,15 @@ function dateLabel(date: string, full = false): string {
 export function BookingWizard({
   initialServiceId = "",
   initialStylistId = "",
+  dates,
+  whatsappNumber,
 }: {
   initialServiceId?: string;
   initialStylistId?: string;
+  dates: string[];
+  whatsappNumber?: string;
 }) {
+  const { services, stylists, bookingSettings } = useCatalog();
   const [step, setStep] = useState(0);
   const [serviceId, setServiceId] = useState(initialServiceId);
   const [stylistChoice, setStylistChoice] = useState(initialStylistId);
@@ -83,9 +97,11 @@ export function BookingWizard({
     item.serviceIds.includes(serviceId),
   );
   const selectedStylist = stylists.find(
-    (item) => item.id === (slot?.stylistId || stylistChoice),
+    (item) =>
+      item.id === (confirmation?.stylistId || slot?.stylistId || stylistChoice),
   );
-  const dates = getBookingDates();
+  const investmentLabel = (price: number) =>
+    priceLabel(price, bookingSettings.show_prices);
 
   useEffect(() => {
     if (firstRender.current) {
@@ -200,12 +216,9 @@ export function BookingWizard({
         (firstTime || document.getElementById("booking-date"))?.focus();
         return;
       }
-      const available = getAvailableSlots({
-        serviceId,
-        stylistId: stylistChoice === "any" ? undefined : stylistChoice,
-        date,
-      });
+      const available = slots;
       if (
+        hasExpired(slot.startAt) ||
         !available.some(
           (item) => item.id === slot.id && item.startAt === slot.startAt,
         )
@@ -251,24 +264,30 @@ export function BookingWizard({
     }
     submitting.current = true;
     setPending(true);
-    try {
-      const result = await submitDemoBooking({ slot, contact });
-      if (result.ok) setConfirmation(result.slot);
-      else {
-        setMessage(result.message);
-        if (result.code === "unavailable") {
-          clearTime();
-          setStep(2);
-        } else setStep(3);
+    startTransition(async () => {
+      try {
+        const result = await submitDemoBooking({
+          slot,
+          contact,
+          withoutPreference: stylistChoice === "any",
+        });
+        if (result.ok) setConfirmation(result.slot);
+        else {
+          setMessage(result.message);
+          if (result.code === "unavailable") {
+            clearTime();
+            setStep(2);
+          } else setStep(3);
+        }
+      } catch {
+        setMessage(
+          "Não foi possível concluir sua escolha. Seus dados foram mantidos; tente novamente.",
+        );
+      } finally {
+        submitting.current = false;
+        setPending(false);
       }
-    } catch {
-      setMessage(
-        "Não foi possível concluir sua escolha. Seus dados foram mantidos; tente novamente.",
-      );
-    } finally {
-      submitting.current = false;
-      setPending(false);
-    }
+    });
   }
 
   function restart() {
@@ -284,47 +303,16 @@ export function BookingWizard({
 
   if (confirmation) {
     return (
-      <section
-        className={`${styles.confirmation} surface-panel`}
-        aria-labelledby="booking-complete"
-      >
-        <div className={styles.completeMark} aria-hidden="true">
-          ✓
-        </div>
-        <p className="eyebrow">SEU MOMENTO NO LIVRE</p>
-        <h2 id="booking-complete" ref={heading} tabIndex={-1}>
-          Resumo da sua escolha
-        </h2>
-        <p role="status">Confira o serviço, o profissional e o horário que você escolheu.</p>
-        <dl className={styles.confirmationDetails}>
-          <div>
-            <dt>Seu cuidado</dt>
-            <dd>{service?.name}</dd>
-          </div>
-          <div>
-            <dt>Profissional</dt>
-            <dd>{selectedStylist?.name}</dd>
-          </div>
-          <div>
-            <dt>Dia e horário</dt>
-            <dd>
-              {dateLabel(confirmation.date, true)} · {confirmation.time}
-            </dd>
-          </div>
-        </dl>
-        <p className="fine-print">
-          Os dados informados ficam apenas nesta tela. Nada é armazenado ou
-          enviado a um serviço externo.
-        </p>
-        <div className={styles.confirmationActions}>
-          <button type="button" className="button" onClick={restart}>
-            <ActionContent>Escolher outro horário</ActionContent>
-          </button>
-          <ButtonLink href="/" secondary>
-            Voltar ao início
-          </ButtonLink>
-        </div>
-      </section>
+      <BookingConfirmation
+        slot={confirmation}
+        service={services.find((item) => item.id === confirmation.serviceId)}
+        stylist={selectedStylist}
+        clientName={contact.name}
+        dateText={dateLabel(confirmation.date, true)}
+        headingRef={heading}
+        onRestart={restart}
+        whatsappNumber={whatsappNumber}
+      />
     );
   }
 
@@ -380,7 +368,7 @@ export function BookingWizard({
                         {item.description}
                       </span>
                       <span className={styles.choiceMeta}>
-                        {item.duration} min · {priceLabel(item.price)}
+                        {item.duration} min · {investmentLabel(item.price)}
                       </span>
                     </span>
                   </label>
@@ -454,7 +442,7 @@ export function BookingWizard({
                   describedBy={`booking-timezone${message ? " booking-error" : ""}`}
                 />
                 <p className="fine-print" id="booking-timezone">
-                  {site.hours}. Horários de São Paulo (Brasília).
+                  Horários de São Paulo (Brasília).
                 </p>
               </div>
               <div className={styles.timesArea}>
@@ -571,18 +559,16 @@ export function BookingWizard({
                 <label className="label" htmlFor="booking-phone">
                   Celular com DDD
                 </label>
-                <input
+                <MaskedInput
+                  mask="phone"
                   required
                   id="booking-phone"
                   className="input"
-                  type="tel"
-                  inputMode="tel"
                   autoComplete="tel"
                   value={contact.phone}
-                  maxLength={22}
                   placeholder="(11) 99999-9999"
-                  onChange={(event) =>
-                    setContact({ ...contact, phone: event.target.value })
+                  onValueChange={(phone) =>
+                    setContact({ ...contact, phone })
                   }
                   aria-invalid={Boolean(errors.phone)}
                   aria-describedby={
@@ -634,7 +620,7 @@ export function BookingWizard({
                     {service?.name}
                     <span>
                       {service?.duration} minutos ·{" "}
-                      {service && priceLabel(service.price)}
+                      {service && investmentLabel(service.price)}
                     </span>
                   </dd>
                 </div>
@@ -692,7 +678,13 @@ export function BookingWizard({
               className="button"
               disabled={pending || (step === 2 && loading)}
             >
-              <ActionContent>{pending ? "Concluindo…" : step === 4 ? "Ver resumo" : "Continuar"}</ActionContent>
+              <ActionContent>
+                {pending
+                  ? "Concluindo…"
+                  : step === 4
+                    ? "Confirmar agendamento"
+                    : "Continuar"}
+              </ActionContent>
             </button>
           </div>
           {pending && (
@@ -731,7 +723,7 @@ export function BookingWizard({
             <span className="fine-print">
               {service.duration} minutos de cuidado
             </span>
-            <strong>{priceLabel(service.price)}</strong>
+            <strong>{investmentLabel(service.price)}</strong>
             <span className="fine-print">Investimento inicial.</span>
           </div>
         )}

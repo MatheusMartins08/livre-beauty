@@ -19,7 +19,10 @@ export const getService = (slug: string) =>
   services.find((item) => item.slug === slug);
 export const getStylist = (slug: string) =>
   stylists.find((item) => item.slug === slug);
-export const priceLabel = (price: number) =>
-  site.showPrices
+export const priceLabel = (
+  price: number,
+  showPrices: boolean = site.showPrices,
+) =>
+  showPrices
     ? `A partir de ${formatPrice(price)}`
     : "Investimento sob consulta";

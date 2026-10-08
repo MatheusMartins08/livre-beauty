@@ -1,146 +1,144 @@
 import { expect, test, type Page } from "@playwright/test";
 
-test.beforeEach(async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-10-02T11:00:00Z") });
-});
+const next = (page: Page) =>
+  page.getByRole("button", { name: "Continuar", exact: true }).click();
+const back = (page: Page) =>
+  page.getByRole("button", { name: "Voltar", exact: true }).click();
+const timeChoices = (page: Page) =>
+  page.getByRole("radio", { name: /^\d{2}:\d{2}/ });
 
-async function chooseDateAndTime(page: Page) {
-  await page.locator('input[name="booking-day"][value="2026-10-03"]').check();
-  const times = page.getByRole("radio", { name: /^\d{2}:\d{2}/ });
-  await expect(times.first()).toBeVisible();
-  await times.first().check();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+async function schedule(page: Page, any = false) {
+  await page.goto(
+    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
+  );
+  await next(page);
+  if (any) await page.getByRole("radio", { name: /Sem preferência/ }).check();
+  await next(page);
 }
 
-test("calendar limits dates, supports month navigation and clears a previous time", async ({ page }) => {
-  await page.clock.setSystemTime(new Date("2026-10-15T11:00:00Z"));
-  await page.goto("/agendamento?servico=corte-autoral&profissional=lia-monteiro");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Mês anterior" })).toBeDisabled();
-  await expect(page.locator('input[name="booking-day"][value="2026-10-14"]')).toHaveCount(0);
-  await expect(page.locator('input[name="booking-day"][value="2026-10-18"]')).toHaveCount(0);
-  await page.locator('input[name="booking-day"][value="2026-10-16"]').check();
-  const times = page.getByRole("radio", { name: /^\d{2}:\d{2}/ });
-  await expect(times.first()).toBeVisible();
-  await times.first().check();
-  await page.getByRole("button", { name: "Próximo mês" }).click();
-  await expect(page.getByText("Novembro de 2026", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Próximo mês" })).toBeDisabled();
-  await expect(page.locator('input[name="booking-day"][value="2026-11-14"]')).toHaveCount(0);
-  await page.locator('input[name="booking-day"][value="2026-11-03"]').check();
-  await expect(page.locator('input[name="time"]:checked')).toHaveCount(0);
-  await expect(page.getByRole("status").filter({ hasText: "Seu dia:" })).toContainText("3 de novembro");
-  await page.getByRole("button", { name: "Mês anterior" }).click();
-  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(0);
-  await page.getByRole("button", { name: "Próximo mês" }).click();
-  await expect(page.locator('input[name="booking-day"][value="2026-11-03"]')).toBeChecked();
-});
-
-test("calendar date validation and selection work with the keyboard", async ({ page }) => {
-  await page.goto("/agendamento?servico=corte-autoral&profissional=lia-monteiro");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.locator("#booking-date")).toBeFocused();
-  await expect(page.getByRole("group", { name: "Qual dia combina com você?" })).toHaveAttribute("aria-invalid", "true");
-  await page.keyboard.press("Space");
-  await expect(page.locator('input[name="booking-day"][value="2026-10-02"]')).toBeChecked();
-  await page.keyboard.press("ArrowRight");
-  await expect(page.locator('input[name="booking-day"][value="2026-10-03"]')).toBeChecked();
-  await page.keyboard.press("ArrowRight");
-  await expect(page.locator('input[name="booking-day"][value="2026-10-06"]')).toBeChecked();
-});
-
-async function failNextTimeZoneFormatter(page: Page) {
-  // Fail the runtime dependency once, leaving the actual adapter and retry flow intact.
-  await page.evaluate(() => {
-    const OriginalDateTimeFormat = Intl.DateTimeFormat;
-    Intl.DateTimeFormat = function (
-      ...args: Parameters<typeof Intl.DateTimeFormat>
-    ) {
-      if (args[1]?.timeZoneName === "longOffset") {
-        Intl.DateTimeFormat = OriginalDateTimeFormat;
-        throw new Error("Transient time-zone formatter failure");
+async function chooseFutureDay(page: Page) {
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date());
+  for (let month = 0; month < 2; month++) {
+    const days = page.locator('input[name="booking-day"]');
+    for (let i = 0; i < (await days.count()); i++) {
+      const date = await days.nth(i).inputValue();
+      if (date > today) {
+        await days.nth(i).check();
+        await expect(timeChoices(page).first()).toBeVisible();
+        return date;
       }
-      return new OriginalDateTimeFormat(...args);
-    } as typeof Intl.DateTimeFormat;
-  });
+    }
+    await page.getByRole("button", { name: "Próximo mês" }).click();
+  }
+  throw new Error("No future working day available");
 }
 
-test("valid query parameters preselect the service and compatible professional", async ({
-  page,
-}) => {
+async function contactStep(page: Page, any = false) {
+  await schedule(page, any);
+  await chooseFutureDay(page);
+  await timeChoices(page).first().check();
+  await next(page);
+}
+
+async function review(page: Page, any = false) {
+  await contactStep(page, any);
+  await page.getByLabel("Nome completo").fill("Teste Playwright Reserva");
+  await page.getByLabel("Celular com DDD").fill("11900007771");
+  await page.getByLabel("E-mail").fill("playwright-reserva@example.com");
+  await next(page);
+}
+
+test("preselects only compatible query parameters", async ({ page }) => {
   await page.goto(
     "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
   );
   await expect(
     page.getByRole("radio", { name: /Corte autoral/ }),
   ).toBeChecked();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await next(page);
   await expect(page.getByRole("radio", { name: /Lia Monteiro/ })).toBeChecked();
   await expect(page.getByRole("radio", { name: /Rafael Costa/ })).toHaveCount(
     0,
   );
-});
-
-test("ignores unknown query parameters and incompatible professional preselection", async ({
-  page,
-}) => {
-  await page.goto("/agendamento?servico=inexistente&profissional=inexistente");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.locator("#booking-error")).toContainText(
-    "Selecione um serviço",
-  );
   await page.goto("/agendamento?servico=extensoes&profissional=lia-monteiro");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.getByRole("radio", { name: /Sofia Dias/ })).toBeVisible();
-  await expect(page.getByRole("radio", { name: /Lia Monteiro/ })).toHaveCount(
-    0,
-  );
+  await next(page);
   await expect(
     page.getByRole("radio", { name: /Sofia Dias/ }),
   ).not.toBeChecked();
-});
-
-test("retains choices when going back and clears downstream choices after a service change", async ({
-  page,
-}) => {
-  await page.goto(
-    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
+  await expect(page.getByRole("radio", { name: /Lia Monteiro/ })).toHaveCount(
+    0,
   );
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await chooseDateAndTime(page);
-  await page.getByLabel("Nome completo").fill("Pessoa Teste");
-  await page.getByRole("button", { name: "Voltar", exact: true }).click();
-  await expect(page.locator('input[name="booking-day"]:checked')).toHaveValue("2026-10-03");
-  await expect(page.locator('input[name="time"]:checked')).toHaveCount(1);
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.getByLabel("Nome completo")).toHaveValue("Pessoa Teste");
-  await page.getByRole("button", { name: "Voltar", exact: true }).click();
-  await page.getByRole("button", { name: "Voltar", exact: true }).click();
-  await page.getByRole("button", { name: "Voltar", exact: true }).click();
-  await page.getByRole("radio", { name: /Extensões naturais/ }).check();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("radio", { name: /Sofia Dias/ }).check();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(0);
+  await page.goto("/agendamento?servico=inexistente&profissional=inexistente");
+  await next(page);
+  await expect(page.locator("#booking-error")).toContainText(
+    "Selecione um serviço",
+  );
 });
 
-test("validates contact fields with accessible errors and completes one local selection", async ({
+test("calendar validates dates, supports keyboard selection and month navigation", async ({
   page,
 }) => {
-  const postedRequests: string[] = [];
-  page.on("request", (request) => {
-    if (request.method() === "POST") postedRequests.push(request.url());
-  });
-  await page.goto("/agendamento?servico=corte-autoral");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("radio", { name: /Sem preferência/ }).check();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await chooseDateAndTime(page);
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await schedule(page);
+  await expect(
+    page.getByRole("button", { name: "Mês anterior" }),
+  ).toBeDisabled();
+  await next(page);
+  await expect(page.locator("#booking-date")).toBeFocused();
+  await expect(
+    page.getByRole("group", { name: "Qual dia combina com você?" }),
+  ).toHaveAttribute("aria-invalid", "true");
+  await page.keyboard.press("Space");
+  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(
+    1,
+  );
+  if (await page.getByRole("button", { name: "Próximo mês" }).isEnabled()) {
+    await page.getByRole("button", { name: "Próximo mês" }).click();
+    await expect(
+      page.getByRole("button", { name: "Próximo mês" }),
+    ).toBeDisabled();
+    await page.getByRole("button", { name: "Mês anterior" }).click();
+    await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(
+      1,
+    );
+  }
+  const dates = await page
+    .locator('input[name="booking-day"]')
+    .evaluateAll((inputs) =>
+      inputs.map((input) => (input as HTMLInputElement).value),
+    );
+  expect(
+    dates.every(
+      (date) => ![0, 1].includes(new Date(date + "T12:00:00Z").getUTCDay()),
+    ),
+  ).toBe(true);
+});
+
+test("keeps contact when going back and clears dates after a professional change", async ({
+  page,
+}) => {
+  await contactStep(page);
+  await page.getByLabel("Nome completo").fill("Pessoa Teste");
+  await back(page);
+  await expect(page.locator('input[name="time"]:checked')).toHaveCount(1);
+  await next(page);
+  await expect(page.getByLabel("Nome completo")).toHaveValue("Pessoa Teste");
+  await back(page);
+  await back(page);
+  await page.getByRole("radio", { name: /Marina Alves/ }).check();
+  await next(page);
+  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(
+    0,
+  );
+  await expect(timeChoices(page)).toHaveCount(0);
+});
+
+test("validates contact fields and reviews without saving before confirmation", async ({
+  page,
+}) => {
+  await contactStep(page, true);
+  await next(page);
   await expect(page.getByLabel("Nome completo")).toBeFocused();
   await expect(page.getByLabel("Nome completo")).toHaveAttribute(
     "aria-invalid",
@@ -148,207 +146,159 @@ test("validates contact fields with accessible errors and completes one local se
   );
   await page.getByLabel("Nome completo").fill("Pessoa Teste");
   await page.getByLabel("Celular com DDD").fill("123");
-  await page.getByLabel("E-mail").fill("invalido");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await page.getByLabel("E-mail").fill("invalid");
+  await next(page);
   await expect(page.getByLabel("Celular com DDD")).toBeFocused();
-  await page.getByLabel("Celular com DDD").fill("(11) 99999-8888");
+  await page.getByLabel("Celular com DDD").fill("+55 (11) 99999-8888");
   await page.getByLabel("E-mail").fill("teste@example.com");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await next(page);
   await expect(
     page.getByRole("heading", { name: "Revise sua escolha" }),
   ).toBeVisible();
   await expect(
-    page.locator("form dd").filter({ hasText: "Lia Monteiro" }),
-  ).toHaveCount(1);
-  await expect(
     page.locator("form dd").filter({ hasText: "Pessoa Teste" }),
   ).toContainText("teste@example.com");
-  await page.clock.pauseAt(new Date("2026-10-02T11:01:00Z"));
+  await expect(
+    page.getByRole("button", { name: "Confirmar agendamento" }),
+  ).toBeEnabled();
+});
+
+for (const width of [390, 1440]) {
+  test(`phone mask supports typing, paste, deletion and review at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await contactStep(page);
+    const phone = page.getByLabel("Celular com DDD");
+    await phone.pressSequentially("11999998888");
+    await expect(phone).toHaveValue("(11) 99999-8888");
+    await phone.press("Backspace");
+    await expect(phone).toHaveValue("(11) 9999-9888");
+    await phone.fill("+55 (11) 99999-8888");
+    await expect(phone).toHaveValue("(11) 99999-8888");
+    // Editing in the middle must leave the caret next to the edited digit.
+    await phone.evaluate((input: HTMLInputElement) => input.setSelectionRange(6, 7));
+    await phone.press("8");
+    await expect(phone).toHaveValue("(11) 98999-8888");
+    expect(await phone.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(7);
+    // Backspace at the dash deletes the previous digit rather than trapping the caret.
+    await phone.evaluate((input: HTMLInputElement) => input.setSelectionRange(11, 11));
+    await phone.press("Backspace");
+    await expect(phone).toHaveValue("(11) 9899-8888");
+    // Mobile keyboards can emit input events without a keydown.
+    await phone.fill("11999998888");
+    await phone.evaluate((input: HTMLInputElement) => {
+      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      setValue.call(input, input.value.replace("-", ""));
+      input.setSelectionRange(10, 10);
+      input.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "deleteContentBackward" }));
+    });
+    await expect(phone).toHaveValue("(11) 9999-8888");
+    await phone.fill("1133334444");
+    await expect(phone).toHaveValue("(11) 3333-4444");
+    await phone.fill("");
+    await expect(phone).toHaveValue("");
+    await phone.fill("11999998888");
+    await page.getByLabel("Nome completo").fill("Pessoa Teste");
+    await page.getByLabel("E-mail").fill("teste@example.com");
+    await next(page);
+    await expect(page.locator("form dd").filter({ hasText: "Pessoa Teste" })).toContainText("(11) 99999-8888");
+    await back(page);
+    await expect(phone).toHaveValue("(11) 99999-8888");
+  });
+}
+
+test("retries a failed server availability request", async ({ page }) => {
+  await schedule(page);
+  let fail = true;
+  await page.route("**/agendamento**", async (route) => {
+    if (
+      fail &&
+      route.request().method() === "POST" &&
+      route.request().headers()["next-action"]
+    ) {
+      fail = false;
+      await route.abort();
+    } else await route.continue();
+  });
+  const days = page.locator('input[name="booking-day"]');
+  await days.last().check();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Não foi possível consultar" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Tentar novamente" }).click();
+  await expect(timeChoices(page).first()).toBeVisible();
+});
+
+test("retains the review when confirmation fails and blocks repeated submission", async ({
+  page,
+}) => {
+  await review(page);
+  let calls = 0;
+  let release: () => void = () => {};
+  const wait = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/agendamento**", async (route) => {
+    if (
+      route.request().method() === "POST" &&
+      route.request().headers()["next-action"]
+    ) {
+      calls++;
+      await wait;
+      await route.abort();
+    } else await route.continue();
+  });
   await page
-    .getByRole("button", { name: "Ver resumo", exact: true })
+    .getByRole("button", { name: "Confirmar agendamento" })
     .evaluate((button: HTMLButtonElement) => {
       button.click();
       button.click();
     });
-  await expect(page.locator("form")).toHaveAttribute("aria-busy", "true");
   await expect(
-    page.getByRole("button", { name: "Concluindo…", exact: true }),
+    page.getByRole("button", { name: "Concluindo…" }),
   ).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "Voltar", exact: true }),
   ).toBeDisabled();
-  await page.clock.runFor(400);
-  await expect(
-    page.getByRole("heading", { name: "Resumo da sua escolha" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Resumo da sua escolha" }),
-  ).toBeFocused();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Confira o serviço" }),
-  ).toHaveCount(1);
-  await expect(page.getByRole("status").filter({ hasText: "Confira o serviço" })).toBeVisible();
-  expect(postedRequests).toEqual([]);
-});
-
-test("shows loading and lets the user retry a temporary availability failure", async ({
-  page,
-}) => {
-  await page.goto(
-    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
-  );
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await failNextTimeZoneFormatter(page);
-  await page.clock.pauseAt(new Date("2026-10-02T11:01:00Z"));
-  await page.locator('input[name="booking-day"][value="2026-10-03"]').check();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Consultando horários" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Continuar", exact: true }),
-  ).toBeDisabled();
-  await page.clock.runFor(200);
-  await expect(page.getByRole("main").getByRole("alert")).toContainText(
-    "Não foi possível consultar os horários",
-  );
-  await expect(page.locator('input[name="booking-day"]:checked')).toHaveValue("2026-10-03");
-  await page
-    .getByRole("button", { name: "Tentar novamente", exact: true })
-    .click();
-  await page.clock.runFor(200);
-  await expect(
-    page.getByRole("radio", { name: /^\d{2}:\d{2}/ }).first(),
-  ).toBeVisible();
-  await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
-});
-
-test("explains a full day and returns focus to the date instead of advancing", async ({
-  page,
-}) => {
-  await page.goto("/agendamento?servico=extensoes&profissional=sofia-dias");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.locator('input[name="booking-day"][value="2026-10-14"]').check();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Não há horários" }),
-  ).toBeVisible();
-  await expect(page.getByRole("radio", { name: /^\d{2}:\d{2}/ })).toHaveCount(
-    0,
-  );
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.locator("#booking-date")).toBeFocused();
-  await expect(
-    page.getByRole("heading", { name: "Encontre seu horário" }),
-  ).toBeVisible();
-  await page.locator('input[name="booking-day"][value="2026-10-15"]').check();
-  await expect(
-    page.getByRole("radio", { name: /^\d{2}:\d{2}/ }).first(),
-  ).toBeVisible();
-});
-
-test("changing a professional clears the previous date and time", async ({
-  page,
-}) => {
-  await page.goto(
-    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
-  );
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await chooseDateAndTime(page);
-  await page.getByRole("button", { name: "Voltar", exact: true }).click();
-  await page.getByRole("button", { name: "Voltar", exact: true }).click();
-  await page.getByRole("radio", { name: /Marina Alves/ }).check();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.locator('input[name="booking-day"]:checked')).toHaveCount(0);
-  await expect(page.getByRole("radio", { name: /^\d{2}:\d{2}/ })).toHaveCount(
-    0,
-  );
-});
-
-test("retains the review after a temporary submit failure and completes using the keyboard", async ({
-  page,
-}) => {
-  await page.goto(
-    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
-  );
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await chooseDateAndTime(page);
-  await page.getByLabel("Nome completo").fill("Pessoa Teste");
-  await page.getByLabel("Celular com DDD").fill("11999998888");
-  await page.getByLabel("E-mail").fill("teste@example.com");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await failNextTimeZoneFormatter(page);
-  const submit = page.getByRole("button", {
-    name: "Ver resumo",
-    exact: true,
-  });
-  await submit.focus();
-  await page.keyboard.press("Enter");
+  release();
   await expect(page.locator("#booking-error")).toContainText(
     "Seus dados foram mantidos",
   );
   await expect(
-    page.locator("form dd").filter({ hasText: "Pessoa Teste" }),
-  ).toContainText("teste@example.com");
-  await expect(submit).toBeEnabled();
-  await submit.focus();
-  await page.keyboard.press("Enter");
-  await expect(
-    page.getByRole("heading", { name: "Resumo da sua escolha" }),
-  ).toBeFocused();
-  await expect(page.locator("#booking-error")).toHaveCount(0);
+    page.locator("form dd").filter({ hasText: "Teste Playwright" }),
+  ).toContainText("playwright-reserva@example.com");
+  expect(calls).toBe(1);
 });
 
-test("revalidates a stale time and returns to date selection", async ({
+test("returns focus to the calendar when a selected start has expired", async ({
   page,
 }) => {
-  await page.goto(
-    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
-  );
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await chooseDateAndTime(page);
-  await page.getByLabel("Nome completo").fill("Pessoa Teste");
-  await page.getByLabel("Celular com DDD").fill("11999998888");
-  await page.getByLabel("E-mail").fill("teste@example.com");
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.clock.setSystemTime(new Date("2026-10-04T01:00:00Z"));
-  await page
-    .getByRole("button", { name: "Ver resumo", exact: true })
-    .click();
-  await expect(page.locator("#booking-error")).toContainText(
-    "não está mais disponível",
-  );
-  await expect(
-    page.getByRole("heading", { name: "Encontre seu horário" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Resumo da sua escolha" }),
-  ).toHaveCount(0);
-});
-
-test("focuses date selection when a chosen time expires before continuing", async ({
-  page,
-}) => {
-  await page.goto(
-    "/agendamento?servico=corte-autoral&profissional=lia-monteiro",
-  );
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await page.locator('input[name="booking-day"][value="2026-10-03"]').check();
-  const times = page.getByRole("radio", { name: /^\d{2}:\d{2}/ });
-  await expect(times.first()).toBeVisible();
-  await times.first().check();
-  await page.clock.setSystemTime(new Date("2026-10-04T01:00:00Z"));
-  await page.getByRole("button", { name: "Continuar", exact: true }).click();
+  await schedule(page);
+  const date = await chooseFutureDay(page);
+  await timeChoices(page).first().check();
+  await page.clock.install({ time: new Date(date + "T23:59:00Z") });
+  await next(page);
   await expect(page.locator("#booking-error")).toContainText(
     "não está mais disponível",
   );
   await expect(page.locator("#booking-date")).toBeFocused();
-  await expect(page.locator("#booking-date")).toHaveAttribute(
-    "aria-describedby",
-    /booking-error/,
+});
+
+test("persists one public reservation and confirms its assigned professional", async ({
+  page,
+}) => {
+  test.skip(
+    process.env.LIVE_BOOKING_TESTS !== "true",
+    "Opt in only on the development project; clean the named fixture afterwards.",
   );
+  await review(page, true);
+  await page.getByRole("button", { name: "Confirmar agendamento" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Agendamento confirmado" }),
+  ).toBeFocused();
+  await expect(page.getByRole("status")).toContainText(
+    "já está na agenda da equipe",
+  );
+  await expect(
+    page.locator("dd").filter({ hasText: "Lia Monteiro" }),
+  ).toHaveCount(1);
 });

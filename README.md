@@ -6,12 +6,24 @@ Website editorial para um ateliê de beleza, com conteúdo em português, fotogr
 
 Requisitos: Node.js 20.9 ou superior e npm. No PowerShell:
 
+Em um clone novo, copie `.env.example` para `.env.local` e preencha a URL e a
+chave publicável do Supabase. Preserve o `.env.local` quando ele já estiver
+configurado. O modelo, as migrations e as regras de acesso estão em
+[docs/database.md](docs/database.md). Não versione credenciais.
+
 ```powershell
 npm.cmd ci
 npm.cmd run dev
 ```
 
 Abra [localhost:3000](http://localhost:3000). Em outros sistemas, use `npm` sem a extensão `.cmd`.
+
+O botão **Enviar pelo WhatsApp** aparece após a confirmação da reserva, com nome,
+serviço, profissional confirmado, data, início, término previsto e duração.
+Configure `WHATSAPP_NUMBER` no `.env.local` com o número do salão em formato
+internacional (país + DDD + número, somente dígitos). Reinicie o servidor após
+alterar essa configuração. Sem um número válido, o WhatsApp permite escolher
+um contato. A mensagem abre pronta; a pessoa revisa e envia pelo WhatsApp.
 
 ```powershell
 npm.cmd run lint
@@ -83,11 +95,26 @@ As ações compartilham `.action-link`, `.action-label` e `.action-arrow`. O tex
 
 Filtros e FAQ emitem `page-layout-change` para atualizar o ScrollTrigger quando o layout muda. Alterar `prefers-reduced-motion` durante a sessão cancela movimentos. O conteúdo permanece visível sem JavaScript e o FAQ mantém o comportamento nativo de `details`. Hover animado exige ponteiro preciso; foco por teclado continua imediato e visível.
 
-## Dados e integrações futuras
+## Dados e integrações
 
-A disponibilidade é calculada localmente para os próximos 30 dias no fuso `America/Sao_Paulo`, de terça a sábado, entre 9h e 19h, respeitando a duração do serviço e eliminando horários passados. A seleção é revalidada antes de apresentar **Resumo da sua escolha**. Voltar preserva respostas; mudanças incompatíveis limpam seleções posteriores. Os adaptadores assíncronos `loadAvailability()` e `submitDemoBooking()` preservam os contratos atuais para uma futura integração.
+A disponibilidade usa catálogo, horários de funcionamento e intervalos ocupados
+do Supabase, no fuso `America/Sao_Paulo`. Respeita a duração do serviço,
+elimina horários passados e é revalidada ao confirmar. Voltar preserva
+respostas; mudanças incompatíveis limpam seleções posteriores.
+`loadAvailability()` consulta o banco e `submitDemoBooking()`, apesar do nome
+legado, registra a reserva real. As RPCs impedem conflitos de horários.
 
-Dados pessoais ficam somente na memória da página. Não há endpoints, pagamentos, transmissão de mensagens, banco de dados ou gravação em cookies, `localStorage` ou `sessionStorage`. Os diálogos de Instagram levam à galeria; WhatsApp e telefone levam ao agendamento. Destinos externos poderão ser configurados futuramente, junto da atualização dos textos e das políticas de privacidade.
+Antes da confirmação, os dados pessoais ficam na memória da página. Ao confirmar,
+nome, telefone e e-mail são registrados no Supabase com os dados do atendimento.
+O painel usa autenticação real e exige um perfil autorizado em `staff_profiles`;
+as consultas e gravações respeitam RLS. Os cookies da equipe mantêm a sessão,
+sem armazenar dados do formulário em `localStorage` ou `sessionStorage`.
+
+Não há pagamentos pelo site. Os diálogos institucionais de Instagram levam à
+galeria; WhatsApp e telefone levam ao agendamento. Na confirmação, o botão
+**Enviar pelo WhatsApp** abre uma mensagem pronta no número configurado, para
+revisão e envio pela pessoa. As máscaras formatam telefones com DDD e valores
+em reais, preservando a validação antes de salvar.
 
 O OpenStreetMap é solicitado somente após clicar em **Explorar a região**. O iframe usa `referrerPolicy="no-referrer"` e não recebe os dados do agendamento. Fotografias e fontes permanecem locais.
 

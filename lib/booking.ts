@@ -1,186 +1,133 @@
-import { services, stylists } from "../content/salon";
+"use server";
 
-export const BOOKING_TIME_ZONE = "America/Sao_Paulo";
-
-export interface BookingSlot {
-  id: string;
-  serviceId: string;
-  stylistId: string;
-  date: string;
-  time: string;
-  startAt: string;
-}
-
-export interface AvailabilityRequest {
-  serviceId: string;
-  stylistId?: string;
-  date: string;
-}
-
-export interface ContactDetails {
-  name: string;
-  phone: string;
-  email: string;
-}
-export interface BookingRequest {
-  slot: BookingSlot;
-  contact: ContactDetails;
-}
-export type BookingResult =
-  | { ok: true; slot: BookingSlot }
-  | { ok: false; code: "unavailable" | "contact"; message: string };
-
-function localDate(date: Date): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: BOOKING_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const part = (type: string) =>
-    parts.find((value) => value.type === type)?.value;
-  return `${part("year")}-${part("month")}-${part("day")}`;
-}
-
-export function getBookingDates(now = new Date()): string[] {
-  const firstDay = new Date(`${localDate(now)}T12:00:00Z`);
-  return Array.from(
-    { length: 30 },
-    (_, index) => new Date(firstDay.getTime() + index * 86_400_000),
-  )
-    .filter((date) => date.getUTCDay() >= 2 && date.getUTCDay() <= 6)
-    .map((date) => date.toISOString().slice(0, 10));
-}
-
-function startInstant(date: string, time: string): string {
-  const wallTime = new Date(`${date}T${time}:00Z`);
-  const offset =
-    new Intl.DateTimeFormat("en", {
-      timeZone: BOOKING_TIME_ZONE,
-      timeZoneName: "longOffset",
-    })
-      .formatToParts(wallTime)
-      .find((part) => part.type === "timeZoneName")?.value ?? "GMT";
-  const match = offset.match(/GMT([+-])(\d{2}):(\d{2})/);
-  const offsetMinutes = match
-    ? (Number(match[2]) * 60 + Number(match[3])) * (match[1] === "+" ? 1 : -1)
-    : 0;
-  return new Date(wallTime.getTime() - offsetMinutes * 60_000).toISOString();
-}
-
-function hasMockAppointment(
-  stylistId: string,
-  date: string,
-  start: number,
-  duration: number,
-): boolean {
-  const seed = [...`${stylistId}${date}`].reduce(
-    (sum, character) => sum + character.charCodeAt(0),
-    0,
-  );
-  // Reproducible demonstration appointments, with no random failures or stored reservations.
-  const occupied = seed % 3 === 0 ? [[720, 780]] : [[600, 660]];
-  if (seed % 2 === 0) occupied.push([960, 1020]);
-  return occupied.some(([from, to]) => start < to && start + duration > from);
-}
-
-export function getAvailableSlots(
-  request: AvailabilityRequest,
-  now = new Date(),
-): BookingSlot[] {
-  const service = services.find((item) => item.id === request.serviceId);
-  if (!service || !getBookingDates(now).includes(request.date)) return [];
-  const compatible = stylists.filter(
-    (stylist) =>
-      stylist.serviceIds.includes(service.id) &&
-      (!request.stylistId || stylist.id === request.stylistId),
-  );
-  const slots: BookingSlot[] = [];
-  for (
-    let minutes = 9 * 60;
-    minutes + service.duration <= 19 * 60;
-    minutes += 30
-  ) {
-    const time = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-    const startAt = startInstant(request.date, time);
-    if (new Date(startAt).getTime() <= now.getTime()) continue;
-    const stylist = compatible.find(
-      (item) =>
-        !hasMockAppointment(item.id, request.date, minutes, service.duration),
-    );
-    if (stylist)
-      slots.push({
-        id: `${service.id}:${stylist.id}:${request.date}:${time}`,
-        serviceId: service.id,
-        stylistId: stylist.id,
-        date: request.date,
-        time,
-        startAt,
-      });
-  }
-  return slots;
-}
-
-export function validateContactDetails(
-  contact: ContactDetails,
-): Partial<Record<keyof ContactDetails, string>> {
-  const errors: Partial<Record<keyof ContactDetails, string>> = {};
-  if (contact.name.trim().length < 2 || contact.name.trim().length > 100)
-    errors.name = "Informe seu nome, com pelo menos 2 caracteres.";
-  const digits = contact.phone
-    .replace(/\D/g, "")
-    .replace(/^55(?=\d{10,11}$)/, "");
-  if (!/^[+()\d\s.-]+$/.test(contact.phone) || !/^\d{10,11}$/.test(digits))
-    errors.phone = "Informe um celular válido com DDD.";
-  if (
-    contact.email.trim().length > 254 ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())
-  )
-    errors.email = "Informe um e-mail válido.";
-  return errors;
-}
-
-function localDelay(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
+import { revalidatePath } from "next/cache";
+import { createPublicClient } from "@/lib/supabase/server";
+import { getPublicCatalog } from "@/lib/supabase/catalog";
+import {
+  getAvailableSlots,
+  validateContactDetails,
+  type AvailabilityRequest,
+  type BookingRequest,
+  type BookingResult,
+  type BookingSlot,
+} from "./booking-shared";
+import type { Database, Json } from "./supabase/database.types";
 
 export async function loadAvailability(
   request: AvailabilityRequest,
-  now?: Date,
 ): Promise<BookingSlot[]> {
-  await localDelay(150);
-  return getAvailableSlots(request, now ?? new Date());
+  if (
+    !request ||
+    typeof request.serviceId !== "string" ||
+    typeof request.date !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(request.date) ||
+    (request.stylistId !== undefined && typeof request.stylistId !== "string")
+  )
+    return [];
+  const catalog = await getPublicCatalog();
+  if (!getAvailableSlots(request, new Date(), catalog).length) return [];
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc("get_booked_ranges", {
+    p_date: request.date,
+    ...(request.stylistId ? { p_stylist_id: request.stylistId } : {}),
+  });
+  if (error)
+    throw new Error("Não foi possível consultar os horários. Tente novamente.");
+  return getAvailableSlots(request, new Date(), catalog, data ?? []);
 }
 
+// Generated PostgREST types omit SQL argument nullability. This narrow adapter
+// models the actual RPC contract without editing generated database.types.ts.
+type PublicBookingArgs = Omit<
+  Database["public"]["Functions"]["create_public_booking"]["Args"],
+  "p_stylist_id"
+> & { p_stylist_id: string | null };
+
+function isBookingResult(value: Json): value is Json & BookingResult {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  if (value.ok === false)
+    return (
+      (value.code === "unavailable" || value.code === "contact") &&
+      typeof value.message === "string"
+    );
+  const slot = value.slot;
+  return (
+    value.ok === true &&
+    !!slot &&
+    typeof slot === "object" &&
+    !Array.isArray(slot) &&
+    ["id", "serviceId", "stylistId", "date", "time", "startAt"].every(
+      (key) => typeof slot[key] === "string",
+    )
+  );
+}
+
+/** Legacy name retained; the implementation now saves a reservation. */
 export async function submitDemoBooking(
   request: BookingRequest,
-  now?: Date,
 ): Promise<BookingResult> {
-  await localDelay(300);
-  if (Object.keys(validateContactDetails(request.contact)).length) {
+  const unavailable: BookingResult = {
+    ok: false,
+    code: "unavailable",
+    message:
+      "Este horário não está mais disponível. Escolha outro dia ou horário.",
+  };
+  if (
+    !request?.contact ||
+    ["name", "phone", "email"].some(
+      (key) =>
+        typeof request.contact[key as keyof typeof request.contact] !==
+        "string",
+    ) ||
+    Object.keys(validateContactDetails(request.contact)).length
+  ) {
     return {
       ok: false,
       code: "contact",
       message: "Confira seus dados antes de continuar.",
     };
   }
-  const { slot } = request;
-  const available = getAvailableSlots(
-    { serviceId: slot.serviceId, stylistId: slot.stylistId, date: slot.date },
-    now ?? new Date(),
+  const { slot, contact } = request;
+  if (
+    !slot ||
+    (request.withoutPreference !== undefined &&
+      typeof request.withoutPreference !== "boolean") ||
+    ["id", "serviceId", "stylistId", "date", "time", "startAt"].some(
+      (key) => typeof slot[key as keyof BookingSlot] !== "string",
+    )
+  )
+    return unavailable;
+  const available = await loadAvailability({
+    serviceId: slot.serviceId,
+    stylistId: request.withoutPreference ? undefined : slot.stylistId,
+    date: slot.date,
+  });
+  if (
+    !available.some(
+      (item) =>
+        (request.withoutPreference || item.id === slot.id) &&
+        item.startAt === slot.startAt &&
+        item.time === slot.time,
+    )
+  )
+    return unavailable;
+  const args: PublicBookingArgs = {
+    p_service_id: slot.serviceId,
+    p_stylist_id: request.withoutPreference === true ? null : slot.stylistId,
+    p_starts_at: slot.startAt,
+    p_name: contact.name,
+    p_phone: contact.phone,
+    p_email: contact.email,
+  };
+  const supabase = createPublicClient();
+  const { data, error } = await supabase.rpc(
+    "create_public_booking",
+    args as Database["public"]["Functions"]["create_public_booking"]["Args"],
   );
-  const match = available.find(
-    (item) =>
-      item.id === slot.id &&
-      item.startAt === slot.startAt &&
-      item.time === slot.time,
-  );
-  if (!match)
-    return {
-      ok: false,
-      code: "unavailable",
-      message:
-        "Este horário não está mais disponível. Escolha outro dia ou horário.",
-    };
-  return { ok: true, slot: match };
+  if (error || !isBookingResult(data))
+    throw new Error(
+      "Não foi possível confirmar o agendamento. Tente novamente.",
+    );
+  if (data.ok) revalidatePath("/painel");
+  return data;
 }

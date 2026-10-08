@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpRight, DownloadSimple } from "@phosphor-icons/react";
-import { services, stylists } from "@/content/salon";
+import { useCatalog } from "@/components/catalog-provider";
 import {
   charge,
   currency,
@@ -31,6 +31,7 @@ export function Production({
   compact?: boolean;
   onSeeAll?: () => void;
 }) {
+  const { stylists } = useCatalog();
   const people =
     role === "dono"
       ? stylists
@@ -104,6 +105,7 @@ export function Payroll({
   role: AdminRole;
   stylistId: string;
 }) {
+  const { services, stylists } = useCatalog();
   const [period, setPeriod] = useState<Period>("mes");
   const range = getPeriodRange(date, period);
   const completed = appointments.filter(
@@ -265,6 +267,7 @@ export function Payroll({
 }
 
 export function ServiceCatalog() {
+  const { services, stylists } = useCatalog();
   const pagination = useMobilePagination(services.map((item) => item.id));
   return (
     <Panel

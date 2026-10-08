@@ -2,9 +2,9 @@ import { expect, test } from "@playwright/test";
 import {
   getAvailableSlots,
   getBookingDates,
-  loadAvailability,
-  submitDemoBooking,
-} from "../lib/booking";
+  startInstant,
+  validateContactDetails,
+} from "../lib/booking-shared";
 
 const fridayMorning = new Date("2026-10-02T11:00:00Z"); // Friday, 08:00 in São Paulo.
 const contact = {
@@ -124,53 +124,54 @@ test("assigns a compatible professional without preference and rejects incompati
   ).toEqual([]);
 });
 
-test("mock busy periods are deterministic and do not expose every possible start", async () => {
+test("uses occupied intervals and permits adjacent appointments", () => {
   const request = { serviceId: "corte", stylistId: "lia", date: "2026-10-03" };
-  const slots = getAvailableSlots(request, fridayMorning);
-  expect(slots.length).toBeGreaterThan(0);
-  expect(slots.length).toBeLessThan(19);
-  expect(await loadAvailability(request, fridayMorning)).toEqual(slots);
-  expect(getAvailableSlots(request, fridayMorning)).toEqual(slots);
+  const busy = [
+    {
+      performed_by: "lia",
+      starts_at: startInstant(request.date, "10:00"),
+      ends_at: startInstant(request.date, "11:00"),
+    },
+  ];
+  const slots = getAvailableSlots(request, fridayMorning, undefined, busy);
+  for (const time of ["09:30", "10:00", "10:30"])
+    expect(slots.map((slot) => slot.time)).not.toContain(time);
+  for (const time of ["09:00", "11:00"])
+    expect(slots.map((slot) => slot.time)).toContain(time);
+  const any = getAvailableSlots(
+    { ...request, stylistId: undefined },
+    fridayMorning,
+    undefined,
+    busy,
+  );
+  expect(any.find((slot) => slot.time === "10:00")?.stylistId).toBe("marina");
 });
 
-test("confirmation rechecks the slot and rejects stale or tampered selections", async () => {
-  const slot = getAvailableSlots(
-    { serviceId: "corte", stylistId: "lia", date: "2026-10-03" },
-    fridayMorning,
-  )[0];
-  expect(slot).toBeDefined();
-  expect(await submitDemoBooking({ slot, contact }, fridayMorning)).toEqual({
-    ok: true,
-    slot,
-  });
-  const afterStart = new Date(new Date(slot.startAt).getTime() + 1);
-  expect(await submitDemoBooking({ slot, contact }, afterStart)).toMatchObject({
-    ok: false,
-    code: "unavailable",
+test("normalizes phone prefixes and rejects invalid contact fields", () => {
+  expect(validateContactDetails(contact)).toEqual({});
+  expect(
+    validateContactDetails({ ...contact, phone: "+55 (11) 99999-8888" }),
+  ).toEqual({});
+  expect(
+    validateContactDetails({ name: " ", phone: "123", email: "wrong" }),
+  ).toEqual({
+    name: expect.any(String),
+    phone: expect.any(String),
+    email: expect.any(String),
   });
   expect(
-    await submitDemoBooking(
-      { slot: { ...slot, stylistId: "rafael" }, contact },
-      fridayMorning,
-    ),
-  ).toMatchObject({ ok: false, code: "unavailable" });
-  expect(
-    await submitDemoBooking(
-      { slot: { ...slot, startAt: "2026-10-03T03:00:00Z" }, contact },
-      fridayMorning,
-    ),
-  ).toMatchObject({ ok: false, code: "unavailable" });
+    validateContactDetails({ ...contact, phone: "letters11999998888" }).phone,
+  ).toBeTruthy();
 });
 
-test("confirmation refuses invalid contact details", async () => {
-  const slot = getAvailableSlots(
-    { serviceId: "corte", stylistId: "lia", date: "2026-10-03" },
-    fridayMorning,
-  )[0];
-  expect(
-    await submitDemoBooking(
-      { slot, contact: { name: " ", phone: "123", email: "wrong" } },
-      fridayMorning,
-    ),
-  ).toMatchObject({ ok: false, code: "contact" });
+test("converts local instants and rejects nonexistent dates", () => {
+  expect(startInstant("2026-10-03", "09:00")).toBe("2026-10-03T12:00:00.000Z");
+  for (const [date, time] of [
+    ["2026-02-30", "09:00"],
+    ["2026-99-01", "09:00"],
+    ["2026-10-03", "24:00"],
+    ["2026-10-03", "12:99"],
+  ]) {
+    expect(() => startInstant(date, time)).toThrow(RangeError);
+  }
 });

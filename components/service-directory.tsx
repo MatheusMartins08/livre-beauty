@@ -3,7 +3,13 @@ import type { Service } from "@/content/salon";
 import { bookingHref, priceLabel } from "@/lib/utils";
 import { ButtonLink, Photo } from "@/components/ui";
 
-export function ServiceDirectory({ items }: { items: Service[] }) {
+export function ServiceDirectory({
+  items,
+  showPrices,
+}: {
+  items: Service[];
+  showPrices: boolean;
+}) {
   return (
     <>
       <nav aria-label="Categorias de serviços" className="service-category-nav">
@@ -44,7 +50,9 @@ export function ServiceDirectory({ items }: { items: Service[] }) {
               <div>
                 <p className="fine-print mb-1">Duração aproximada</p>
                 <p className="mb-4">{service.duration} minutos</p>
-                <p className="mb-5 text-sm">{priceLabel(service.price)}</p>
+                <p className="mb-5 text-sm">
+                  {priceLabel(service.price, showPrices)}
+                </p>
               </div>
               <ButtonLink href={bookingHref(service.slug)} secondary compact>
                 <span>

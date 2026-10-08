@@ -1,5 +1,5 @@
 import { PageMotion } from "@/components/page-motion";
-import { services, stylists } from "@/content/salon";
+import { getPublicCatalog } from "@/lib/supabase/catalog";
 import { pageMetadata } from "@/lib/metadata";
 import { StylistDirectory } from "@/components/stylist-directory";
 import { BookingCTA, PageIntro } from "@/components/ui";
@@ -10,7 +10,8 @@ export const metadata = pageMetadata(
   "/profissionais",
 );
 
-export default function ProfessionalsPage() {
+export default async function ProfessionalsPage() {
+  const { services, stylists } = await getPublicCatalog();
   return (
     <PageMotion>
       <PageIntro
@@ -24,8 +25,7 @@ export default function ProfessionalsPage() {
         aria-label="Encontre seu profissional"
       >
         <StylistDirectory items={stylists} services={services} />
-        <div className="mt-12">
-        </div>
+        <div className="mt-12"></div>
       </section>
       <BookingCTA
         title="Escolha com quem viver seu próximo capítulo."

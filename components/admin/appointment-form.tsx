@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { startTransition, useState, type FormEvent } from "react";
 import { Dialog } from "@/components/dialog";
-import { services, stylists } from "@/content/salon";
+import { useCatalog } from "@/components/catalog-provider";
+import { MaskedInput } from "@/components/masked-input";
+import { formatCurrencyValue, parseCurrencyInput } from "@/lib/input-masks";
 import {
   appointmentError,
   paymentLabels,
@@ -31,28 +33,44 @@ export function AppointmentForm({
   role: AdminRole;
   stylistId: string;
   onClose: () => void;
-  onSave: (appointment: AdminAppointment) => void;
+  onSave: (appointment: AdminAppointment) => Promise<string | null>;
 }) {
+  const catalog = useCatalog();
+  const services = catalog.services.filter(
+    (item) => item.active || item.id === appointment?.serviceId,
+  );
+  const stylists = catalog.stylists.filter(
+    (item) => item.active || item.id === appointment?.performedBy,
+  );
   const [selectedStylist, setSelectedStylist] = useState(
-    appointment?.performedBy ?? stylistId,
+    appointment?.performedBy ?? (stylistId || stylists[0]?.id || ""),
   );
   const [serviceId, setServiceId] = useState(
     appointment?.serviceId ??
-      stylists.find((item) => item.id === selectedStylist)!.serviceIds[0],
+      stylists.find((item) => item.id === selectedStylist)?.serviceIds[0] ??
+      "",
   );
   const [error, setError] = useState("");
-  const compatible = services.filter((item) =>
-    stylists
-      .find((person) => person.id === selectedStylist)!
-      .serviceIds.includes(item.id),
+  const [pending, setPending] = useState(false);
+  const compatible = services.filter(
+    (item) =>
+      stylists
+        .find((person) => person.id === selectedStylist)
+        ?.serviceIds.includes(item.id) || item.id === appointment?.serviceId,
   );
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pending) return;
     const form = new FormData(event.currentTarget);
     const selectedDate = String(form.get("date"));
     const time = String(form.get("time"));
     const status = String(form.get("status")) as AppointmentStatus;
     const clientId = String(form.get("client"));
+    const price = parseCurrencyInput(String(form.get("price")));
+    if (!Number.isFinite(price) || price < 0 || price > 100000) {
+      setError("Informe um valor entre R$ 0,00 e R$ 100.000,00.");
+      return;
+    }
     const next = {
       id: appointment?.id ?? crypto.randomUUID(),
       date: selectedDate,
@@ -62,16 +80,36 @@ export function AppointmentForm({
       bookedWith: appointment?.bookedWith ?? selectedStylist,
       performedBy: selectedStylist,
       status,
-      price: Number(form.get("price")),
-      paymentMethod: String(form.get("payment")) as PaymentMethod,
+      price,
+      paymentMethod: (String(form.get("payment")) ||
+        null) as PaymentMethod | null,
       notes: String(form.get("notes")).trim(),
+      durationMinutes:
+        appointment &&
+        appointment.serviceId === serviceId &&
+        appointment.date === selectedDate &&
+        appointment.time === time
+          ? appointment.durationMinutes
+          : services.find((item) => item.id === serviceId)?.duration,
     };
-    const validation = appointmentError(next, appointments);
+    const validation = appointmentError(next, appointments, catalog);
     if (validation) {
       setError(validation);
       return;
     }
-    onSave(next);
+    setPending(true);
+    startTransition(async () => {
+      try {
+        const message = await onSave(next);
+        if (message) setError(message);
+      } catch {
+        setError(
+          "Não foi possível salvar. Seus dados foram mantidos; tente novamente.",
+        );
+      } finally {
+        setPending(false);
+      }
+    });
   }
   return (
     <Dialog
@@ -80,7 +118,7 @@ export function AppointmentForm({
       label={appointment ? "Editar atendimento" : "Novo agendamento"}
       className="lb-admin lb-modal"
     >
-      <form onSubmit={submit} className="lb-form">
+      <form onSubmit={submit} className="lb-form" aria-busy={pending}>
         <label className="lb-field">
           Cliente
           <select
@@ -88,6 +126,9 @@ export function AppointmentForm({
             defaultValue={appointment?.clientId ?? clients[0]?.id}
             required
           >
+            {!clients.length && (
+              <option value="">Cadastre um cliente antes de agendar</option>
+            )}
             {clients.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name}
@@ -158,18 +199,18 @@ export function AppointmentForm({
           </label>
           <label className="lb-field">
             Valor combinado (R$)
-            <input
+            <MaskedInput
+              mask="currency"
               key={serviceId}
               name="price"
-              type="number"
-              min="0"
-              max="100000"
-              step="0.01"
+              placeholder="0,00"
               required
               defaultValue={
-                appointment?.serviceId === serviceId
-                  ? appointment.price
-                  : services.find((item) => item.id === serviceId)!.price
+                formatCurrencyValue(
+                  appointment?.serviceId === serviceId
+                    ? appointment.price
+                    : (services.find((item) => item.id === serviceId)?.price ?? 0),
+                )
               }
             />
           </label>
@@ -191,8 +232,9 @@ export function AppointmentForm({
           Forma de pagamento
           <select
             name="payment"
-            defaultValue={appointment?.paymentMethod ?? "pix"}
+            defaultValue={appointment?.paymentMethod ?? ""}
           >
+            <option value="">Não informado</option>
             {Object.entries(paymentLabels).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -223,8 +265,12 @@ export function AppointmentForm({
           <button type="button" className="lb-button" onClick={onClose}>
             Cancelar
           </button>
-          <button type="submit" className="lb-button lb-button-primary">
-            Salvar atendimento
+          <button
+            type="submit"
+            className="lb-button lb-button-primary"
+            disabled={pending || !clients.length || !serviceId}
+          >
+            {pending ? "Salvando…" : "Salvar atendimento"}
           </button>
         </div>
       </form>

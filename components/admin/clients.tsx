@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { startTransition, useState, type FormEvent } from "react";
 import { Eye, PencilSimple, Plus } from "@phosphor-icons/react";
 import { Dialog } from "@/components/dialog";
-import { services } from "@/content/salon";
+import { useCatalog } from "@/components/catalog-provider";
+import { MaskedInput } from "@/components/masked-input";
+import { formatPhoneInput } from "@/lib/input-masks";
+import { validateContactDetails } from "@/lib/booking-shared";
 import {
   charge,
   currency,
@@ -27,8 +30,9 @@ export function Clients({
   clients: AdminClient[];
   appointments: AdminAppointment[];
   role: AdminRole;
-  onSave: (client: AdminClient) => void;
+  onSave: (client: AdminClient) => Promise<string | null>;
 }) {
+  const { services } = useCatalog();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<AdminClient | "new" | null>(null);
   const [viewing, setViewing] = useState<AdminClient | null>(null);
@@ -116,7 +120,7 @@ export function Clients({
                         </span>
                       </td>
                       <td data-label="Contato" className="lb-client-contact">
-                        <span>{client.phone}</span>
+                        <span>{formatPhoneInput(client.phone)}</span>
                         <small>{client.email || "Sem e-mail cadastrado"}</small>
                       </td>
                       <td
@@ -189,9 +193,10 @@ export function Clients({
           key={editing === "new" ? "new" : editing.id}
           client={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
-          onSave={(client) => {
-            onSave(client);
-            setEditing(null);
+          onSave={async (client) => {
+            const message = await onSave(client);
+            if (!message) setEditing(null);
+            return message;
           }}
         />
       )}
@@ -204,7 +209,7 @@ export function Clients({
         >
           <div className="lb-client-detail">
             <p>
-              {viewing.phone}
+              {formatPhoneInput(viewing.phone)}
               <br />
               {viewing.email}
             </p>
@@ -235,7 +240,9 @@ export function Clients({
                       {currency(item.price)}
                       <small>
                         {item.status === "concluido"
-                          ? paymentLabels[item.paymentMethod]
+                          ? item.paymentMethod
+                            ? paymentLabels[item.paymentMethod]
+                            : "Pagamento não informado"
                           : "Valor combinado"}
                       </small>
                     </span>
@@ -266,11 +273,13 @@ function ClientForm({
 }: {
   client: AdminClient | null;
   onClose: () => void;
-  onSave: (client: AdminClient) => void;
+  onSave: (client: AdminClient) => Promise<string | null>;
 }) {
   const [error, setError] = useState("");
-  function submit(event: FormEvent<HTMLFormElement>) {
+  const [pending, setPending] = useState(false);
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pending) return;
     const data = new FormData(event.currentTarget);
     const name = String(data.get("name")).trim();
     const phone = String(data.get("phone")).trim();
@@ -278,16 +287,30 @@ function ClientForm({
       setError("Informe um nome com pelo menos dois caracteres.");
       return;
     }
-    if (![10, 11].includes(phone.replace(/\D/g, "").length)) {
-      setError("Informe um telefone com DDD e 10 ou 11 dígitos.");
+    const email = String(data.get("email")).trim();
+    const validation = validateContactDetails({ name, phone, email });
+    if (Object.keys(validation).length) {
+      setError(Object.values(validation)[0]!);
       return;
     }
-    onSave({
-      id: client?.id ?? crypto.randomUUID(),
-      name,
-      phone,
-      email: String(data.get("email")).trim(),
-      notes: String(data.get("notes")).trim(),
+    setPending(true);
+    startTransition(async () => {
+      try {
+        const message = await onSave({
+          id: client?.id ?? crypto.randomUUID(),
+          name,
+          phone,
+          email,
+          notes: String(data.get("notes")).trim(),
+        });
+        if (message) setError(message);
+      } catch {
+        setError(
+          "Não foi possível salvar. Seus dados foram mantidos; tente novamente.",
+        );
+      } finally {
+        setPending(false);
+      }
     });
   }
   return (
@@ -297,26 +320,25 @@ function ClientForm({
       label={client ? "Editar cliente" : "Novo cliente"}
       className="lb-admin lb-modal"
     >
-      <form className="lb-form" onSubmit={submit}>
+      <form className="lb-form" onSubmit={submit} aria-busy={pending}>
         <label className="lb-field">
           Nome completo
           <input
             name="name"
             autoComplete="name"
             required
-            maxLength={120}
+            maxLength={100}
             defaultValue={client?.name}
           />
         </label>
         <div className="lb-form-grid">
           <label className="lb-field">
             Telefone com DDD
-            <input
+            <MaskedInput
+              mask="phone"
               name="phone"
-              type="tel"
               autoComplete="tel-national"
               required
-              maxLength={20}
               placeholder="(11) 90000-0000"
               defaultValue={client?.phone}
             />
@@ -327,6 +349,7 @@ function ClientForm({
               name="email"
               type="email"
               autoComplete="email"
+              required
               maxLength={254}
               defaultValue={client?.email}
             />
@@ -351,8 +374,12 @@ function ClientForm({
           <button className="lb-button" type="button" onClick={onClose}>
             Cancelar
           </button>
-          <button className="lb-button lb-button-primary" type="submit">
-            Salvar cliente
+          <button
+            className="lb-button lb-button-primary"
+            type="submit"
+            disabled={pending}
+          >
+            {pending ? "Salvando…" : "Salvar cliente"}
           </button>
         </div>
       </form>

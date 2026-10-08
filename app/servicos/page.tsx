@@ -1,5 +1,5 @@
 import { PageMotion } from "@/components/page-motion";
-import { services } from "@/content/salon";
+import { getPublicCatalog } from "@/lib/supabase/catalog";
 import { pageMetadata } from "@/lib/metadata";
 import { ServiceDirectory } from "@/components/service-directory";
 import { BookingCTA, PageIntro } from "@/components/ui";
@@ -10,7 +10,8 @@ export const metadata = pageMetadata(
   "/servicos",
 );
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const { services, bookingSettings } = await getPublicCatalog();
   return (
     <PageMotion>
       <PageIntro
@@ -23,9 +24,15 @@ export default function ServicesPage() {
         className="container pb-16 md:pb-24"
         aria-label="Todos os serviços"
       >
-        <ServiceDirectory items={services} />
+        <ServiceDirectory
+          items={services}
+          showPrices={bookingSettings.show_prices}
+        />
         <div className="mt-8 max-w-[75ch]">
-          <p className="fine-print">O investimento pode variar conforme comprimento, volume e técnica, com orçamento combinado antes do atendimento.</p>
+          <p className="fine-print">
+            O investimento pode variar conforme comprimento, volume e técnica,
+            com orçamento combinado antes do atendimento.
+          </p>
         </div>
       </section>
       <BookingCTA

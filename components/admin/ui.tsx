@@ -3,7 +3,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { MagnifyingGlass, CalendarBlank } from "@phosphor-icons/react";
-import { stylists } from "@/content/salon";
+import { useCatalog } from "@/components/catalog-provider";
 
 export function Person({
   stylistId,
@@ -12,7 +12,10 @@ export function Person({
   stylistId: string;
   compact?: boolean;
 }) {
-  const person = stylists.find((item) => item.id === stylistId)!;
+  const { stylists } = useCatalog();
+  const person = stylists.find((item) => item.id === stylistId);
+  if (!person)
+    return <span className="lb-person">Profissional indisponível</span>;
   const size = compact ? 30 : 40;
   return (
     <span className="lb-person">

@@ -1,9 +1,9 @@
 import { PageMotion } from "@/components/page-motion";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { services, stylists } from "@/content/salon";
+import { getPublicCatalog } from "@/lib/supabase/catalog";
 import { pageMetadata } from "@/lib/metadata";
-import { bookingHref, getStylist, priceLabel } from "@/lib/utils";
+import { bookingHref, priceLabel } from "@/lib/utils";
 import {
   ActionContent,
   BookingCTA,
@@ -16,13 +16,10 @@ import {
 
 type StylistPageProps = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return stylists.map((stylist) => ({ slug: stylist.slug }));
-}
-
 export async function generateMetadata({ params }: StylistPageProps) {
   const { slug } = await params;
-  const stylist = getStylist(slug);
+  const { stylists } = await getPublicCatalog();
+  const stylist = stylists.find((item) => item.slug === slug);
   if (!stylist) notFound();
   return pageMetadata(
     stylist.name,
@@ -33,7 +30,8 @@ export async function generateMetadata({ params }: StylistPageProps) {
 
 export default async function StylistPage({ params }: StylistPageProps) {
   const { slug } = await params;
-  const stylist = getStylist(slug);
+  const { services, stylists, bookingSettings } = await getPublicCatalog();
+  const stylist = stylists.find((item) => item.slug === slug);
   if (!stylist) notFound();
   const firstName = stylist.name.split(" ")[0];
   const selectedServices = services.filter((service) =>
@@ -72,9 +70,7 @@ export default async function StylistPage({ params }: StylistPageProps) {
           </p>
           <dl className="my-8 border-y border-[var(--line)] py-6">
             <div className="mb-5">
-              <dt className="fine-print mb-2">
-                Experiência
-              </dt>
+              <dt className="fine-print mb-2">Experiência</dt>
               <dd>{stylist.experience} anos</dd>
             </div>
             <div>
@@ -103,10 +99,16 @@ export default async function StylistPage({ params }: StylistPageProps) {
               >
                 <div>
                   <h3 className="mb-2 font-[family-name:var(--font-display)] text-3xl">
-                    <Link href={`/servicos#${service.slug}`} className="action-link action-inline"><ActionContent>{service.name}</ActionContent></Link>
+                    <Link
+                      href={`/servicos#${service.slug}`}
+                      className="action-link action-inline"
+                    >
+                      <ActionContent>{service.name}</ActionContent>
+                    </Link>
                   </h3>
                   <p className="fine-print">
-                    {service.duration} min · {priceLabel(service.price)}
+                    {service.duration} min ·{" "}
+                    {priceLabel(service.price, bookingSettings.show_prices)}
                   </p>
                 </div>
                 <Link

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpRight, PencilSimple, Plus } from "@phosphor-icons/react";
-import { services, stylists } from "@/content/salon";
+import { useCatalog } from "@/components/catalog-provider";
 import {
   charge,
   currency,
@@ -36,6 +36,7 @@ export function Agenda({
   preview?: boolean;
   onSeeAll?: () => void;
 }) {
+  const { services, stylists } = useCatalog();
   const [search, setSearch] = useState("");
   const [professional, setProfessional] = useState("todos");
   const [status, setStatus] = useState("todos");
@@ -139,10 +140,11 @@ export function Agenda({
               {rows.map((appointment, index) => {
                 const client = clients.find(
                   (item) => item.id === appointment.clientId,
-                )!;
+                );
+                const clientName = client?.name ?? "Cliente";
                 const service = services.find(
                   (item) => item.id === appointment.serviceId,
-                )!;
+                );
                 return (
                   <tr
                     key={appointment.id}
@@ -150,17 +152,24 @@ export function Agenda({
                   >
                     <td data-label="Horário" className="lb-appointment-time">
                       <strong className="lb-time">{appointment.time}</strong>
-                      <small>{service.duration} min</small>
+                      <small>
+                        {appointment.durationMinutes ??
+                          service?.duration ??
+                          "—"}{" "}
+                        min
+                      </small>
                     </td>
                     <td
                       data-label="Cliente / serviço"
                       className="lb-appointment-client"
                     >
                       <span className="lb-person">
-                        <Initials name={client.name} />
+                        <Initials name={clientName} />
                         <span>
-                          <strong>{client.name}</strong>
-                          <small>{service.name}</small>
+                          <strong>{clientName}</strong>
+                          <small>
+                            {service?.name ?? "Serviço indisponível"}
+                          </small>
                         </span>
                       </span>
                     </td>
@@ -170,8 +179,13 @@ export function Agenda({
                         className="lb-appointment-professional"
                       >
                         <Person stylistId={appointment.performedBy} compact />
-                        {appointment.bookedWith !== appointment.performedBy && (
-                          <small>Reatribuído na agenda</small>
+                        {appointment.bookedWith === null ? (
+                          <small>Sem preferência</small>
+                        ) : (
+                          appointment.bookedWith !==
+                            appointment.performedBy && (
+                            <small>Reatribuído na agenda</small>
+                          )
                         )}
                       </td>
                     )}
@@ -179,7 +193,9 @@ export function Agenda({
                       <strong>{currency(charge(appointment))}</strong>
                       <small>
                         {appointment.status === "concluido"
-                          ? paymentLabels[appointment.paymentMethod]
+                          ? appointment.paymentMethod
+                            ? paymentLabels[appointment.paymentMethod]
+                            : "Pagamento não informado"
                           : "Valor combinado"}
                       </small>
                     </td>
@@ -188,7 +204,7 @@ export function Agenda({
                         className={`lb-status lb-status-${appointment.status}`}
                       >
                         <span className="lb-sr-only">
-                          Status de {client.name} às {appointment.time}
+                          Status de {clientName} às {appointment.time}
                         </span>
                         <select
                           value={appointment.status}
@@ -212,7 +228,7 @@ export function Agenda({
                     <td className="lb-row-action">
                       <button
                         className="lb-icon-button"
-                        aria-label={`Editar atendimento de ${client.name} às ${appointment.time}`}
+                        aria-label={`Editar atendimento de ${clientName} às ${appointment.time}`}
                         onClick={() => onEdit(appointment)}
                       >
                         <PencilSimple size={18} aria-hidden="true" />

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { startTransition, useRef, useState } from "react";
 import {
   ArrowUpRight,
   CalendarBlank,
@@ -18,16 +19,19 @@ import {
   X,
   type Icon,
 } from "@phosphor-icons/react";
-import { stylists } from "@/content/salon";
+import { useCatalog } from "@/components/catalog-provider";
+import {
+  changeAppointmentStatus,
+  saveAppointment as persistAppointment,
+  saveClient as persistClient,
+} from "@/lib/admin-actions";
+import { signOut } from "@/lib/auth-actions";
 import {
   addDays,
   appointmentError,
   charge,
-  createDemoAppointments,
-  createDemoClients,
   currency,
   formatDate,
-  isClosed,
   payout,
   sectionLabels,
   type AdminAppointment,
@@ -62,24 +66,32 @@ export function AdminDashboard({
   today,
   initialRole,
   initialStylist,
+  initialAppointments,
+  initialClients,
+  accountEmail,
 }: {
   today: string;
   initialRole: AdminRole;
   initialStylist: string;
+  initialAppointments: AdminAppointment[];
+  initialClients: AdminClient[];
+  accountEmail: string;
 }) {
-  const [role, setRole] = useState(initialRole);
-  const [stylistId, setStylistId] = useState(initialStylist);
+  const role = initialRole;
+  const router = useRouter();
+  const stylistId = initialStylist;
+  const catalog = useCatalog();
+  const { stylists } = catalog;
+  const appointments = initialAppointments;
+  const clients = initialClients;
+  const mutationLock = useRef(false);
   const [section, setSection] = useState<AdminSection>("visao");
   const [date, setDate] = useState(today);
-  const [appointments, setAppointments] = useState(() =>
-    createDemoAppointments(today),
-  );
-  const [clients, setClients] = useState(createDemoClients);
   const [editing, setEditing] = useState<AdminAppointment | "new" | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [actionError, setActionError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const person = stylists.find((item) => item.id === stylistId)!;
+  const person = stylists.find((item) => item.id === stylistId);
   const scopedAppointments =
     role === "dono"
       ? appointments
@@ -109,50 +121,53 @@ export function AdminDashboard({
     if (window.matchMedia("(max-width: 999px)").matches)
       window.scrollTo({ top: 0, behavior: "instant" });
   }
-  function changeRole(next: AdminRole) {
-    setRole(next);
-    setSection("visao");
-    setMenuOpen(false);
-    setEditing(null);
-    setAnnouncement("");
-    setActionError("");
-  }
-  function changeStatus(id: string, status: AppointmentStatus) {
-    const appointment = appointments.find((item) => item.id === id)!;
+  async function changeStatus(id: string, status: AppointmentStatus) {
+    if (mutationLock.current) return;
+    const appointment = appointments.find((item) => item.id === id);
+    if (!appointment) return;
     const validation = appointmentError(
       { ...appointment, status },
       appointments,
+      catalog,
     );
     if (validation) {
-      setAnnouncement("");
       setActionError(validation);
       return;
     }
+    mutationLock.current = true;
     setActionError("");
-    setAppointments((current) =>
-      current.map((item) => (item.id === id ? { ...item, status } : item)),
-    );
-    setAnnouncement("Status do atendimento atualizado na demonstração.");
+    setAnnouncement("");
+    startTransition(async () => {
+      try {
+        const result = await changeAppointmentStatus(id, status);
+        if (result.ok) setAnnouncement("Status do atendimento atualizado.");
+        else setActionError(result.message);
+      } catch {
+        setActionError("Não foi possível atualizar o status. Tente novamente.");
+      } finally {
+        mutationLock.current = false;
+      }
+    });
   }
-  function saveAppointment(appointment: AdminAppointment) {
-    setAppointments((current) =>
-      current.some((item) => item.id === appointment.id)
-        ? current.map((item) =>
-            item.id === appointment.id ? appointment : item,
-          )
-        : [...current, appointment],
-    );
-    setDate(appointment.date);
+  async function saveAppointment(
+    appointment: AdminAppointment,
+  ): Promise<string | null> {
+    setAnnouncement("");
+    setActionError("");
+    const result = await persistAppointment(appointment);
+    if (!result.ok) return result.message;
+    setDate(result.data.date);
     setEditing(null);
-    setAnnouncement("Atendimento salvo na demonstração.");
+    setAnnouncement("Atendimento salvo.");
+    return null;
   }
-  function saveClient(client: AdminClient) {
-    setClients((current) =>
-      current.some((item) => item.id === client.id)
-        ? current.map((item) => (item.id === client.id ? client : item))
-        : [...current, client],
-    );
-    setAnnouncement("Cliente salvo na demonstração.");
+  async function saveClient(client: AdminClient): Promise<string | null> {
+    setAnnouncement("");
+    setActionError("");
+    const result = await persistClient(client);
+    if (!result.ok) return result.message;
+    setAnnouncement("Cliente salvo.");
+    return null;
   }
   const agendaProps = {
     appointments: dayAppointments,
@@ -228,26 +243,27 @@ export function AdminDashboard({
           </Link>
           <div className="lb-sidebar-user">
             <span className="lb-user-avatar">
-              {role === "dono"
-                ? "LM"
-                : person.name
-                    .split(" ")
-                    .map((part) => part[0])
-                    .join("")}
+              {(person?.name ?? accountEmail)
+                .split(" ")
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join("")}
             </span>
             <div>
-              <strong>{role === "dono" ? "Lia Monteiro" : person.name}</strong>
+              <strong>{person?.name ?? accountEmail}</strong>
               <small>
-                {role === "dono" ? "Dona do ateliê" : "Funcionário"}
+                {role === "dono" ? "Gestão do ateliê" : "Funcionário"}
               </small>
             </div>
-            <Link
-              href="/painel/entrar"
-              className="lb-icon-button"
-              aria-label="Sair da prévia"
-            >
-              <SignOut size={19} aria-hidden="true" />
-            </Link>
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="lb-icon-button"
+                aria-label="Sair do painel"
+              >
+                <SignOut size={19} aria-hidden="true" />
+              </button>
+            </form>
           </div>
         </div>
       </aside>
@@ -257,39 +273,9 @@ export function AdminDashboard({
             Painel do ateliê{" "}
             <span className="lb-breadcrumb">/ {sectionLabels[section]}</span>
           </span>
-          <div className="lb-profile-switch">
-            <span className="lb-demo-label">Prévia</span>
-            <label>
-              <span className="lb-sr-only">Perfil de demonstração</span>
-              <select
-                value={role}
-                onChange={(event) =>
-                  changeRole(event.target.value as AdminRole)
-                }
-              >
-                <option value="dono">Visão do dono</option>
-                <option value="funcionario">Visão do funcionário</option>
-              </select>
-            </label>
-            {role === "funcionario" && (
-              <label>
-                <span className="lb-sr-only">Profissional da demonstração</span>
-                <select
-                  value={stylistId}
-                  onChange={(event) => {
-                    setStylistId(event.target.value);
-                    setEditing(null);
-                  }}
-                >
-                  {stylists.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )}
-          </div>
+          <span className="lb-profile-switch">
+            {role === "dono" ? "Gestão do ateliê" : (person?.name ?? "Equipe")}
+          </span>
         </header>
         <div className="lb-content">
           <div className="lb-page-heading">
@@ -298,7 +284,7 @@ export function AdminDashboard({
                 {section === "visao"
                   ? role === "dono"
                     ? "O dia no ateliê"
-                    : `Seu dia, ${person.name.split(" ")[0]}`
+                    : `Seu dia, ${(person?.name ?? accountEmail).split(" ")[0]}`
                   : role === "funcionario" && section === "fechamento"
                     ? "Minhas comissões"
                     : sectionLabels[section]}
@@ -315,18 +301,14 @@ export function AdminDashboard({
               </button>
             )}
           </div>
-          <div className="lb-demo-banner">
-            <span className="lb-demo-dot" />
-            <p>
-              <strong>Modo demonstração.</strong> Dados fictícios; alterações
-              são restauradas ao recarregar.
-            </p>
-          </div>
           <div className="lb-date-toolbar">
             <div>
               <CalendarBlank size={19} aria-hidden="true" />
               <span>{formatDate(date, true)}</span>
-              {isClosed(date) && (
+              {!catalog.businessHours.find(
+                (day) =>
+                  day.weekday === new Date(`${date}T12:00:00Z`).getUTCDay(),
+              )?.active && (
                 <span className="lb-badge lb-badge-neutral">
                   Ateliê fechado
                 </span>
@@ -469,7 +451,13 @@ export function AdminDashboard({
           {section === "servicos" && <ServiceCatalog />}
           <footer className="lb-workspace-footer">
             <span>Livre Beauty · Feito para cuidar da sua rotina.</span>
-            <span>Prévia da interface</span>
+            <button
+              type="button"
+              className="lb-text-button"
+              onClick={() => router.refresh()}
+            >
+              Atualizar agenda
+            </button>
           </footer>
         </div>
       </div>
