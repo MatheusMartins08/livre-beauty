@@ -18,18 +18,35 @@ Projeto identificado: `mvsginzwrlspwgcxphtd`, pela URL enviada pelo usuário.
 O MCP foi adicionado ao `config.toml` local com esse ref e aprovação manual.
 `codex mcp login supabase` concluiu a autenticação OAuth com sucesso.
 URL e chave publicável foram salvas apenas no `.env.local` ignorado pelo Git.
-O acesso às ferramentas MCP foi verificado nesta sessão. A Fase 2 está aplicada
-e validada: oito tabelas com RLS; 6 serviços, 4 profissionais, 12 vínculos, 7 dias
+O acesso às ferramentas MCP foi verificado nessa sessão. Ao concluir a Fase 2,
+o estado validado era: oito tabelas com RLS; 6 serviços, 4 profissionais, 12 vínculos, 7 dias
 de funcionamento e 1 configuração; zero clientes, atendimentos e perfis da equipe.
 O catálogo remoto foi comparado integralmente com o TypeScript, incluindo textos,
 preços, durações, imagens, especialidades, biografias, ordem e vínculos.
 `lib/supabase/database.types.ts` contém a saída de `generate_typescript_types`.
 `npm.cmd run typecheck` passou; `npm.cmd run lint` terminou com zero erros e
 94 avisos em scripts preexistentes de `.claude/skills`, sem alterações nesses arquivos.
-O usuário escolheu deixar o painel conectado e protegido, aguardando contas
-futuras. Não foram criadas contas Auth nem aplicado o seed_demo.sql. Não havia
+Naquela etapa, o usuário escolheu deixar o painel conectado e protegido, aguardando
+contas futuras. Não foram criadas contas Auth nem aplicado o seed_demo.sql. Não havia
 usuários para apagar. O catálogo é a base de exemplo; clientes e atendimentos
 permanentes continuam vazios.
+
+### Acesso administrativo — atualização de 07/10/2026
+
+A pedido do usuário, foi criada a conta `admin@gmail.com` pela API oficial
+`auth.admin.createUser`, com e-mail confirmado e a senha solicitada recebida
+somente em memória. Seu UUID é `e32387a4-b19a-485a-a7be-1b274bbda2dc`;
+`public.staff_profiles` contém o vínculo com papel `owner` e `stylist_id=null`.
+Não houve alteração de esquema, políticas, seeds ou configurações do Auth.
+
+O login com a chave publicável e a leitura do próprio perfil via RLS passaram.
+Pelo formulário local, foram verificados o redirecionamento de visitante ao
+login, a entrada no painel, a sessão após recarregar e o logout com bloqueio
+do painel. Não foram criados clientes nem agendamentos nesses testes.
+
+Login local: `http://localhost:3000/painel/entrar`. Em produção, usar o mesmo
+caminho no domínio do site. As instruções de acesso estão em `AGENTS.md`;
+senha e chave administrativa permanecem fora do Git.
 
 | Versão UTC, igual ao histórico remoto | Migration |
 | --- | --- |
@@ -326,17 +343,18 @@ No Dashboard do projeto, abrir Authentication → Sign In / Providers, desligar
 [Configurações gerais do Supabase Auth](https://supabase.com/docs/guides/auth/general-configuration)
 explica que desligar essa opção permite acesso apenas a usuários existentes.
 
-Quando o usuário decidir criar contas, usar Authentication → Users → Add user
+Para criar outras contas mediante solicitação, usar Authentication → Users → Add user
 ou convite administrativo. Copiar o UUID Auth para `staff_profiles.user_id`.
 Para Lia: role `owner`, stylist_id `lia`; para os demais: role `staff` e
-o ID de seu profissional. O primeiro vínculo é administrativo, pois ainda não
-existe owner. Não colocar senhas em SQL, seeds ou Git. Sem esses vínculos,
+o ID de seu profissional. A conta administrativa `admin@gmail.com` já existe
+com papel `owner` e sem profissional vinculado. Não colocar senhas em SQL,
+seeds ou Git. Sem esses vínculos,
 `/painel` continua redirecionando para `/painel/entrar`.
 
-Nenhuma conta foi criada para testes de login positivo. A permissão de owner e
-staff foi validada nos testes SQL com fixtures em transação e rollback. O fluxo
-de sessão e salvamento com contas reais precisará ser exercitado quando elas
-existirem, conforme a escolha do usuário.
+A permissão de owner e staff foi validada nos testes SQL com fixtures em
+transação e rollback. O login positivo e o ciclo de sessão da conta owner
+foram verificados na atualização acima. A gravação autenticada com contas
+reais ainda não foi exercitada; esta criação não incluiu alterações na agenda.
 
 ## Como testar a integração
 
@@ -395,7 +413,7 @@ automática sugeriria downgrade do Next lint para 14; não foi aplicada.
 - Migrations e seeds aprovados novamente em PGlite; SQL de permissões e
   agendamento passou no Supabase com rollback após a última migration.
 - Todas as fixtures persistidas pelos testes de reserva foram inspecionadas e
-  removidas por UUID e identidade exata. Estado final: zero usuários Auth,
+  removidas por UUID e identidade exata. Estado ao concluir a Fase 3: zero usuários Auth,
   perfis de equipe, clientes e agendamentos; apenas o catálogo de exemplo.
 - Advisors finais: oito tabelas com RLS; nenhum alerta de RLS ou índice de
   FK ausente. Permanecem os avisos intencionais de execução das três RPCs

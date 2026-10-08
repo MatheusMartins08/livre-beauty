@@ -64,6 +64,31 @@ Estas regras se aplicam a todos os chats e agentes que trabalham neste projeto.
   resultado, pede o aceite e publica; subagentes não fazem commits ou pushes
   independentes do trabalho compartilhado.
 
+## Acesso ao painel da equipe
+
+- Login local: `http://localhost:3000/painel/entrar`.
+- Painel local: `http://localhost:3000/painel`; sem sessão, redireciona ao login.
+  No site publicado, usar os mesmos caminhos no domínio do projeto.
+- A autenticação é real, via Supabase Auth com e-mail e senha, e exige vínculo
+  em `public.staff_profiles`. Não há login demonstrativo nem credenciais padrão.
+- Acesso criado e validado em **07/10/2026** no projeto `mvsginzwrlspwgcxphtd`:
+  e-mail `admin@gmail.com`, papel `owner`, sem profissional vinculado.
+  A senha foi definida exatamente como solicitado pelo usuário neste chat;
+  não está armazenada nas instruções nem em arquivos versionados.
+  Login pelo formulário, sessão após recarregar e logout foram verificados.
+- Para criar novas contas, o usuário deve informar o e-mail escolhido e
+  autorizar a criação. Cadastrar pelo Supabase Auth e vincular o UUID em
+  `staff_profiles` com o papel apropriado, seguindo `docs/database.md`.
+  Não inventar credenciais, criar contas sem solicitação ou remover a proteção
+  do painel para contornar uma falha de login.
+- Para localizar ou redefinir o acesso, abrir Authentication → Users no
+  Dashboard do projeto e buscar `admin@gmail.com`. Não alterar a senha sem
+  solicitação. A API Auth administrativa exige chave secreta somente no
+  servidor; não inserir senhas por SQL nem expor a chave no cliente ou no Git.
+- Senhas, tokens e códigos de recuperação nunca entram neste arquivo,
+  no README, em seeds ou em qualquer arquivo versionado. Usar um gerenciador
+  de senhas para guardar credenciais; a senha original não é recuperável pelo banco.
+
 ## Local skills (Codex and Claude)
 
 Read `SKILLS.md` for the shared skill catalog and usage instructions.
