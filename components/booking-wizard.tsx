@@ -84,6 +84,7 @@ export function BookingWizard({
     phone: "",
     email: "",
   });
+  const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [errors, setErrors] = useState<
     Partial<Record<keyof ContactDetails, string>>
   >({});
@@ -299,6 +300,7 @@ export function BookingWizard({
           slot,
           contact,
           withoutPreference: stylistChoice === "any",
+          whatsappOptIn,
         });
         if (result.ok) setConfirmation(result.slot);
         else {
@@ -329,6 +331,7 @@ export function BookingWizard({
     setStylistChoice("");
     clearTime();
     setContact({ name: "", phone: "", email: "" });
+    setWhatsappOptIn(false);
     setErrors({});
     setMessage("");
   }
@@ -408,7 +411,12 @@ export function BookingWizard({
                         onChange={() => toggleService(item.id)}
                       />
                       <span className={styles.choiceContent}>
-                        <span className={styles.choiceName}>{item.name}</span>
+                        <span className={styles.choiceName}>
+                          {item.name}
+                          {item.popular && (
+                            <span className="popular-badge">Mais pedido</span>
+                          )}
+                        </span>
                         <span className={styles.choiceDescription}>
                           {parts ? `Combo com ${parts}.` : item.description}
                         </span>
@@ -668,6 +676,23 @@ export function BookingWizard({
                   </p>
                 )}
               </div>
+              <label className={styles.consent}>
+                <input
+                  type="checkbox"
+                  name="whatsapp-opt-in"
+                  checked={whatsappOptIn}
+                  onChange={(event) => setWhatsappOptIn(event.target.checked)}
+                  aria-describedby="booking-consent-note"
+                />
+                <span>
+                  Aceito receber pelo WhatsApp mensagens do ateliê sobre meus
+                  agendamentos.
+                  <small id="booking-consent-note">
+                    Opcional. Você pode retirar o consentimento a qualquer
+                    momento falando com o ateliê.
+                  </small>
+                </span>
+              </label>
             </div>
           )}
 
@@ -705,6 +730,11 @@ export function BookingWizard({
                     {contact.name.trim()}
                     <span>
                       {contact.phone} · {contact.email.trim()}
+                    </span>
+                    <span>
+                      {whatsappOptIn
+                        ? "Aceita mensagens pelo WhatsApp"
+                        : "Sem mensagens pelo WhatsApp"}
                     </span>
                   </dd>
                 </div>

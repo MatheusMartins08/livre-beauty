@@ -6,7 +6,13 @@ import {
   startInstant,
   validateContactDetails,
 } from "../lib/booking-shared";
-import { formatWeeklyHours, periodsForDate, validateWeek } from "../lib/opening-hours";
+import {
+  blocksForDate,
+  formatWeeklyHours,
+  ownPeriodsForDate,
+  periodsForDate,
+  validateWeek,
+} from "../lib/opening-hours";
 
 const fridayMorning = new Date("2026-10-02T11:00:00Z"); // Friday, 08:00 in São Paulo.
 const contact = {
@@ -288,4 +294,51 @@ test("applies closed days and special hours before the weekly periods", () => {
       { weekday: 2, opens_at: "12:00", closes_at: "18:00" },
     ]),
   ).toEqual(["Os períodos de terça não podem se sobrepor."]);
+});
+
+test("turns a professional's own week into blocks, like the database", () => {
+  const own = [
+    { weekday: 6, opens_at: "09:00", closes_at: "12:00", stylistId: "lia" },
+    { weekday: 6, opens_at: "14:00", closes_at: "18:00", stylistId: "lia" },
+  ];
+  // 2026-10-03 is a Saturday: blocked before, between and after her periods.
+  expect(blocksForDate("2026-10-03", [], own)).toEqual([
+    { stylistId: "lia", start: 0, end: 540 },
+    { stylistId: "lia", start: 720, end: 840 },
+    { stylistId: "lia", start: 1080, end: 1440 },
+  ]);
+  // Friday has no period of hers: the whole day is blocked.
+  expect(blocksForDate("2026-10-02", [], own)).toEqual([
+    { stylistId: "lia", start: 0, end: 1440 },
+  ]);
+  expect(ownPeriodsForDate("2026-10-03", "marina", own)).toBeNull();
+  expect(
+    ownPeriodsForDate("2026-10-03", "lia", own, [
+      {
+        id: "x",
+        kind: "horario_especial",
+        stylistId: "lia",
+        startsOn: "2026-10-03",
+        endsOn: "2026-10-03",
+        opensAt: "10:00",
+        closesAt: "11:00",
+        reason: "",
+      },
+    ]),
+  ).toEqual([{ opens_at: "10:00", closes_at: "11:00" }]);
+  // A professional's special hours never change the salon's day.
+  expect(
+    periodsForDate("2026-10-03", [{ weekday: 6, opens_at: "09:00", closes_at: "19:00" }], [
+      {
+        id: "y",
+        kind: "horario_especial",
+        stylistId: "lia",
+        startsOn: "2026-10-03",
+        endsOn: "2026-10-03",
+        opensAt: "10:00",
+        closesAt: "11:00",
+        reason: "",
+      },
+    ]),
+  ).toEqual([{ opens_at: "09:00", closes_at: "19:00" }]);
 });

@@ -53,10 +53,14 @@ export default async function PanelPage() {
         ? Promise.all([
             supabase.from("site_content").select("key,content"),
             supabase.from("salon_settings").select("*").maybeSingle(),
+            supabase
+              .from("staff_profiles")
+              .select("stylist_id,role,login,active")
+              .not("stylist_id", "is", null),
           ])
         : null,
     ]);
-  if (owner && (owner[0].error || owner[1].error))
+  if (owner && (owner[0].error || owner[1].error || owner[2].error))
     throw new Error("Não foi possível carregar o conteúdo do site. Tente novamente.");
   const serviceName = (id: string) =>
     catalog.services.find((service) => service.id === id)?.name ?? "";
@@ -89,8 +93,16 @@ export default async function PanelPage() {
                       bookingWindowDays: owner[1].data.booking_window_days,
                       slotIntervalMinutes: owner[1].data.slot_interval_minutes,
                       commissionRate: owner[1].data.demo_commission_rate,
+                      cancelNoticeMinutes: owner[1].data.cancel_min_notice_minutes,
+                      historyRetentionMonths: owner[1].data.history_retention_months,
                     }
                   : null,
+                accounts: Object.fromEntries(
+                  (owner[2].data ?? []).map((row) => [
+                    row.stylist_id!,
+                    { role: row.role, login: row.login, active: row.active },
+                  ]),
+                ),
               }
             : null
         }

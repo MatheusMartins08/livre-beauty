@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { getStaffSession } from "./supabase/session";
+import { createAdminClient } from "./supabase/admin";
+import { retentionOptions } from "./admin";
 import { supabaseConfig } from "./supabase/config";
 import type { Json } from "./supabase/database.types";
 import {
@@ -22,7 +24,7 @@ type Session = NonNullable<Awaited<ReturnType<typeof getStaffSession>>>;
 const noAccess: EditorResult = {
   ok: false,
   message:
-    "Seu acesso expirou ou você não tem permissão para editar o site. Entre novamente.",
+    "Seu acesso expirou ou você não tem permissão para esta alteração. Entre novamente.",
 };
 const failure: EditorResult = {
   ok: false,
@@ -32,6 +34,24 @@ const failure: EditorResult = {
 async function requireOwner(): Promise<Session | null> {
   const session = await getStaffSession();
   return session?.profile.role === "owner" ? session : null;
+}
+
+/** Hours of the salon (null) or of one professional: the owner, or that professional. */
+async function requireScheduleEditor(
+  stylistId: string | null,
+): Promise<Session | null> {
+  const session = await getStaffSession();
+  if (!session) return null;
+  if (session.profile.role === "owner") return session;
+  return stylistId !== null && stylistId === session.profile.stylist_id
+    ? session
+    : null;
+}
+
+/** Public pages show only the salon's hours; individual hours stay in the panel. */
+function refreshSchedule(stylistId: string | null) {
+  if (stylistId === null) refreshSite();
+  else revalidatePath("/painel");
 }
 
 function databaseMessage(error: { code?: string; message?: string }) {
@@ -175,6 +195,7 @@ export interface ServiceInput {
   homeImageAlt: string;
   homeImagePosition: string;
   active: boolean;
+  popular: boolean;
   stylistIds: string[];
   componentIds: string[];
 }
@@ -213,7 +234,12 @@ export async function saveService(input: ServiceInput): Promise<EditorResult> {
     (input.homeImage !== null && !homeImageAlt)
   )
     return { ok: false, message: "Confira as fotos e a descrição da foto da página inicial." };
-  if (!stylistIds || !componentIds || typeof input.active !== "boolean")
+  if (
+    !stylistIds ||
+    !componentIds ||
+    typeof input.active !== "boolean" ||
+    typeof input.popular !== "boolean"
+  )
     return failure;
   if (input.id !== null && componentIds.includes(input.id))
     return { ok: false, message: "Um combo não pode incluir a si mesmo." };
@@ -246,6 +272,7 @@ export async function saveService(input: ServiceInput): Promise<EditorResult> {
     p_active: input.active,
     p_stylist_ids: stylistIds,
     p_component_ids: componentIds,
+    p_popular: input.popular,
   });
   if (error) return { ok: false, message: databaseMessage(error) };
   await removeUnused(session, previous?.data, [input.image, input.homeImage]);
@@ -345,6 +372,16 @@ export async function deleteCatalogItem(
           .eq("id", id)
           .maybeSingle();
   if (previous.error) return failure;
+  // Team logins of this professional; the function removes their profiles.
+  const logins =
+    kind === "stylists"
+      ? await session.supabase
+          .from("staff_profiles")
+          .select("user_id")
+          .eq("stylist_id", id)
+          .eq("role", "staff")
+      : null;
+  if (logins?.error) return failure;
   const { data, error } = await session.supabase.rpc(
     kind === "services" ? "delete_service" : "delete_stylist",
     { p_id: id },
@@ -353,13 +390,33 @@ export async function deleteCatalogItem(
   // Archived rows keep their photos for the appointment history.
   if (data === "deleted") await removeUnused(session, previous.data, null);
   refreshSite();
+  const removedLogins = await deleteAuthUsers(
+    (logins?.data ?? []).map((row) => row.user_id),
+  );
+  const done =
+    data === "deleted"
+      ? "Excluído do site e do painel."
+      : "Arquivado: saiu do site e do agendamento, e o histórico foi preservado.";
   return {
     ok: true,
-    message:
-      data === "deleted"
-        ? "Excluído do site e do painel."
-        : "Arquivado: saiu do site e do agendamento, e o histórico foi preservado.",
+    message: removedLogins
+      ? done
+      : `${done} O acesso ao painel foi bloqueado, mas o login não pôde ser apagado; remova-o em Authentication → Users no Supabase.`,
   };
+}
+
+/**
+ * The profile is already gone, so the account has no access; deleting the
+ * Auth user also frees the username for a new login.
+ */
+async function deleteAuthUsers(userIds: string[]) {
+  if (!userIds.length) return true;
+  const admin = createAdminClient();
+  if (!admin) return false;
+  const results = await Promise.all(
+    userIds.map((userId) => admin.auth.admin.deleteUser(userId)),
+  );
+  return results.every((result) => !result.error);
 }
 
 export async function reorderCatalog(
@@ -379,10 +436,16 @@ export async function reorderCatalog(
   return { ok: true, message: "Nova ordem publicada." };
 }
 
+/**
+ * Replaces the week of the salon (stylistId null) or of one professional.
+ * For a professional, an empty week means following the salon's hours again.
+ */
 export async function saveOpeningPeriods(
   periods: OpeningPeriod[],
+  stylistId: string | null = null,
 ): Promise<EditorResult> {
-  const session = await requireOwner();
+  if (stylistId !== null && typeof stylistId !== "string") return failure;
+  const session = await requireScheduleEditor(stylistId);
   if (!session) return noAccess;
   if (
     !Array.isArray(periods) ||
@@ -406,10 +469,17 @@ export async function saveOpeningPeriods(
       opens_at,
       closes_at,
     })),
+    ...(stylistId ? { p_stylist_id: stylistId } : {}),
   });
   if (error) return { ok: false, message: databaseMessage(error) };
-  refreshSite();
-  return { ok: true, message: "Horários da semana atualizados." };
+  refreshSchedule(stylistId);
+  return {
+    ok: true,
+    message:
+      stylistId && !periods.length
+        ? "Voltou a seguir o horário do ateliê."
+        : "Horários da semana atualizados.",
+  };
 }
 
 export interface ExceptionInput {
@@ -425,7 +495,9 @@ export interface ExceptionInput {
 export async function createScheduleException(
   input: ExceptionInput,
 ): Promise<EditorResult> {
-  const session = await requireOwner();
+  if (!input || (input.stylistId !== null && typeof input.stylistId !== "string"))
+    return failure;
+  const session = await requireScheduleEditor(input.stylistId);
   if (!session) return noAccess;
   const date = /^\d{4}-\d{2}-\d{2}$/;
   const time = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -448,8 +520,6 @@ export async function createScheduleException(
       input.closesAt! <= input.opensAt!)
   )
     return { ok: false, message: "Informe um horário de início antes do fim." };
-  if (input.kind === "horario_especial" && input.stylistId)
-    return { ok: false, message: "O horário especial vale para todo o ateliê." };
   const { error } = await session.supabase.from("schedule_exceptions").insert({
     kind: input.kind,
     stylist_id: input.stylistId,
@@ -467,20 +537,30 @@ export async function createScheduleException(
           ? "Já existe um horário especial nessas datas."
           : databaseMessage(error),
     };
-  refreshSite();
+  refreshSchedule(input.stylistId);
   return { ok: true, message: "Exceção registrada na agenda." };
 }
 
 export async function deleteScheduleException(id: string): Promise<EditorResult> {
-  const session = await requireOwner();
-  if (!session) return noAccess;
+  const viewer = await getStaffSession();
+  if (!viewer) return noAccess;
   if (typeof id !== "string") return failure;
+  // The owner of the row comes from the database, never from the request.
+  const { data: row, error: readError } = await viewer.supabase
+    .from("schedule_exceptions")
+    .select("stylist_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (readError) return failure;
+  if (!row) return { ok: false, message: "Esta exceção já foi removida." };
+  const session = await requireScheduleEditor(row.stylist_id);
+  if (!session) return noAccess;
   const { error } = await session.supabase
     .from("schedule_exceptions")
     .delete()
     .eq("id", id);
   if (error) return { ok: false, message: databaseMessage(error) };
-  refreshSite();
+  refreshSchedule(row.stylist_id);
   return { ok: true, message: "Exceção removida." };
 }
 
@@ -489,7 +569,12 @@ export interface BookingRulesInput {
   bookingWindowDays: number;
   slotIntervalMinutes: number;
   commissionRate: number;
+  /** How long before the start a client may still cancel on the site. */
+  cancelNoticeMinutes: number;
+  /** Null keeps the whole history. */
+  historyRetentionMonths: number | null;
 }
+
 
 export async function saveBookingRules(
   input: BookingRulesInput,
@@ -504,7 +589,12 @@ export async function saveBookingRules(
     ![10, 15, 20, 30, 45, 60].includes(input.slotIntervalMinutes) ||
     !Number.isFinite(input.commissionRate) ||
     input.commissionRate < 0 ||
-    input.commissionRate > 1
+    input.commissionRate > 1 ||
+    !Number.isInteger(input.cancelNoticeMinutes) ||
+    input.cancelNoticeMinutes < 0 ||
+    input.cancelNoticeMinutes > 43200 ||
+    (input.historyRetentionMonths !== null &&
+      !(retentionOptions as readonly number[]).includes(input.historyRetentionMonths))
   )
     return { ok: false, message: "Confira as regras do agendamento." };
   const { error } = await session.supabase
@@ -514,9 +604,27 @@ export async function saveBookingRules(
       booking_window_days: input.bookingWindowDays,
       slot_interval_minutes: input.slotIntervalMinutes,
       demo_commission_rate: Math.round(input.commissionRate * 10000) / 10000,
+      cancel_min_notice_minutes: input.cancelNoticeMinutes,
+      history_retention_months: input.historyRetentionMonths,
     })
     .eq("id", true);
   if (error) return { ok: false, message: databaseMessage(error) };
   refreshSite();
   return { ok: true, message: "Regras do agendamento atualizadas." };
+}
+
+export type PurgePreview =
+  | { ok: true; appointments: number; clients: number; exceptions: number; cutoff: string }
+  | EditorResult;
+
+/** What a retention period would remove at the next daily cleanup. */
+export async function previewHistoryPurge(months: number): Promise<PurgePreview> {
+  const session = await requireOwner();
+  if (!session) return noAccess;
+  if (!(retentionOptions as readonly number[]).includes(months)) return failure;
+  const { data, error } = await session.supabase.rpc("preview_history_purge", {
+    p_months: months,
+  });
+  if (error || !data?.[0]) return { ok: false, message: databaseMessage(error ?? {}) };
+  return { ok: true, ...data[0] };
 }

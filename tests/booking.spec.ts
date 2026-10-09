@@ -175,6 +175,9 @@ test("validates contact fields and reviews without saving before confirmation", 
   await expect(page.getByLabel("Celular com DDD")).toBeFocused();
   await page.getByLabel("Celular com DDD").fill("+55 (11) 99999-8888");
   await page.getByLabel("E-mail").fill("teste@example.com");
+  // WhatsApp consent is optional and never preselected (LGPD).
+  const consent = page.getByRole("checkbox", { name: /Aceito receber pelo WhatsApp/ });
+  await expect(consent).not.toBeChecked();
   await next(page);
   await expect(
     page.getByRole("heading", { name: "Revise sua escolha" }),
@@ -182,6 +185,9 @@ test("validates contact fields and reviews without saving before confirmation", 
   await expect(
     page.locator("form dd").filter({ hasText: "Pessoa Teste" }),
   ).toContainText("teste@example.com");
+  await expect(
+    page.locator("form dd").filter({ hasText: "Pessoa Teste" }),
+  ).toContainText("Sem mensagens pelo WhatsApp");
   await expect(
     page.getByRole("button", { name: "Confirmar agendamento" }),
   ).toBeEnabled();

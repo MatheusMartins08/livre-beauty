@@ -10,11 +10,14 @@ import { HomeEditor } from "./home-editor";
 import { HoursEditor, type BookingRules } from "./hours-editor";
 import { ServicesEditor } from "./services-editor";
 import { StylistsEditor } from "./stylists-editor";
+import type { StaffAccount } from "./staff-access-panel";
 
 export interface SiteEditorData {
   content: SiteContent;
   savedSections: SiteSectionKey[];
   settings: BookingRules | null;
+  /** Panel accounts by professional id. */
+  accounts: Record<string, StaffAccount>;
 }
 
 const tabs = [
@@ -89,7 +92,7 @@ export function SiteEditor({
             <HomeEditor content={data.content} savedSections={data.savedSections} />
           )}
           {item.id === "servicos" && <ServicesEditor />}
-          {item.id === "equipe" && <StylistsEditor />}
+          {item.id === "equipe" && <StylistsEditor accounts={data.accounts} />}
           {item.id === "galeria" && (
             <GalleryEditor
               gallery={data.content.gallery}

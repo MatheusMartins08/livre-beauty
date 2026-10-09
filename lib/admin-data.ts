@@ -35,6 +35,9 @@ export function appointmentFromRow(
     parts.find((item) => item.type === type)!.value;
   return {
     id: row.id,
+    code: row.code,
+    cancelledByClient:
+      row.status === "cancelado" && row.client_cancelled_at !== null,
     date: `${part("year")}-${part("month")}-${part("day")}`,
     time: `${part("hour")}:${part("minute")}`,
     clientId: row.client_id,
@@ -77,5 +80,7 @@ export function clientFromRow(row: Tables<"clients">): AdminClient {
     phone: row.phone,
     email: row.email,
     notes: row.notes,
+    whatsappOptIn: row.whatsapp_opt_in,
+    whatsappOptInAt: row.whatsapp_opt_in_at,
   };
 }

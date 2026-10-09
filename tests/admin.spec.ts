@@ -76,7 +76,7 @@ test("rejects invalid credentials without exposing accounts or granting access",
 }) => {
   await page.goto("/painel/entrar");
   await page
-    .getByLabel("E-mail", { exact: true })
+    .getByLabel("Usuário ou e-mail", { exact: true })
     .fill("unregistered@example.com");
   await page.getByLabel("Senha", { exact: true }).fill("invalid-test-password");
   await page.getByRole("button", { name: "Entrar no painel" }).click();
@@ -84,13 +84,34 @@ test("rejects invalid credentials without exposing accounts or granting access",
     "Não foi possível entrar",
   );
   await expect(page).toHaveURL(/\/painel\/entrar$/);
-  await expect(page.getByLabel("E-mail", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("Usuário ou e-mail", { exact: true })).toHaveValue(
     "unregistered@example.com",
   );
   await expect(
     page.getByRole("button", { name: /cadastro|registrar|criar conta/i }),
   ).toHaveCount(0);
   await page.goto("/painel");
+  await expect(page).toHaveURL(/\/painel\/entrar$/);
+});
+
+test("accepts a team username and rejects unknown logins the same way", async ({
+  page,
+}) => {
+  await page.goto("/painel/entrar");
+  await page
+    .getByLabel("Usuário ou e-mail", { exact: true })
+    .fill("usuario.inexistente");
+  await page.getByLabel("Senha", { exact: true }).fill("invalid-test-password");
+  await page.getByRole("button", { name: "Entrar no painel" }).click();
+  await expect(page.locator("#login-error")).toContainText(
+    "Não foi possível entrar",
+  );
+  await page.getByLabel("Usuário ou e-mail", { exact: true }).fill("nome com espaço");
+  await page.getByLabel("Senha", { exact: true }).fill("invalid-test-password");
+  await page.getByRole("button", { name: "Entrar no painel" }).click();
+  await expect(page.locator("#login-error")).toContainText(
+    "Informe seu usuário ou e-mail",
+  );
   await expect(page).toHaveURL(/\/painel\/entrar$/);
 });
 
@@ -101,7 +122,7 @@ for (const width of [360, 768, 1440]) {
     await expect(
       page.getByRole("heading", { name: "Seu espaço no ateliê" }),
     ).toBeVisible();
-    await expect(page.getByLabel("E-mail", { exact: true })).toHaveAttribute(
+    await expect(page.getByLabel("Usuário ou e-mail", { exact: true })).toHaveAttribute(
       "autocomplete",
       "username",
     );
@@ -124,7 +145,7 @@ test("login form works without JavaScript", async ({ browser, baseURL }) => {
   const page = await context.newPage();
   await page.goto(`${baseURL}/painel/entrar`);
   await page
-    .getByLabel("E-mail", { exact: true })
+    .getByLabel("Usuário ou e-mail", { exact: true })
     .fill("unregistered@example.com");
   await page.getByLabel("Senha", { exact: true }).fill("invalid-test-password");
   await page.getByRole("button", { name: "Entrar no painel" }).click();

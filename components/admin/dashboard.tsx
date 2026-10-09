@@ -11,6 +11,7 @@ import {
   CaretRight,
   ChartBar,
   CheckCircle,
+  Clock,
   List,
   Plus,
   Scissors,
@@ -47,8 +48,14 @@ import { AppointmentForm } from "./appointment-form";
 import { Clients } from "./clients";
 import { Payroll, Production, ServiceCatalog } from "./reports";
 import { SiteEditor, type SiteEditorData } from "./site/site-editor";
+import { HoursEditor } from "./site/hours-editor";
 
-const sections: { id: AdminSection; icon: Icon; ownerOnly?: boolean }[] = [
+const sections: {
+  id: AdminSection;
+  icon: Icon;
+  ownerOnly?: boolean;
+  staffOnly?: boolean;
+}[] = [
   { id: "visao", icon: SquaresFour },
   { id: "agenda", icon: CalendarBlank },
   { id: "clientes", icon: Users },
@@ -56,6 +63,7 @@ const sections: { id: AdminSection; icon: Icon; ownerOnly?: boolean }[] = [
   { id: "fechamento", icon: ChartBar },
   { id: "servicos", icon: List },
   { id: "site", icon: Browser, ownerOnly: true },
+  { id: "horario", icon: Clock, staffOnly: true },
 ];
 const descriptions: Record<AdminSection, string> = {
   visao: "Um olhar para o dia. Mais espaço para cuidar.",
@@ -65,6 +73,7 @@ const descriptions: Record<AdminSection, string> = {
   fechamento: "Atendimentos concluídos e repasses da equipe.",
   servicos: "O cuidado do Livre, organizado para a equipe.",
   site: "Textos, fotos, serviços, equipe e horários publicados no site.",
+  horario: "Seus dias de atendimento, pausas e folgas.",
 };
 
 export function AdminDashboard({
@@ -125,7 +134,9 @@ export function AdminDashboard({
   );
   const availableSections = sections.filter(
     (item) =>
-      (!item.ownerOnly || role === "dono") && (item.id !== "site" || siteEditor),
+      (!item.ownerOnly || role === "dono") &&
+      (!item.staffOnly || (role === "funcionario" && stylistId)) &&
+      (item.id !== "site" || siteEditor),
   );
 
   function navigate(next: AdminSection) {
@@ -317,7 +328,10 @@ export function AdminDashboard({
               </button>
             )}
           </div>
-          <div className="lb-date-toolbar" hidden={section === "site"}>
+          <div
+            className="lb-date-toolbar"
+            hidden={section === "site" || section === "horario"}
+          >
             <div>
               <CalendarBlank size={19} aria-hidden="true" />
               <span>{formatDate(date, true)}</span>
@@ -466,6 +480,16 @@ export function AdminDashboard({
             />
           )}
           {section === "servicos" && <ServiceCatalog />}
+          {section === "horario" && role === "funcionario" && stylistId && (
+            <HoursEditor
+              today={today}
+              appointments={scopedAppointments}
+              clients={scopedClients}
+              exceptions={exceptions}
+              settings={null}
+              ownStylistId={stylistId}
+            />
+          )}
           {section === "site" && siteEditor && (
             <SiteEditor
               data={siteEditor}

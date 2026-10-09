@@ -8,6 +8,7 @@ export function bookingWhatsAppHref({
   durationMinutes,
   salonName,
   phoneNumber,
+  code,
 }: {
   slot: BookingSlot;
   clientName: string;
@@ -16,6 +17,7 @@ export function bookingWhatsAppHref({
   durationMinutes: number;
   salonName: string;
   phoneNumber?: string;
+  code?: string;
 }): string {
   const start = new Date(slot.startAt);
   const end = new Date(start.getTime() + durationMinutes * 60_000);
@@ -39,6 +41,7 @@ export function bookingWhatsAppHref({
     `Data: ${date}`,
     `Horário: ${time.format(start)} às ${time.format(end)} (horário de São Paulo)`,
     `Duração prevista: ${durationMinutes} minutos`,
+    ...(code ? [`Código da reserva: ${code}`] : []),
     "",
     "Até lá!",
   ].join("\n");

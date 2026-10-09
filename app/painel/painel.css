@@ -1785,3 +1785,32 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+/* Team access and individual hours */
+.lb-badge-positive {
+  color: #406148;
+  background: #e5ede4;
+}
+.lb-scope-select {
+  max-width: 420px;
+}
+.lb-admin .lb-access-panel {
+  margin-top: 20px;
+}
+.lb-access-panel .lb-subheading {
+  margin: 0;
+}
+.lb-access-status {
+  margin: 0;
+  font-size: 13px;
+}
+.lb-access-status strong {
+  font-weight: 500;
+}
+.lb-table small.lb-code {
+  font-family: var(--font-geist), Arial, sans-serif;
+  letter-spacing: 0.06em;
+}
+.lb-client-detail .lb-text-button {
+  min-height: 32px;
+  padding: 2px 4px;
+}

@@ -7,20 +7,22 @@ import { signIn } from "@/lib/auth-actions";
 export function StaffAccess() {
   const [state, action, pending] = useActionState(signIn, {
     message: "",
-    email: "",
+    login: "",
   });
   return (
     <div className="lb-access-card">
       <h2>Seu espaço no ateliê</h2>
-      <p>Entre com o e-mail e a senha da sua conta da equipe.</p>
+      <p>Entre com o usuário ou o e-mail e a senha da sua conta da equipe.</p>
       <form action={action} className="lb-form" aria-busy={pending}>
         <label className="lb-field">
-          E-mail
+          Usuário ou e-mail
           <input
-            name="email"
-            type="email"
-            defaultValue={state.email}
+            name="login"
+            type="text"
+            defaultValue={state.login}
             autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
             required
             maxLength={254}
             aria-describedby={state.message ? "login-error" : undefined}

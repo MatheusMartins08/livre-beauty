@@ -30,7 +30,10 @@ export const getPublicSite = cache(async (): Promise<PublicSite> => {
     const supabase = createPublicClient();
     const [content, periods] = await Promise.all([
       supabase.from("site_content").select("key,content"),
-      supabase.from("opening_periods").select("weekday,opens_at,closes_at"),
+      supabase
+        .from("opening_periods")
+        .select("weekday,opens_at,closes_at")
+        .is("stylist_id", null),
     ]);
     return {
       content: content.error

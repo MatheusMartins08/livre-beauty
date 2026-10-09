@@ -7,7 +7,7 @@ export function ServiceDirectory({
   items,
   showPrices,
 }: {
-  items: (Service & { imagePosition?: string })[];
+  items: (Service & { imagePosition?: string; popular?: boolean })[];
   showPrices: boolean;
 }) {
   return (
@@ -42,6 +42,9 @@ export function ServiceDirectory({
               </p>
               <h2 className="mb-4 font-[family-name:var(--font-display)] text-4xl leading-[1.08] md:text-[2.65rem]">
                 {service.name}
+                {service.popular && (
+                  <span className="popular-badge">Mais pedido</span>
+                )}
               </h2>
               <p className="max-w-[45ch] text-[var(--text-body)] leading-relaxed">
                 {service.description}

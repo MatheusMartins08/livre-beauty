@@ -1,10 +1,12 @@
 // Weekly periods and dated exceptions, shared by the site, booking and panel.
 // The database applies the same precedence: closed > special hours > weekly.
 
+/** stylistId null or absent: the salon's hours; set: a professional's own hours. */
 export interface OpeningPeriod {
   weekday: number;
   opens_at: string;
   closes_at: string;
+  stylistId?: string | null;
 }
 export interface DayPeriod {
   opens_at: string;
@@ -84,9 +86,10 @@ export function periodsForDate(
   periods: OpeningPeriod[],
   exceptions: ScheduleException[] = [],
 ): DayPeriod[] {
-  const current = exceptions.filter((item) => coversDate(item, date));
-  if (current.some((item) => item.kind === "fechado" && !item.stylistId))
-    return [];
+  const current = exceptions.filter(
+    (item) => coversDate(item, date) && !item.stylistId,
+  );
+  if (current.some((item) => item.kind === "fechado")) return [];
   const special = current.filter((item) => item.kind === "horario_especial");
   if (special.length)
     return special.map((item) => ({
@@ -96,12 +99,55 @@ export function periodsForDate(
   return weeklyPeriodsFor(date, periods);
 }
 
-/** Unavailable local time windows of one date; stylistId null blocks everyone. */
+/**
+ * A professional's own periods on a date, or null when they follow the salon.
+ * Their special hours replace their week; once they have any weekly period,
+ * a weekday without periods is a day off.
+ */
+export function ownPeriodsForDate(
+  date: string,
+  stylistId: string,
+  stylistPeriods: OpeningPeriod[],
+  exceptions: ScheduleException[] = [],
+): DayPeriod[] | null {
+  const special = exceptions.filter(
+    (item) =>
+      item.kind === "horario_especial" &&
+      item.stylistId === stylistId &&
+      coversDate(item, date),
+  );
+  if (special.length)
+    return special.map((item) => ({
+      opens_at: shortTime(item.opensAt!),
+      closes_at: shortTime(item.closesAt!),
+    }));
+  const own = stylistPeriods.filter((period) => period.stylistId === stylistId);
+  return own.length ? weeklyPeriodsFor(date, own) : null;
+}
+
+/** The parts of a day outside a professional's own periods, in minutes. */
+function outsidePeriods(periods: DayPeriod[]) {
+  const gaps: { start: number; end: number }[] = [];
+  let cursor = 0;
+  for (const period of [...periods].sort((a, b) => a.opens_at.localeCompare(b.opens_at))) {
+    const start = toMinutes(period.opens_at);
+    if (start > cursor) gaps.push({ start: cursor, end: start });
+    cursor = Math.max(cursor, toMinutes(period.closes_at));
+  }
+  if (cursor < 24 * 60) gaps.push({ start: cursor, end: 24 * 60 });
+  return gaps;
+}
+
+/**
+ * Unavailable local time windows of one date; stylistId null blocks everyone.
+ * Mirrors private.day_blocks: blocks, days off and time outside own hours.
+ */
 export function blocksForDate(
   date: string,
   exceptions: ScheduleException[] = [],
+  stylistPeriods: OpeningPeriod[] = [],
 ): { stylistId: string | null; start: number; end: number }[] {
-  return exceptions
+  const fromExceptions = exceptions
     .filter(
       (item) =>
         coversDate(item, date) &&
@@ -116,6 +162,18 @@ export function blocksForDate(
             end: toMinutes(item.closesAt!),
           },
     );
+  const customized = new Set([
+    ...stylistPeriods.flatMap((period) => period.stylistId ?? []),
+    ...exceptions
+      .filter((item) => item.kind === "horario_especial" && item.stylistId && coversDate(item, date))
+      .map((item) => item.stylistId!),
+  ]);
+  const fromOwnHours = [...customized].flatMap((stylistId) =>
+    outsidePeriods(ownPeriodsForDate(date, stylistId, stylistPeriods, exceptions) ?? []).map(
+      (gap) => ({ stylistId, ...gap }),
+    ),
+  );
+  return [...fromExceptions, ...fromOwnHours];
 }
 
 /** Errors for a week edited in the panel; an empty list means it can be saved. */

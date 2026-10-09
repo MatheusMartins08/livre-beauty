@@ -22,7 +22,7 @@ export async function loadCatalog(
         .order("sort_order"),
       supabase
         .from("opening_periods")
-        .select("weekday,opens_at,closes_at")
+        .select("weekday,opens_at,closes_at,stylist_id")
         .order("weekday")
         .order("opens_at"),
       supabase.rpc("get_booking_settings"),
@@ -54,6 +54,7 @@ export async function loadCatalog(
       homeImage: row.home_image,
       homeImageAlt: row.home_image_alt,
       homeImagePosition: row.home_image_position,
+      popular: row.popular,
       componentIds: (components.data ?? [])
         .filter((component) => component.service_id === row.id)
         .map((component) => component.component_id),
@@ -75,11 +76,21 @@ export async function loadCatalog(
         .filter((link) => link.stylist_id === row.id && link.active)
         .map((link) => link.service_id),
     })),
-    openingPeriods: (periods.data ?? []).map((period) => ({
-      weekday: period.weekday,
-      opens_at: shortTime(period.opens_at),
-      closes_at: shortTime(period.closes_at),
-    })),
+    openingPeriods: (periods.data ?? [])
+      .filter((period) => period.stylist_id === null)
+      .map((period) => ({
+        weekday: period.weekday,
+        opens_at: shortTime(period.opens_at),
+        closes_at: shortTime(period.closes_at),
+      })),
+    stylistPeriods: (periods.data ?? [])
+      .filter((period) => period.stylist_id !== null)
+      .map((period) => ({
+        weekday: period.weekday,
+        opens_at: shortTime(period.opens_at),
+        closes_at: shortTime(period.closes_at),
+        stylistId: period.stylist_id,
+      })),
     bookingSettings: settings.data[0],
   };
 }

@@ -12,6 +12,8 @@ export type CatalogService = Service & {
   homeImagePosition: string;
   /** Services included in a combo; empty for a simple service. */
   componentIds: string[];
+  /** Highlighted by the owner as "Mais pedido". */
+  popular: boolean;
 };
 export type CatalogStylist = Stylist & {
   active: boolean;
@@ -26,6 +28,9 @@ export interface BookingSettings {
 export interface SalonCatalog {
   services: CatalogService[];
   stylists: CatalogStylist[];
+  /** The salon's weekly periods. */
   openingPeriods: OpeningPeriod[];
+  /** Professionals' own weekly periods; empty for visitors (RLS). */
+  stylistPeriods: OpeningPeriod[];
   bookingSettings: BookingSettings;
 }

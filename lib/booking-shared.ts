@@ -19,6 +19,8 @@ export interface BookingSlot {
   date: string;
   time: string;
   startAt: string;
+  /** Reservation code returned once the booking is saved. */
+  code?: string;
 }
 
 export interface AvailabilityRequest {
@@ -38,6 +40,8 @@ export interface BookingRequest {
   slot: BookingSlot;
   contact: ContactDetails;
   withoutPreference?: boolean;
+  /** Explicit consent to WhatsApp messages from the salon (LGPD); never preselected. */
+  whatsappOptIn?: boolean;
 }
 /** performed_by null is an exception that blocks every professional. */
 export interface BookedRange {

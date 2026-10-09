@@ -98,6 +98,8 @@ export function AppointmentForm({
     }
     const next = {
       id: appointment?.id ?? crypto.randomUUID(),
+      code: appointment?.code ?? "",
+      cancelledByClient: appointment?.cancelledByClient ?? false,
       date: selectedDate,
       time,
       clientId,

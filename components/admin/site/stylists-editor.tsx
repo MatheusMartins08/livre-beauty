@@ -23,8 +23,13 @@ import {
   useUploads,
 } from "./fields";
 import { useEditorAction } from "./use-editor-action";
+import { StaffAccessPanel, type StaffAccount } from "./staff-access-panel";
 
-export function StylistsEditor() {
+export function StylistsEditor({
+  accounts,
+}: {
+  accounts: Record<string, StaffAccount>;
+}) {
   const { stylists } = useCatalog();
   const people = stylists.filter((person) => !person.deleted);
   const [editing, setEditing] = useState<CatalogStylist | "new" | null>(null);
@@ -76,6 +81,8 @@ export function StylistsEditor() {
                 <small>
                   {person.role} · {person.serviceIds.length} serviço
                   {person.serviceIds.length === 1 ? "" : "s"}
+                  {accounts[person.id]?.login &&
+                    ` · Painel: ${accounts[person.id].login}${accounts[person.id].active ? "" : " (desativado)"}`}
                 </small>
               </span>
               {!person.active && (
@@ -124,6 +131,7 @@ export function StylistsEditor() {
       {editing && (
         <StylistForm
           stylist={editing === "new" ? null : editing}
+          account={editing === "new" ? undefined : accounts[editing.id]}
           onClose={() => setEditing(null)}
           onSaved={(saved) => {
             setResult(saved);
@@ -137,10 +145,12 @@ export function StylistsEditor() {
 
 function StylistForm({
   stylist,
+  account,
   onClose,
   onSaved,
 }: {
   stylist: CatalogStylist | null;
+  account: StaffAccount | undefined;
   onClose: () => void;
   onSaved: (result: EditorResult) => void;
 }) {
@@ -297,6 +307,14 @@ function StylistForm({
           </button>
         </div>
       </form>
+      {stylist ? (
+        <StaffAccessPanel stylistId={stylist.id} name={stylist.name} account={account} />
+      ) : (
+        <p className="lb-help">
+          Depois de salvar o profissional, abra o cadastro de novo para criar o
+          acesso ao painel.
+        </p>
+      )}
     </Dialog>
   );
 }
