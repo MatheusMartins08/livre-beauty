@@ -16,7 +16,8 @@ export type AdminSection =
   | "equipe"
   | "fechamento"
   | "servicos"
-  | "site";
+  | "site"
+  | "horario";
 export type AppointmentStatus =
   "agendado" | "concluido" | "faltou" | "cancelado";
 export type PaymentMethod = "pix" | "cartao" | "dinheiro";
@@ -28,10 +29,17 @@ export interface AdminClient {
   phone: string;
   email: string;
   notes: string;
+  /** Consent to WhatsApp messages from the salon (LGPD), with its date. */
+  whatsappOptIn: boolean;
+  whatsappOptInAt: string | null;
 }
 
 export interface AdminAppointment {
   id: string;
+  /** Reservation code given to the client; empty until the database assigns it. */
+  code: string;
+  /** Cancelled by the client on the site, with the reservation code. */
+  cancelledByClient: boolean;
   date: string;
   time: string;
   clientId: string;
@@ -52,6 +60,8 @@ export interface AdminAppointment {
 
 // Used when the salon's configured rate is unavailable (salon_settings default).
 export const defaultCommissionRate = 0.5;
+/** Months of history the owner may keep; the database accepts 6 to 120. */
+export const retentionOptions = [6, 12, 24, 36, 60] as const;
 
 export const statusLabels: Record<AppointmentStatus, string> = {
   agendado: "Agendado",
@@ -72,6 +82,7 @@ export const sectionLabels: Record<AdminSection, string> = {
   fechamento: "Fechamento",
   servicos: "Serviços",
   site: "Edição do site",
+  horario: "Meu horário",
 };
 
 export function salonToday() {
@@ -192,7 +203,7 @@ export function appointmentError(
     return "O atendimento deve começar e terminar dentro do horário de funcionamento.";
   if (
     !sameSchedule &&
-    blocksForDate(appointment.date, exceptions).some(
+    blocksForDate(appointment.date, exceptions, catalog?.stylistPeriods).some(
       (block) =>
         (block.stylistId === null || block.stylistId === appointment.performedBy) &&
         start < block.end &&
@@ -245,6 +256,8 @@ export function createDemoClients(): AdminClient[] {
       i === 0
         ? "Prefere acabamento natural. Confirmar referências antes do corte."
         : "",
+    whatsappOptIn: false,
+    whatsappOptInAt: null,
   }));
 }
 
@@ -268,6 +281,8 @@ export function createDemoAppointments(today: string): AdminAppointment[] {
         const client = clients[clientIndex];
         result.push({
           id: `${date}-${stylist.id}-${slot}`,
+          code: "",
+          cancelledByClient: false,
           date,
           time: times[slot],
           clientId: client.id,

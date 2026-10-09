@@ -69,7 +69,8 @@ function isBookingResult(value: Json): value is Json & BookingResult {
       (key) => typeof slot[key] === "string",
     ) &&
     Array.isArray(slot.serviceIds) &&
-    slot.serviceIds.every((id) => typeof id === "string")
+    slot.serviceIds.every((id) => typeof id === "string") &&
+    typeof slot.code === "string"
   );
 }
 
@@ -103,6 +104,8 @@ export async function submitDemoBooking(
     !slot ||
     (request.withoutPreference !== undefined &&
       typeof request.withoutPreference !== "boolean") ||
+    (request.whatsappOptIn !== undefined &&
+      typeof request.whatsappOptIn !== "boolean") ||
     ["id", "serviceId", "stylistId", "date", "time", "startAt"].some(
       (key) => typeof slot[key as keyof BookingSlot] !== "string",
     )
@@ -134,6 +137,7 @@ export async function submitDemoBooking(
     p_name: contact.name,
     p_phone: contact.phone,
     p_email: contact.email,
+    p_whatsapp_opt_in: request.whatsappOptIn === true,
   });
   if (error || !isBookingResult(data))
     throw new Error(

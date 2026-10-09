@@ -80,6 +80,7 @@ export function ServicesEditor() {
                   {service.category} · {service.duration} min ·{" "}
                   {currency(service.price)}
                   {service.componentIds.length > 0 && " · combo"}
+                  {service.popular && " · mais pedido"}
                 </small>
               </span>
               {!service.active && (
@@ -171,6 +172,7 @@ function ServiceForm({
       : null,
   );
   const [active, setActive] = useState(service?.active ?? true);
+  const [popular, setPopular] = useState(service?.popular ?? false);
   const [stylistIds, setStylistIds] = useState(
     service
       ? stylists
@@ -216,6 +218,7 @@ function ServiceForm({
           homeImageAlt: homePhoto?.alt ?? "",
           homeImagePosition: homePhoto?.position || DEFAULT_POSITION,
           active,
+          popular,
           stylistIds,
           componentIds: partOfCombo ? [] : componentIds,
         }),
@@ -381,6 +384,12 @@ function ServiceForm({
           label="Ativo no site e no agendamento"
           checked={active}
           onChange={setActive}
+        />
+        <Checkbox
+          label="Destacar como “Mais pedido”"
+          note="Mostra o selo no site e no agendamento. Destaque poucos serviços para o selo fazer diferença."
+          checked={popular}
+          onChange={setPopular}
         />
         <EditorFeedback result={result} />
         <div className="lb-form-actions">

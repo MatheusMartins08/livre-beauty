@@ -5,6 +5,8 @@ import type { SalonCatalog } from "../lib/catalog";
 
 const appointment: AdminAppointment = {
   id: "historical",
+  code: "LB-7KQ2MX",
+  cancelledByClient: false,
   date: "2026-10-08",
   time: "09:00",
   clientId: "client-a",
@@ -30,6 +32,7 @@ const catalog: SalonCatalog = {
     homeImageAlt: "",
     homeImagePosition: "50% 50%",
     componentIds: [],
+    popular: false,
   })),
   stylists: stylists.map((stylist) => ({
     ...stylist,
@@ -42,6 +45,7 @@ const catalog: SalonCatalog = {
     opens_at: "09:00",
     closes_at: "19:00",
   })),
+  stylistPeriods: [],
   bookingSettings: {
     show_prices: true,
     booking_window_days: 30,
@@ -148,4 +152,43 @@ test("uses the sum of the services when an appointment has several", () => {
   expect(appointmentError({ ...multi, time: "17:30" }, [], catalog)).toContain(
     "horário de funcionamento",
   );
+});
+
+test("applies a professional's own week inside the salon hours", () => {
+  // 2026-10-09 is a Friday; Lia works only Friday afternoons.
+  const own = {
+    ...catalog,
+    stylistPeriods: [{ weekday: 5, opens_at: "13:00", closes_at: "19:00", stylistId: "lia" }],
+  };
+  const next = {
+    ...appointment,
+    id: "own-hours",
+    date: "2026-10-09",
+    time: "10:00",
+    status: "agendado" as const,
+  };
+  expect(appointmentError(next, [], own)).toContain("indisponível");
+  expect(appointmentError({ ...next, time: "14:00" }, [], own)).toBeNull();
+  // A weekday without own periods is a day off for her, not for others.
+  expect(appointmentError({ ...next, date: "2026-10-08", time: "14:00" }, [], own)).toContain(
+    "indisponível",
+  );
+  expect(
+    appointmentError({ ...next, date: "2026-10-08", time: "14:00", performedBy: "marina" }, [], own),
+  ).toBeNull();
+  // Her special hours replace her week on that date.
+  expect(
+    appointmentError(next, [], own, [
+      {
+        id: "special",
+        kind: "horario_especial",
+        stylistId: "lia",
+        startsOn: "2026-10-09",
+        endsOn: "2026-10-09",
+        opensAt: "09:00",
+        closesAt: "12:00",
+        reason: "",
+      },
+    ]),
+  ).toBeNull();
 });

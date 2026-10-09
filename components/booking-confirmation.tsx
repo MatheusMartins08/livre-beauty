@@ -1,6 +1,7 @@
 "use client";
 
 import type { Ref } from "react";
+import Link from "next/link";
 import { site, type Service, type Stylist } from "@/content/salon";
 import type { BookingSlot } from "@/lib/booking-shared";
 import { bookingWhatsAppHref } from "@/lib/booking-whatsapp";
@@ -39,6 +40,7 @@ export function BookingConfirmation({
         ),
         salonName: site.name,
         phoneNumber: whatsappNumber,
+        code: slot.code,
       })
     : null;
 
@@ -66,7 +68,26 @@ export function BookingConfirmation({
           <dt>Dia e horário</dt>
           <dd>{dateText} · {slot.time}</dd>
         </div>
+        {slot.code && (
+          <div>
+            <dt>Código da reserva</dt>
+            <dd className={styles.reservationCode}>{slot.code}</dd>
+          </div>
+        )}
       </dl>
+      {slot.code && (
+        <p className="fine-print">
+          Guarde o código. Com ele e o seu celular, você consulta ou cancela a
+          reserva em{" "}
+          <Link
+            href={`/agendamento/minha-reserva?codigo=${slot.code}`}
+            className="action-link action-inline"
+          >
+            <ActionContent>Minha reserva</ActionContent>
+          </Link>
+          .
+        </p>
+      )}
       <p className="fine-print">
         Seus dados foram registrados para organizar este atendimento. Consulte
         nossa política de privacidade para saber como são utilizados.

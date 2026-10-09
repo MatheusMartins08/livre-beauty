@@ -123,6 +123,7 @@ export function Clients({
                       <td data-label="Contato" className="lb-client-contact">
                         <span>{formatPhoneInput(client.phone)}</span>
                         <small>{client.email || "Sem e-mail cadastrado"}</small>
+                        {client.whatsappOptIn && <small>Aceita WhatsApp</small>}
                       </td>
                       <td
                         data-label="Último atendimento"
@@ -215,6 +216,33 @@ export function Clients({
               <br />
               {viewing.email}
             </p>
+            <h3>WhatsApp</h3>
+            {viewing.whatsappOptIn ? (
+              <p>
+                Aceita mensagens do ateliê desde{" "}
+                {viewing.whatsappOptInAt
+                  ? new Intl.DateTimeFormat("pt-BR", {
+                      timeZone: "America/Sao_Paulo",
+                      dateStyle: "short",
+                    }).format(new Date(viewing.whatsappOptInAt))
+                  : "o cadastro"}
+                .{" "}
+                <a
+                  className="lb-text-button"
+                  href={`https://wa.me/55${viewing.phone}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Abrir conversa com ${viewing.name} no WhatsApp (abre em nova aba)`}
+                >
+                  Abrir conversa
+                </a>
+              </p>
+            ) : (
+              <p>
+                Sem consentimento para mensagens. Registre a autorização na
+                edição do cliente quando ela for dada.
+              </p>
+            )}
             <h3>Observações</h3>
             <p>{viewing.notes || "Nenhuma observação cadastrada."}</p>
             <h3>Histórico de atendimentos</h3>
@@ -303,6 +331,8 @@ function ClientForm({
           phone,
           email,
           notes: String(data.get("notes")).trim(),
+          whatsappOptIn: data.get("whatsappOptIn") === "on",
+          whatsappOptInAt: client?.whatsappOptInAt ?? null,
         });
         if (message) setError(message);
       } catch {
@@ -365,6 +395,20 @@ function ClientForm({
             defaultValue={client?.notes}
             placeholder="Preferências e informações para o atendimento"
           />
+        </label>
+        <label className="lb-check">
+          <input
+            type="checkbox"
+            name="whatsappOptIn"
+            defaultChecked={client?.whatsappOptIn ?? false}
+          />
+          <span>
+            Aceita receber mensagens do ateliê pelo WhatsApp
+            <small>
+              Marque só com a autorização do cliente. Desmarque quando ele
+              pedir para não receber mais.
+            </small>
+          </span>
         </label>
         {error && (
           <p className="lb-form-error" role="alert">

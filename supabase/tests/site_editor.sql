@@ -292,7 +292,11 @@ begin
       'marina', pg_temp.at_time('17:00'), 'agendado', 180, null, '') <> 'test-staff-own' then
     raise exception 'Staff cannot create their own appointment';
   end if;
-  if not exists (select 1 from public.schedule_exceptions) then raise exception 'Staff cannot read exceptions'; end if;
+  -- Lia's lunch and Rafael's day off exist, but belong to other professionals.
+  if exists (select 1 from public.schedule_exceptions where stylist_id is distinct from 'marina'
+      and stylist_id is not null) then
+    raise exception 'Staff reads other professionals'' exceptions';
+  end if;
   if exists (select 1 from public.appointment_services i join public.appointments a on a.id = i.appointment_id
       where a.performed_by <> 'marina') then
     raise exception 'Staff sees items of other appointments';

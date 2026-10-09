@@ -56,11 +56,12 @@ O Playwright utiliza o Chrome instalado. Esta entrega é local, sem publicação
 | `/profissionais/[slug]` | Biografia, experiência, especialidades e serviços compatíveis |
 | `/galeria` | Fotografias com filtros e lightbox |
 | `/agendamento` | Serviço, profissional, data e horário, dados e revisão |
+| `/agendamento/minha-reserva` | Consulta e cancelamento com o código da reserva e o celular |
 | `/politicas` | Condições de atendimento |
 | `/privacidade` | Tratamento dos dados, navegação e mapa opcional |
 | `/termos` | Informações de uso |
 
-São 13 URLs, contando os quatro perfis individuais. Perguntas frequentes e localização ficam na homepage, acessíveis por `/#faq-title` e `/#visite-title`. Os serviços são acessados por `/servicos#<slug>`. Não há controles flutuantes ou barra fixa inferior.
+São 14 URLs, contando os quatro perfis individuais. Perguntas frequentes e localização ficam na homepage, acessíveis por `/#faq-title` e `/#visite-title`. Os serviços são acessados por `/servicos#<slug>`. Não há controles flutuantes ou barra fixa inferior.
 
 Slugs de profissional: `lia-monteiro`, `rafael-costa`, `marina-alves` e `sofia-dias`. Perfis desconhecidos retornam 404. Slugs de serviço continuam identificando categorias e pré-seleções: `corte-autoral`, `coloracao-personalizada`, `balayage`, `ritual-de-tratamento`, `finalizacao-e-penteados` e `extensoes`.
 
@@ -73,6 +74,14 @@ profissionais, horários, exceções e regras do agendamento em `/painel` →
 **Edição do site**. Os arquivos abaixo continuam como conteúdo padrão e para as
 páginas que não estão no editor. Detalhes, permissões e migrations em
 [docs/site-editor.md](docs/site-editor.md).
+
+Cada profissional pode ter um acesso próprio ao painel, criado pelo dono, e
+ajustar o próprio horário e as folgas em **Meu horário**. Veja
+[docs/staff-access.md](docs/staff-access.md).
+
+O selo "Mais pedido", o consentimento de WhatsApp, o código da reserva e a
+retenção automática do histórico estão em
+[docs/booking-extras.md](docs/booking-extras.md), com a ordem das migrations.
 
 | Local | Responsabilidade |
 | --- | --- |

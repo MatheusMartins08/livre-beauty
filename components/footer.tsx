@@ -29,6 +29,9 @@ export function Footer({ location, hours }: { location: string; hours: string })
               <Link href="/#faq-title" className="nav-link">
                 Perguntas frequentes
               </Link>
+              <Link href="/agendamento/minha-reserva" className="nav-link">
+                Minha reserva
+              </Link>
             </nav>
           </div>
           <div className="footer-contact">

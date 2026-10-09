@@ -163,6 +163,7 @@ export async function saveClient(
       (key) => typeof input[key as keyof AdminClient] !== "string",
     ) ||
     input.notes.length > 1000 ||
+    typeof input.whatsappOptIn !== "boolean" ||
     Object.keys(validateContactDetails(input)).length
   )
     return {
@@ -181,6 +182,8 @@ export async function saveClient(
     phone: input.phone,
     email: input.email.trim(),
     notes: input.notes.trim(),
+    // The database records the date when consent is given and clears it when withdrawn.
+    whatsapp_opt_in: input.whatsappOptIn,
   };
   const result = existing
     ? await session.supabase

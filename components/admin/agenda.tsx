@@ -44,8 +44,10 @@ export function Agenda({
   const visible = appointments
     .filter((appointment) => {
       const client = clients.find((item) => item.id === appointment.clientId);
+      const query = normalizeSearch(search);
       return (
-        normalizeSearch(client?.name ?? "").includes(normalizeSearch(search)) &&
+        (normalizeSearch(client?.name ?? "").includes(query) ||
+          normalizeSearch(appointment.code).includes(query)) &&
         (professional === "todos" ||
           appointment.performedBy === professional) &&
         (status === "todos" || appointment.status === status)
@@ -85,7 +87,7 @@ export function Agenda({
             value={search}
             onChange={setSearch}
             label="Buscar atendimento"
-            placeholder="Buscar cliente…"
+            placeholder="Buscar cliente ou código…"
           />
           {role === "dono" && (
             <label className="lb-filter">
@@ -159,6 +161,9 @@ export function Agenda({
                           "—"}{" "}
                         min
                       </small>
+                      {appointment.code && (
+                        <small className="lb-code">{appointment.code}</small>
+                      )}
                     </td>
                     <td
                       data-label="Cliente / serviço"
@@ -227,6 +232,9 @@ export function Agenda({
                           )}
                         </select>
                       </label>
+                      {appointment.cancelledByClient && (
+                        <small>Cancelado pelo cliente no site</small>
+                      )}
                     </td>
                     <td className="lb-row-action">
                       <button

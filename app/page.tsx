@@ -55,6 +55,7 @@ export default async function Home() {
         id: service.id,
         slug: service.slug,
         category: service.category,
+        popular: service.popular,
         summary: service.summary || service.description,
         photo: service.homeImage
           ? {
@@ -210,7 +211,12 @@ export default async function Home() {
                 />
               </div>
               <div className={styles.serviceCopy}>
-                <h3>{service.category}</h3>
+                <h3>
+                  {service.category}
+                  {"popular" in service && service.popular && (
+                    <span className="popular-badge">Mais pedido</span>
+                  )}
+                </h3>
                 <p>{service.summary}</p>
                 <span className={`action-link ${styles.serviceMore}`}>
                   <ActionContent>Ver serviço</ActionContent>

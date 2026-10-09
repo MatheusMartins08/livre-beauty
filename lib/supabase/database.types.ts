@@ -65,7 +65,9 @@ export type Database = {
       appointments: {
         Row: {
           booked_with: string | null
+          client_cancelled_at: string | null
           client_id: string
+          code: string
           created_at: string
           ends_at: string
           id: string
@@ -81,7 +83,9 @@ export type Database = {
         }
         Insert: {
           booked_with?: string | null
+          client_cancelled_at?: string | null
           client_id: string
+          code?: string
           created_at?: string
           ends_at: string
           id?: string
@@ -97,7 +101,9 @@ export type Database = {
         }
         Update: {
           booked_with?: string | null
+          client_cancelled_at?: string | null
           client_id?: string
+          code?: string
           created_at?: string
           ends_at?: string
           id?: string
@@ -178,6 +184,8 @@ export type Database = {
           notes: string
           phone: string
           updated_at: string
+          whatsapp_opt_in: boolean
+          whatsapp_opt_in_at: string | null
         }
         Insert: {
           created_at?: string
@@ -187,6 +195,8 @@ export type Database = {
           notes?: string
           phone: string
           updated_at?: string
+          whatsapp_opt_in?: boolean
+          whatsapp_opt_in_at?: string | null
         }
         Update: {
           created_at?: string
@@ -196,6 +206,8 @@ export type Database = {
           notes?: string
           phone?: string
           updated_at?: string
+          whatsapp_opt_in?: boolean
+          whatsapp_opt_in_at?: string | null
         }
         Relationships: []
       }
@@ -205,6 +217,7 @@ export type Database = {
           created_at: string
           id: string
           opens_at: string
+          stylist_id: string | null
           updated_at: string
           weekday: number
         }
@@ -213,6 +226,7 @@ export type Database = {
           created_at?: string
           id?: string
           opens_at: string
+          stylist_id?: string | null
           updated_at?: string
           weekday: number
         }
@@ -221,16 +235,27 @@ export type Database = {
           created_at?: string
           id?: string
           opens_at?: string
+          stylist_id?: string | null
           updated_at?: string
           weekday?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "opening_periods_stylist_id_fkey"
+            columns: ["stylist_id"]
+            isOneToOne: false
+            referencedRelation: "stylists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salon_settings: {
         Row: {
           booking_window_days: number
+          cancel_min_notice_minutes: number
           created_at: string
           demo_commission_rate: number
+          history_retention_months: number | null
           id: boolean
           show_prices: boolean
           slot_interval_minutes: number
@@ -239,8 +264,10 @@ export type Database = {
         }
         Insert: {
           booking_window_days?: number
+          cancel_min_notice_minutes?: number
           created_at?: string
           demo_commission_rate?: number
+          history_retention_months?: number | null
           id?: boolean
           show_prices?: boolean
           slot_interval_minutes?: number
@@ -249,8 +276,10 @@ export type Database = {
         }
         Update: {
           booking_window_days?: number
+          cancel_min_notice_minutes?: number
           created_at?: string
           demo_commission_rate?: number
+          history_retention_months?: number | null
           id?: boolean
           show_prices?: boolean
           slot_interval_minutes?: number
@@ -360,6 +389,7 @@ export type Database = {
           image: string
           image_position: string
           name: string
+          popular: boolean
           price: number
           slug: string
           sort_order: number
@@ -380,6 +410,7 @@ export type Database = {
           image: string
           image_position?: string
           name: string
+          popular?: boolean
           price: number
           slug: string
           sort_order?: number
@@ -400,6 +431,7 @@ export type Database = {
           image?: string
           image_position?: string
           name?: string
+          popular?: boolean
           price?: number
           slug?: string
           sort_order?: number
@@ -431,21 +463,27 @@ export type Database = {
       }
       staff_profiles: {
         Row: {
+          active: boolean
           created_at: string
+          login: string | null
           role: Database["public"]["Enums"]["app_role"]
           stylist_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          active?: boolean
           created_at?: string
+          login?: string | null
           role: Database["public"]["Enums"]["app_role"]
           stylist_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          active?: boolean
           created_at?: string
+          login?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           stylist_id?: string | null
           updated_at?: string
@@ -582,11 +620,20 @@ export type Database = {
               p_service_ids: string[]
               p_starts_at: string
               p_stylist_id: string
+              p_whatsapp_opt_in?: boolean
             }
             Returns: Json
           }
+      cancel_reservation: {
+        Args: { p_code: string; p_phone: string }
+        Returns: Json
+      }
       delete_service: { Args: { p_id: string }; Returns: string }
       delete_stylist: { Args: { p_id: string }; Returns: string }
+      get_reservation: {
+        Args: { p_code: string; p_phone: string }
+        Returns: Json
+      }
       get_opening_calendar: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -599,6 +646,15 @@ export type Database = {
         Args: never
         Returns: {
           commission_rate: number
+        }[]
+      }
+      preview_history_purge: {
+        Args: { p_months: number }
+        Returns: {
+          appointments: number
+          clients: number
+          cutoff: string
+          exceptions: number
         }[]
       }
       reorder_catalog: {
@@ -619,7 +675,10 @@ export type Database = {
         }
         Returns: string
       }
-      save_opening_periods: { Args: { p_periods: Json }; Returns: undefined }
+      save_opening_periods: {
+        Args: { p_periods: Json; p_stylist_id?: string }
+        Returns: undefined
+      }
       save_service: {
         Args: {
           p_active: boolean
@@ -634,6 +693,7 @@ export type Database = {
           p_image: string
           p_image_position: string
           p_name: string
+          p_popular?: boolean
           p_price: number
           p_slug: string
           p_stylist_ids: string[]

@@ -1,5 +1,6 @@
 import { BookingWizard } from "@/components/booking-wizard";
-import { PageIntro } from "@/components/ui";
+import Link from "next/link";
+import { ActionContent, PageIntro } from "@/components/ui";
 import { pageMetadata } from "@/lib/metadata";
 import { getOpeningCalendar, getPublicCatalog } from "@/lib/supabase/catalog";
 import { getPublicSite, whatsappNumber } from "@/lib/supabase/site";
@@ -56,6 +57,12 @@ export default async function BookingPage({
             dates={window.filter((date) => calendar.has(date))}
           />
         </CatalogProvider>
+        <p className="fine-print mt-10">
+          Já agendou?{" "}
+          <Link href="/agendamento/minha-reserva" className="action-link action-inline">
+            <ActionContent>Consulte ou cancele sua reserva</ActionContent>
+          </Link>
+        </p>
       </section>
     </div>
   );

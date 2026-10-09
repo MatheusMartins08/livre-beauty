@@ -40,6 +40,23 @@ export default function PrivacyPage() {
             clientes. Para solicitar correção ou exclusão de seus dados, entre
             em contato com o ateliê.
           </p>
+          <p>
+            Cada agendamento recebe um código de reserva. Com ele e o celular
+            informado, a página Minha reserva mostra o serviço, o profissional
+            e o horário, sem exibir seus contatos, e permite cancelar dentro do
+            prazo definido pelo ateliê.
+          </p>
+          <p>
+            Receber mensagens do ateliê pelo WhatsApp é opcional e depende da
+            sua autorização, registrada com a data em que foi dada. Você pode
+            retirá-la a qualquer momento falando com o ateliê.
+          </p>
+          <p>
+            O ateliê pode definir um prazo de guarda do histórico. Quando
+            definido, atendimentos anteriores a esse prazo, os cadastros sem
+            atendimentos desde então e os registros de agenda encerrados são
+            excluídos automaticamente.
+          </p>
         </section>
         <section>
           <h2>Cookies e medição</h2>
