@@ -69,16 +69,20 @@ Estas regras se aplicam a todos os chats e agentes que trabalham neste projeto.
 - Login local: `http://localhost:3000/painel/entrar`.
 - Painel local: `http://localhost:3000/painel`; sem sessão, redireciona ao login.
   No site publicado, usar os mesmos caminhos no domínio do projeto.
-- A autenticação é real, via Supabase Auth com e-mail e senha, e exige vínculo
+- A autenticação é real, via Supabase Auth com senha, e exige vínculo ativo
   em `public.staff_profiles`. Não há login demonstrativo nem credenciais padrão.
+  O dono entra com o e-mail; cada profissional entra com o usuário criado pelo
+  dono no painel (`docs/staff-access.md`).
 - Acesso criado e validado em **07/10/2026** no projeto `mvsginzwrlspwgcxphtd`:
   e-mail `admin@gmail.com`, papel `owner`, sem profissional vinculado.
   A senha foi definida exatamente como solicitado pelo usuário neste chat;
   não está armazenada nas instruções nem em arquivos versionados.
   Login pelo formulário, sessão após recarregar e logout foram verificados.
-- Para criar novas contas, o usuário deve informar o e-mail escolhido e
-  autorizar a criação. Cadastrar pelo Supabase Auth e vincular o UUID em
-  `staff_profiles` com o papel apropriado, seguindo `docs/database.md`.
+- Contas da equipe: o dono cria, desativa e redefine pelo painel, em
+  Edição do site → Profissionais → Acesso ao painel. Novas contas de dono
+  exigem que o usuário informe o e-mail e autorize a criação; cadastrar pelo
+  Supabase Auth e vincular o UUID em `staff_profiles`, seguindo
+  `docs/database.md`. Agentes não criam contas de teste sem autorização.
   Não inventar credenciais, criar contas sem solicitação ou remover a proteção
   do painel para contornar uma falha de login.
 - Para localizar ou redefinir o acesso, abrir Authentication → Users no
